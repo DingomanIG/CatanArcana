@@ -21,10 +21,23 @@
       "Bash(gh auth:*)",
       "Bash(git init:*)",
       "Bash(git add:*)",
-      "Bash(powershell -ExecutionPolicy Bypass -File:*)"
+      "Bash(powershell -ExecutionPolicy Bypass -File:*)",
+      "Bash(unity-cli refresh:*)",
+      "Bash(unity-cli menu:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(cmd //c \"mkdir C:\\\\Users\\\\bonek\\\\Documents\\\\AntigravityFolder\\\\ArcanaCatan\\\\ArcanaCatan\\\\Assets\\\\Scripts\")",
+      "Bash(powershell -ExecutionPolicy Bypass -Command:*)",
+      "Bash(\"c:/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Assets/Scripts.meta\":*)",
+      "Bash(\"c:/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Assets/Scripts/CameraController.cs.meta\":*)",
+      "Bash(cmd //c \"mkdir C:\\\\Users\\\\bonek\\\\Documents\\\\AntigravityFolder\\\\ArcanaCatan\\\\ArcanaCatan\\\\Assets\\\\Scripts\\\\Network\")",
+      "Bash(\"c:/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Assets/Scripts/Network.meta\":*)"
     ],
     "additionalDirectories": [
-      "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\$BASE\\Art"
+      "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\$BASE\\Art",
+      "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\Assets\\Scripts"
     ]
   }
 }

@@ -11,6 +11,7 @@
 | 엔진 | Unity 6 (URP) |
 | 네트워크 | Netcode for GameObjects + Relay + Lobby |
 | UI | UI Toolkit |
+| 개발도구 | Claude Code + CLAUDE.md (프로젝트 컨텍스트 문서) |
 
 ## 핵심 게임플레이
 
@@ -121,3 +122,9 @@
 - 건설 메뉴
 - 발전카드 목록
 - 결과 화면
+
+## 개발 환경
+
+- **Claude Code**: AI 기반 개발 어시스턴트로 코드 생성/리팩토링/디버깅 전반에 활용
+- **CLAUDE.md**: 프로젝트 루트의 컨텍스트 문서로 프로젝트 구조, 컨벤션, 기술 스택 정보를 Claude에게 제공. 세션 간 일관된 개발 품질 유지
+- **unity-cli**: CLI를 통해 Claude Code에서 Unity Editor 직접 제어 (플레이/빌드/콘솔/스크린샷 등)
