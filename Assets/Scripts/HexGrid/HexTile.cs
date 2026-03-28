@@ -8,7 +8,8 @@ public enum ResourceType
     Brick,   // 언덕
     Wool,    // 초원
     Wheat,   // 밭
-    Ore      // 산
+    Ore,     // 산
+    Sea      // 바다
 }
 
 /// <summary>헥스 타일 데이터</summary>
@@ -30,7 +31,7 @@ public class HexTile
     }
 
     /// <summary>이 타일이 자원을 생산하는지</summary>
-    public bool ProducesResource => Resource != ResourceType.None && !HasRobber;
+    public bool ProducesResource => Resource != ResourceType.None && Resource != ResourceType.Sea && !HasRobber;
 
     public override string ToString() => $"Tile({Coord}, {Resource}, #{NumberToken})";
 }

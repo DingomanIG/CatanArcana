@@ -10,6 +10,7 @@ public class HexGridView : MonoBehaviour
     [Header("그리드 설정")]
     [SerializeField] float hexSize = 1f;
     [SerializeField] int boardRadius = 2;
+    [SerializeField] int seaRings = 3;
 
     [Header("비주얼 설정")]
     [SerializeField] float tileGap = 0.05f;
@@ -29,6 +30,7 @@ public class HexGridView : MonoBehaviour
         { ResourceType.Wool,  new Color(0.60f, 0.85f, 0.40f) },   // 초원 - 연두
         { ResourceType.Wheat, new Color(0.95f, 0.85f, 0.20f) },   // 밭 - 노랑
         { ResourceType.Ore,   new Color(0.55f, 0.55f, 0.60f) },   // 산 - 회색
+        { ResourceType.Sea,   new Color(0.15f, 0.45f, 0.75f) },   // 바다 - 파랑
     };
 
     public HexGrid Grid => grid;
@@ -41,6 +43,7 @@ public class HexGridView : MonoBehaviour
         grid = new HexGrid(hexSize);
         grid.GenerateHexagonal(boardRadius);
         HexBoardSetup.SetupStandardBoard(grid);
+        AddSeaRings();
 
         BuildVisuals();
     }
@@ -97,7 +100,7 @@ public class HexGridView : MonoBehaviour
 
         var tm = label.AddComponent<TextMesh>();
         tm.text = tile.NumberToken.ToString();
-        tm.characterSize = hexSize * 0.3f;
+        tm.characterSize = hexSize * 0.15f;
         tm.anchor = TextAnchor.MiddleCenter;
         tm.alignment = TextAlignment.Center;
         tm.fontSize = 48;
@@ -186,6 +189,20 @@ public class HexGridView : MonoBehaviour
         return new Material(shader);
     }
 
+    /// <summary>바다 타일 링 추가 (육지 바깥)</summary>
+    void AddSeaRings()
+    {
+        for (int ring = boardRadius + 1; ring <= boardRadius + seaRings; ring++)
+        {
+            var coords = HexCoord.Ring(HexCoord.Zero, ring);
+            foreach (var coord in coords)
+            {
+                var tile = grid.AddTile(coord);
+                tile.Resource = ResourceType.Sea;
+            }
+        }
+    }
+
     /// <summary>보드 크기 변경 후 재생성</summary>
     public void RegenerateBoard(int newRadius)
     {
@@ -195,6 +212,7 @@ public class HexGridView : MonoBehaviour
         {
             HexBoardSetup.SetupStandardBoard(grid);
         }
+        AddSeaRings();
         BuildVisuals();
     }
 }
