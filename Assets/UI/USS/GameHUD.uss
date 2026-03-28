@@ -21,6 +21,7 @@
     top: 0;
     right: 0;
     bottom: 0;
+    picking-mode: ignore;
 }
 
 /* === TOP BAR === */
@@ -59,6 +60,7 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: stretch;
+    picking-mode: ignore;
 }
 
 /* === PLAYER PANEL (LEFT) === */

@@ -38,11 +38,26 @@ public class BuildModeController : MonoBehaviour
 
         uiDocument = FindObjectOfType<UIDocument>();
 
+        // 투명 레이아웃 컨테이너의 picking-mode를 Ignore로 설정
+        // USS만으로 불확실하므로 C#에서도 확실히 설정
+        if (uiDocument != null)
+        {
+            var root = uiDocument.rootVisualElement;
+            SetPickingIgnore(root, "hud-root");
+            SetPickingIgnore(root, "middle-area");
+        }
+
         if (gridView != null && gridView.Grid != null)
         {
             buildingSystem = new BuildingSystem(gridView.Grid);
             Debug.Log("[BuildMode] 건설 시스템 초기화 완료");
         }
+    }
+
+    static void SetPickingIgnore(VisualElement root, string name)
+    {
+        var el = root.Q(name);
+        if (el != null) el.pickingMode = PickingMode.Ignore;
     }
 
     /// <summary>건설 모드 진입</summary>
@@ -120,17 +135,32 @@ public class BuildModeController : MonoBehaviour
         // UI 위에 있으면 무시
         if (IsPointerOverUI()) return;
 
-        // 레이캐스트
+        // RaycastAll로 모든 히트 수집 → 하이라이트 오브젝트 우선
         var ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if (Physics.Raycast(ray, out RaycastHit hit, 100f))
-        {
-            // 호버 하이라이트
-            buildingVisuals.SetHover(hit.collider.gameObject);
+        var hits = Physics.RaycastAll(ray, 100f);
 
-            // 좌클릭: 배치
+        GameObject highlightHit = null;
+        float closestDist = float.MaxValue;
+
+        foreach (var hit in hits)
+        {
+            var go = hit.collider.gameObject;
+            bool isHighlight = buildingVisuals.GetVertexIdFromHighlight(go) >= 0
+                            || buildingVisuals.GetEdgeIdFromHighlight(go) >= 0;
+            if (isHighlight && hit.distance < closestDist)
+            {
+                highlightHit = go;
+                closestDist = hit.distance;
+            }
+        }
+
+        if (highlightHit != null)
+        {
+            buildingVisuals.SetHover(highlightHit);
+
             if (Mouse.current.leftButton.wasPressedThisFrame)
             {
-                TryPlace(hit.collider.gameObject);
+                TryPlace(highlightHit);
             }
         }
         else
@@ -150,11 +180,14 @@ public class BuildModeController : MonoBehaviour
                 int vertexId = buildingVisuals.GetVertexIdFromHighlight(hitObject);
                 if (vertexId < 0) return;
 
+                var modeBefore = currentMode;
+                int playerBefore = activePlayerIndex;
                 if (gm != null && gm.TryBuildSettlement(vertexId))
                 {
                     var vertex = gridView.Grid.Vertices[vertexId];
-                    buildingVisuals.CreateSettlement(vertex, activePlayerIndex);
-                    CancelBuildMode();
+                    buildingVisuals.CreateSettlement(vertex, playerBefore);
+                    if (currentMode == modeBefore)
+                        CancelBuildMode();
                 }
                 break;
             }
@@ -164,11 +197,14 @@ public class BuildModeController : MonoBehaviour
                 int edgeId = buildingVisuals.GetEdgeIdFromHighlight(hitObject);
                 if (edgeId < 0) return;
 
+                var modeBefore = currentMode;
+                int playerBefore = activePlayerIndex;
                 if (gm != null && gm.TryBuildRoad(edgeId))
                 {
                     var edge = gridView.Grid.Edges[edgeId];
-                    buildingVisuals.CreateRoad(edge, activePlayerIndex);
-                    CancelBuildMode();
+                    buildingVisuals.CreateRoad(edge, playerBefore);
+                    if (currentMode == modeBefore)
+                        CancelBuildMode();
                 }
                 break;
             }
@@ -178,11 +214,14 @@ public class BuildModeController : MonoBehaviour
                 int vertexId = buildingVisuals.GetVertexIdFromHighlight(hitObject);
                 if (vertexId < 0) return;
 
+                var modeBefore = currentMode;
+                int playerBefore = activePlayerIndex;
                 if (gm != null && gm.TryBuildCity(vertexId))
                 {
                     var vertex = gridView.Grid.Vertices[vertexId];
-                    buildingVisuals.CreateCity(vertex, activePlayerIndex);
-                    CancelBuildMode();
+                    buildingVisuals.CreateCity(vertex, playerBefore);
+                    if (currentMode == modeBefore)
+                        CancelBuildMode();
                 }
                 break;
             }
@@ -201,7 +240,19 @@ public class BuildModeController : MonoBehaviour
         var uiPos = new Vector2(mousePos.x, Screen.height - mousePos.y);
         var picked = root.panel.Pick(uiPos);
 
-        // root 자체가 아닌 실제 UI 요소를 클릭했는지
-        return picked != null && picked != root;
+        // root 자체이거나 null이면 UI 위가 아님
+        if (picked == null || picked == root) return false;
+
+        // picking-mode: ignore 설정이 안 먹힐 경우 대비
+        // 실제 배경색이 있는 UI 요소만 차단
+        var el = picked;
+        while (el != null && el != root)
+        {
+            if (el.resolvedStyle.backgroundColor.a > 0.01f)
+                return true;
+            el = el.parent;
+        }
+
+        return false;
     }
 }

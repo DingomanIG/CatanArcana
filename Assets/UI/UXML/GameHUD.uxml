@@ -1,195 +1,149 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements"
-         xmlns:uie="UnityEditor.UIElements"
-         xsi="http://www.w3.org/2001/XMLSchema-instance"
-         engine="UnityEngine.UIElements"
-         editor="UnityEditor.UIElements"
-         noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd"
-         editor-extension-mode="False">
-
-    <Style src="../USS/GameHUD.uss" />
-
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/USS/GameHUD.uss?fileID=7433441132597879392&amp;guid=0dc54499dfa709241bb884205f9af73f&amp;type=3#GameHUD"/>
     <ui:VisualElement name="hud-root" class="hud-root">
-
-        <!-- ===== TOP BAR ===== -->
         <ui:VisualElement name="top-bar" class="top-bar">
-            <ui:Label name="turn-number" class="top-bar__label" text="턴: 0" />
-            <ui:Label name="current-player" class="top-bar__label top-bar__player" text="현재 플레이어: -" />
-            <ui:Label name="phase-indicator" class="top-bar__label top-bar__phase" text="대기 중" />
+            <ui:Label name="turn-number" text="턴: 0" class="top-bar__label"/>
+            <ui:Label name="current-player" text="현재 플레이어: -" class="top-bar__label top-bar__player"/>
+            <ui:Label name="phase-indicator" text="대기 중" class="top-bar__label top-bar__phase"/>
         </ui:VisualElement>
-
-        <!-- ===== MIDDLE AREA ===== -->
         <ui:VisualElement name="middle-area" class="middle-area">
-
-            <!-- LEFT: Player List -->
             <ui:VisualElement name="player-panel" class="player-panel">
-                <ui:Label text="플레이어" class="panel-title" />
-                <ui:VisualElement name="player-list" class="player-list" />
+                <ui:Label text="플레이어" class="panel-title"/>
+                <ui:VisualElement name="player-list" class="player-list"/>
             </ui:VisualElement>
-
-            <!-- CENTER: Dice Display -->
             <ui:VisualElement name="dice-display" class="dice-display dice-display--hidden">
                 <ui:VisualElement name="dice-container" class="dice-container">
-                    <ui:VisualElement name="die-1" class="die-face" />
-                    <ui:Label class="dice-plus" text="+" />
-                    <ui:VisualElement name="die-2" class="die-face" />
+                    <ui:VisualElement name="die-1" class="die-face"/>
+                    <ui:Label text="+" class="dice-plus"/>
+                    <ui:VisualElement name="die-2" class="die-face"/>
                 </ui:VisualElement>
-                <ui:Label name="dice-result" class="dice-display__result" text="7" />
+                <ui:Label name="dice-result" text="7" class="dice-display__result"/>
             </ui:VisualElement>
-
-            <!-- RIGHT: Action Panel -->
             <ui:VisualElement name="action-panel" class="action-panel">
-                <ui:Label text="행동" class="panel-title" />
-                <ui:Button name="btn-start-game" class="action-btn action-btn--primary" text="게임 시작" />
-                <ui:Button name="btn-roll-dice" class="action-btn action-btn--primary" text="주사위 굴리기" />
-                <ui:Button name="btn-end-turn" class="action-btn action-btn--warning" text="턴 종료" />
-                <ui:VisualElement class="action-separator" />
-                <ui:Button name="btn-build" class="action-btn" text="건설" />
-                <ui:Button name="btn-trade" class="action-btn" text="거래" />
-                <ui:Button name="btn-buy-devcard" class="action-btn" text="발전카드 구매" />
-                <ui:VisualElement class="action-separator" />
-                <ui:Button name="btn-rules" class="action-btn action-btn--info" text="? 규칙" />
+                <ui:Label text="행동" class="panel-title"/>
+                <ui:Button name="btn-start-game" text="게임 시작" class="action-btn action-btn--primary"/>
+                <ui:Button name="btn-roll-dice" text="주사위 굴리기" class="action-btn action-btn--primary"/>
+                <ui:Button name="btn-end-turn" text="턴 종료" class="action-btn action-btn--warning"/>
+                <ui:VisualElement class="action-separator"/>
+                <ui:Button name="btn-build" text="건설" class="action-btn"/>
+                <ui:Button name="btn-trade" text="거래" class="action-btn"/>
+                <ui:Button name="btn-buy-devcard" text="발전카드 구매" class="action-btn"/>
+                <ui:VisualElement class="action-separator"/>
+                <ui:Button name="btn-rules" text="? 규칙" class="action-btn action-btn--info"/>
             </ui:VisualElement>
-
         </ui:VisualElement>
-
-        <!-- ===== BOTTOM: Resource Panel ===== -->
         <ui:VisualElement name="resource-panel" class="resource-panel">
             <ui:VisualElement name="res-wood" class="resource-item">
-                <ui:VisualElement class="resource-icon resource-icon--wood" />
-                <ui:Label class="resource-name" text="목재" />
-                <ui:Label name="res-wood-count" class="resource-count" text="0" />
+                <ui:VisualElement class="resource-icon resource-icon--wood"/>
+                <ui:Label text="목재" class="resource-name"/>
+                <ui:Label name="res-wood-count" text="0" class="resource-count"/>
             </ui:VisualElement>
             <ui:VisualElement name="res-brick" class="resource-item">
-                <ui:VisualElement class="resource-icon resource-icon--brick" />
-                <ui:Label class="resource-name" text="벽돌" />
-                <ui:Label name="res-brick-count" class="resource-count" text="0" />
+                <ui:VisualElement class="resource-icon resource-icon--brick"/>
+                <ui:Label text="벽돌" class="resource-name"/>
+                <ui:Label name="res-brick-count" text="0" class="resource-count"/>
             </ui:VisualElement>
             <ui:VisualElement name="res-wool" class="resource-item">
-                <ui:VisualElement class="resource-icon resource-icon--wool" />
-                <ui:Label class="resource-name" text="양모" />
-                <ui:Label name="res-wool-count" class="resource-count" text="0" />
+                <ui:VisualElement class="resource-icon resource-icon--wool"/>
+                <ui:Label text="양모" class="resource-name"/>
+                <ui:Label name="res-wool-count" text="0" class="resource-count"/>
             </ui:VisualElement>
             <ui:VisualElement name="res-wheat" class="resource-item">
-                <ui:VisualElement class="resource-icon resource-icon--wheat" />
-                <ui:Label class="resource-name" text="밀" />
-                <ui:Label name="res-wheat-count" class="resource-count" text="0" />
+                <ui:VisualElement class="resource-icon resource-icon--wheat"/>
+                <ui:Label text="밀" class="resource-name"/>
+                <ui:Label name="res-wheat-count" text="0" class="resource-count"/>
             </ui:VisualElement>
             <ui:VisualElement name="res-ore" class="resource-item">
-                <ui:VisualElement class="resource-icon resource-icon--ore" />
-                <ui:Label class="resource-name" text="광석" />
-                <ui:Label name="res-ore-count" class="resource-count" text="0" />
+                <ui:VisualElement class="resource-icon resource-icon--ore"/>
+                <ui:Label text="광석" class="resource-name"/>
+                <ui:Label name="res-ore-count" text="0" class="resource-count"/>
             </ui:VisualElement>
         </ui:VisualElement>
-
-        <!-- ===== OVERLAY: Build Menu ===== -->
         <ui:VisualElement name="build-overlay" class="overlay overlay--hidden">
             <ui:VisualElement class="overlay-panel build-panel">
-                <ui:Label text="건설 메뉴" class="overlay-title" />
+                <ui:Label text="건설 메뉴" class="overlay-title"/>
                 <ui:VisualElement class="build-grid">
                     <ui:VisualElement class="build-option">
-                        <ui:Label class="build-option__name" text="도로" />
-                        <ui:Label class="build-option__cost" text="목재 1 + 벽돌 1" />
-                        <ui:Button name="btn-build-road" class="build-option__btn" text="건설" />
+                        <ui:Label text="도로" class="build-option__name"/>
+                        <ui:Label text="목재 1 + 벽돌 1" class="build-option__cost"/>
+                        <ui:Button name="btn-build-road" text="건설" class="build-option__btn"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="build-option">
-                        <ui:Label class="build-option__name" text="마을" />
-                        <ui:Label class="build-option__cost" text="목재 1 + 벽돌 1 + 양모 1 + 밀 1" />
-                        <ui:Button name="btn-build-settlement" class="build-option__btn" text="건설" />
+                        <ui:Label text="마을" class="build-option__name"/>
+                        <ui:Label text="목재 1 + 벽돌 1 + 양모 1 + 밀 1" class="build-option__cost"/>
+                        <ui:Button name="btn-build-settlement" text="건설" class="build-option__btn"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="build-option">
-                        <ui:Label class="build-option__name" text="도시" />
-                        <ui:Label class="build-option__cost" text="밀 2 + 광석 3" />
-                        <ui:Button name="btn-build-city" class="build-option__btn" text="건설" />
+                        <ui:Label text="도시" class="build-option__name"/>
+                        <ui:Label text="밀 2 + 광석 3" class="build-option__cost"/>
+                        <ui:Button name="btn-build-city" text="건설" class="build-option__btn"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="build-option">
-                        <ui:Label class="build-option__name" text="발전카드" />
-                        <ui:Label class="build-option__cost" text="양모 1 + 밀 1 + 광석 1" />
-                        <ui:Button name="btn-build-devcard" class="build-option__btn" text="구매" />
+                        <ui:Label text="발전카드" class="build-option__name"/>
+                        <ui:Label text="양모 1 + 밀 1 + 광석 1" class="build-option__cost"/>
+                        <ui:Button name="btn-build-devcard" text="구매" class="build-option__btn"/>
                     </ui:VisualElement>
                 </ui:VisualElement>
-                <ui:Button name="btn-close-build" class="overlay-close-btn" text="닫기" />
+                <ui:Button name="btn-close-build" text="닫기" class="overlay-close-btn"/>
             </ui:VisualElement>
         </ui:VisualElement>
-
-        <!-- ===== OVERLAY: Trade Panel ===== -->
         <ui:VisualElement name="trade-overlay" class="overlay overlay--hidden">
             <ui:VisualElement class="overlay-panel trade-panel">
-                <ui:Label text="거래" class="overlay-title" />
-                <ui:Label class="placeholder-text" text="거래 시스템 준비 중..." />
-                <ui:Button name="btn-close-trade" class="overlay-close-btn" text="닫기" />
+                <ui:Label text="거래" class="overlay-title"/>
+                <ui:Label text="거래 시스템 준비 중..." class="placeholder-text"/>
+                <ui:Button name="btn-close-trade" text="닫기" class="overlay-close-btn"/>
             </ui:VisualElement>
         </ui:VisualElement>
-
-        <!-- ===== OVERLAY: Rules ===== -->
         <ui:VisualElement name="rules-overlay" class="overlay overlay--hidden">
             <ui:VisualElement class="overlay-panel rules-panel">
-                <ui:Label text="카탄의 개척자들 - 게임 규칙" class="overlay-title" />
+                <ui:Label text="카탄의 개척자들 - 게임 규칙" class="overlay-title"/>
                 <ui:ScrollView class="rules-scroll">
-
-                    <!-- 게임 목표 -->
-                    <ui:Label class="rules-section-title" text="게임 목표" />
-                    <ui:Label class="rules-text" text="자원을 모아 도로, 마을, 도시를 건설하여 10 승리점을 먼저 달성하면 승리!" />
-
-                    <!-- 승리점 -->
-                    <ui:Label class="rules-section-title" text="승리점 획득" />
-                    <ui:Label class="rules-text" text="마을 = 1점 | 도시 = 2점&#10;최장교역로 (도로 5개+) = 2점&#10;최대기사단 (기사 3장+) = 2점&#10;승리점 발전카드 = 1점" />
-
-                    <!-- 자원 -->
-                    <ui:Label class="rules-section-title" text="자원 (5종)" />
+                    <ui:Label text="게임 목표" class="rules-section-title"/>
+                    <ui:Label text="자원을 모아 도로, 마을, 도시를 건설하여 10 승리점을 먼저 달성하면 승리!" class="rules-text"/>
+                    <ui:Label text="승리점 획득" class="rules-section-title"/>
+                    <ui:Label text="마을 = 1점 | 도시 = 2점&#10;최장교역로 (도로 5개+) = 2점&#10;최대기사단 (기사 3장+) = 2점&#10;승리점 발전카드 = 1점" class="rules-text"/>
+                    <ui:Label text="자원 (5종)" class="rules-section-title"/>
                     <ui:VisualElement class="rules-resource-list">
                         <ui:VisualElement class="rules-resource-row">
-                            <ui:VisualElement class="resource-icon resource-icon--wood rules-resource-icon" />
-                            <ui:Label class="rules-text-inline" text="목재 (숲)" />
+                            <ui:VisualElement class="resource-icon resource-icon--wood rules-resource-icon"/>
+                            <ui:Label text="목재 (숲)" class="rules-text-inline"/>
                         </ui:VisualElement>
                         <ui:VisualElement class="rules-resource-row">
-                            <ui:VisualElement class="resource-icon resource-icon--brick rules-resource-icon" />
-                            <ui:Label class="rules-text-inline" text="벽돌 (언덕)" />
+                            <ui:VisualElement class="resource-icon resource-icon--brick rules-resource-icon"/>
+                            <ui:Label text="벽돌 (언덕)" class="rules-text-inline"/>
                         </ui:VisualElement>
                         <ui:VisualElement class="rules-resource-row">
-                            <ui:VisualElement class="resource-icon resource-icon--wool rules-resource-icon" />
-                            <ui:Label class="rules-text-inline" text="양모 (초원)" />
+                            <ui:VisualElement class="resource-icon resource-icon--wool rules-resource-icon"/>
+                            <ui:Label text="양모 (초원)" class="rules-text-inline"/>
                         </ui:VisualElement>
                         <ui:VisualElement class="rules-resource-row">
-                            <ui:VisualElement class="resource-icon resource-icon--wheat rules-resource-icon" />
-                            <ui:Label class="rules-text-inline" text="밀 (밭)" />
+                            <ui:VisualElement class="resource-icon resource-icon--wheat rules-resource-icon"/>
+                            <ui:Label text="밀 (밭)" class="rules-text-inline"/>
                         </ui:VisualElement>
                         <ui:VisualElement class="rules-resource-row">
-                            <ui:VisualElement class="resource-icon resource-icon--ore rules-resource-icon" />
-                            <ui:Label class="rules-text-inline" text="광석 (산)" />
+                            <ui:VisualElement class="resource-icon resource-icon--ore rules-resource-icon"/>
+                            <ui:Label text="광석 (산)" class="rules-text-inline"/>
                         </ui:VisualElement>
                     </ui:VisualElement>
-
-                    <!-- 턴 진행 -->
-                    <ui:Label class="rules-section-title" text="턴 진행" />
-                    <ui:Label class="rules-subtitle" text="1. 주사위 굴리기" />
-                    <ui:Label class="rules-text" text="2d6 굴림 → 해당 숫자 타일에 인접한 마을은 자원 1개, 도시는 2개 획득. 7이 나오면 도적 이동!" />
-                    <ui:Label class="rules-subtitle" text="2. 거래" />
-                    <ui:Label class="rules-text" text="은행 거래: 같은 자원 4개 → 1개&#10;일반 항구: 3:1 | 특수 항구: 2:1&#10;플레이어 간 자유 거래 가능" />
-                    <ui:Label class="rules-subtitle" text="3. 건설" />
-                    <ui:Label class="rules-text" text="도로: 목재1 + 벽돌1&#10;마을: 목재1 + 벽돌1 + 양모1 + 밀1&#10;도시: 밀2 + 광석3 (마을 업그레이드)&#10;발전카드: 양모1 + 밀1 + 광석1" />
-                    <ui:Label class="rules-subtitle" text="4. 턴 종료" />
-
-                    <!-- 건설 규칙 -->
-                    <ui:Label class="rules-section-title" text="건설 규칙" />
-                    <ui:Label class="rules-text" text="도로: 자신의 도로/건물에 연결된 변에만 건설&#10;마을: 자신의 도로에 연결 + 다른 건물과 도로 2칸 이상 거리&#10;도시: 자신의 마을을 업그레이드" />
-
-                    <!-- 도적 -->
-                    <ui:Label class="rules-section-title" text="도적 (주사위 7)" />
-                    <ui:Label class="rules-text" text="1. 자원 8장 이상인 플레이어는 절반 버림&#10;2. 도적을 원하는 타일로 이동&#10;3. 도적 타일은 자원 생산 불가&#10;4. 해당 타일의 플레이어에게서 자원 1장 약탈" />
-
-                    <!-- 발전카드 -->
-                    <ui:Label class="rules-section-title" text="발전카드" />
-                    <ui:Label class="rules-text" text="한 턴에 1장만 사용, 구매한 턴에는 사용 불가&#10;&#10;기사 (14장): 도적 이동&#10;승리점 (5장): 즉시 1점&#10;도로건설 (2장): 도로 2개 무료&#10;풍년 (2장): 원하는 자원 2개 획득&#10;독점 (2장): 자원 1종 전부 약탈" />
-
-                    <!-- 확률 팁 -->
-                    <ui:Label class="rules-section-title" text="전략 팁" />
-                    <ui:Label class="rules-text rules-text--tip" text="6과 8이 가장 자주 나옵니다 (7 제외). 이 숫자 근처에 건물을 배치하세요!" />
-
+                    <ui:Label text="턴 진행" class="rules-section-title"/>
+                    <ui:Label text="1. 주사위 굴리기" class="rules-subtitle"/>
+                    <ui:Label text="2d6 굴림 → 해당 숫자 타일에 인접한 마을은 자원 1개, 도시는 2개 획득. 7이 나오면 도적 이동!" class="rules-text"/>
+                    <ui:Label text="2. 거래" class="rules-subtitle"/>
+                    <ui:Label text="은행 거래: 같은 자원 4개 → 1개&#10;일반 항구: 3:1 | 특수 항구: 2:1&#10;플레이어 간 자유 거래 가능" class="rules-text"/>
+                    <ui:Label text="3. 건설" class="rules-subtitle"/>
+                    <ui:Label text="도로: 목재1 + 벽돌1&#10;마을: 목재1 + 벽돌1 + 양모1 + 밀1&#10;도시: 밀2 + 광석3 (마을 업그레이드)&#10;발전카드: 양모1 + 밀1 + 광석1" class="rules-text"/>
+                    <ui:Label text="4. 턴 종료" class="rules-subtitle"/>
+                    <ui:Label text="건설 규칙" class="rules-section-title"/>
+                    <ui:Label text="도로: 자신의 도로/건물에 연결된 변에만 건설&#10;마을: 자신의 도로에 연결 + 다른 건물과 도로 2칸 이상 거리&#10;도시: 자신의 마을을 업그레이드" class="rules-text"/>
+                    <ui:Label text="도적 (주사위 7)" class="rules-section-title"/>
+                    <ui:Label text="1. 자원 8장 이상인 플레이어는 절반 버림&#10;2. 도적을 원하는 타일로 이동&#10;3. 도적 타일은 자원 생산 불가&#10;4. 해당 타일의 플레이어에게서 자원 1장 약탈" class="rules-text"/>
+                    <ui:Label text="발전카드" class="rules-section-title"/>
+                    <ui:Label text="한 턴에 1장만 사용, 구매한 턴에는 사용 불가&#10;&#10;기사 (14장): 도적 이동&#10;승리점 (5장): 즉시 1점&#10;도로건설 (2장): 도로 2개 무료&#10;풍년 (2장): 원하는 자원 2개 획득&#10;독점 (2장): 자원 1종 전부 약탈" class="rules-text"/>
+                    <ui:Label text="전략 팁" class="rules-section-title"/>
+                    <ui:Label text="6과 8이 가장 자주 나옵니다 (7 제외). 이 숫자 근처에 건물을 배치하세요!" class="rules-text rules-text--tip"/>
                 </ui:ScrollView>
-                <ui:Button name="btn-close-rules" class="overlay-close-btn" text="닫기" />
+                <ui:Button name="btn-close-rules" text="닫기" class="overlay-close-btn"/>
             </ui:VisualElement>
         </ui:VisualElement>
-
     </ui:VisualElement>
-
 </ui:UXML>

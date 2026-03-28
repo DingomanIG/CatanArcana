@@ -9,8 +9,9 @@
 ## Tech Stack
 - **Rendering**: URP, Orthographic Camera (45°)
 - **Network**: Netcode for GameObjects + Relay + Lobby (P2P)
-- **UI**: UI Toolkit
+- **UI**: UI Toolkit (UXML + USS + C# Controller)
 - **Input**: Unity Input System
+- **IDE 연동**: Claude Code ↔ Unity Editor (씬/USS/UXML 직접 편집 가능)
 
 ## Architecture Decisions
 - **좌표계**: 큐브 좌표 (q+r+s=0), flat-top 헥스

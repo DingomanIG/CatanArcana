@@ -62,6 +62,7 @@ public static class GameServices
 public enum GamePhase
 {
     WaitingForPlayers,
+    InitialPlacement,
     RollDice,
     Action,
     MoveRobber,

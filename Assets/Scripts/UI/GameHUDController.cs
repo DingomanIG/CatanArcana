@@ -325,17 +325,17 @@ public class GameHUDController : MonoBehaviour
         bool isMyTurn = GM.IsMyTurn();
 
         SetVisible(btnStartGame, phase == GamePhase.WaitingForPlayers && GM.IsHost);
-        SetVisible(btnRollDice, phase == GamePhase.RollDice && isMyTurn);
-        SetVisible(btnEndTurn, phase == GamePhase.Action && isMyTurn);
+        SetVisible(btnRollDice, phase == GamePhase.RollDice);
+        SetVisible(btnEndTurn, phase == GamePhase.Action);
 
         bool actionPhase = phase == GamePhase.Action;
         SetVisible(btnBuild, actionPhase);
         SetVisible(btnTrade, actionPhase);
         SetVisible(btnBuyDevCard, actionPhase);
 
-        btnBuild.SetEnabled(isMyTurn && actionPhase);
-        btnTrade.SetEnabled(isMyTurn && actionPhase);
-        btnBuyDevCard.SetEnabled(isMyTurn && actionPhase);
+        btnBuild.SetEnabled(actionPhase);
+        btnTrade.SetEnabled(actionPhase);
+        btnBuyDevCard.SetEnabled(actionPhase);
     }
 
     void HideAllButtons()
@@ -524,6 +524,7 @@ public class GameHUDController : MonoBehaviour
         GamePhase.WaitingForPlayers => "대기 중",
         GamePhase.RollDice => "주사위 굴리기",
         GamePhase.Action => "행동",
+        GamePhase.InitialPlacement => "초기 배치",
         GamePhase.MoveRobber => "도적 이동",
         GamePhase.GameOver => "게임 종료",
         _ => phase.ToString()

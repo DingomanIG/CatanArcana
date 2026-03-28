@@ -10,7 +10,7 @@ using UnityEngine;
 public class LocalGameManager : MonoBehaviour, IGameManager
 {
     [Header("게임 설정")]
-    [SerializeField, Range(2, 4)] int playerCount = 2;
+    [SerializeField, Range(2, 4)] int playerCount = 4;
 
     [Header("참조")]
     [SerializeField] HexGridView hexGridView;
@@ -20,6 +20,11 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     int currentPlayerIndex;
     GamePhase currentPhase = GamePhase.WaitingForPlayers;
     BuildMode currentBuildMode = BuildMode.None;
+
+    // 초기 배치 상태
+    int initialRound;         // 0 = 정순, 1 = 역순
+    bool initialWaitingForRoad; // true = 도로 대기 중 (마을 배치 후)
+    int lastPlacedVertexId;   // 마을 배치 후 도로 연결용
 
     // 시스템
     HexGrid grid;
@@ -34,7 +39,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
     public int TurnNumber => turnNumber;
     public int CurrentPlayerIndex => currentPlayerIndex;
-    public int LocalPlayerIndex => 0;
+    public int LocalPlayerIndex => currentPlayerIndex; // 테스트용: 항상 현재 플레이어 = 로컬
     public int PlayerCount => playerCount;
     public GamePhase CurrentPhase => currentPhase;
     public bool IsHost => true;
@@ -83,28 +88,21 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     public void StartGame()
     {
         currentPlayerIndex = 0;
-        turnNumber = 1;
+        turnNumber = 0;
+        initialRound = 0;
+        initialWaitingForRoad = false;
 
-        // 초기 테스트용: 각 플레이어에게 시작 자원 지급
-        for (int i = 0; i < playerCount; i++)
-        {
-            players[i].AddResource(ResourceType.Wood, 4);
-            players[i].AddResource(ResourceType.Brick, 4);
-            players[i].AddResource(ResourceType.Wool, 2);
-            players[i].AddResource(ResourceType.Wheat, 2);
-            players[i].AddResource(ResourceType.Ore, 1);
-            NotifyAllResources(i);
-        }
-
-        SetPhase(GamePhase.RollDice);
+        SetPhase(GamePhase.InitialPlacement);
         OnTurnChanged?.Invoke(currentPlayerIndex);
-        Debug.Log($"[Local] 게임 시작! 턴 1 - {GetPlayerName(0)} (시작 자원 지급됨)");
+        Debug.Log($"[Local] 초기 배치 시작! {GetPlayerName(0)} - 마을을 배치하세요");
+
+        // 자동으로 마을 건설 모드 진입
+        StartInitialSettlementMode();
     }
 
     public void RollDice()
     {
         if (currentPhase != GamePhase.RollDice) return;
-        if (!IsMyTurn()) return;
 
         int die1 = UnityEngine.Random.Range(1, 7);
         int die2 = UnityEngine.Random.Range(1, 7);
@@ -127,7 +125,6 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     public void EndTurn()
     {
         if (currentPhase != GamePhase.Action) return;
-        if (!IsMyTurn()) return;
 
         CancelBuildMode();
 
@@ -139,12 +136,121 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         Debug.Log($"[Local] 턴 {turnNumber} - {GetPlayerName(currentPlayerIndex)}");
     }
 
-    public bool IsMyTurn() => currentPlayerIndex == LocalPlayerIndex;
+    public bool IsMyTurn() => true; // 테스트용: 항상 내 턴
 
     public string GetPlayerName(int index)
     {
         string name = index < DefaultPlayerNames.Length ? DefaultPlayerNames[index] : $"Player {index + 1}";
-        return index == LocalPlayerIndex ? $"{name} (나)" : name;
+        return $"{name}";
+    }
+
+    // ========================
+    // 초기 배치
+    // ========================
+
+    void StartInitialSettlementMode()
+    {
+        BuildModeController.Instance?.SetInitialPlacement(true);
+        BuildModeController.Instance?.EnterBuildMode(BuildMode.PlacingSettlement);
+    }
+
+    void StartInitialRoadMode()
+    {
+        BuildModeController.Instance?.SetInitialPlacement(true);
+        BuildModeController.Instance?.EnterBuildMode(BuildMode.PlacingRoad);
+    }
+
+    /// <summary>초기 배치 진행: 마을 배치 후 호출</summary>
+    void OnInitialSettlementPlaced(int vertexId)
+    {
+        lastPlacedVertexId = vertexId;
+        initialWaitingForRoad = true;
+        Debug.Log($"[Local] {GetPlayerName(currentPlayerIndex)} 마을 배치 완료 → 도로를 배치하세요");
+        StartInitialRoadMode();
+    }
+
+    /// <summary>초기 배치 진행: 도로 배치 후 호출</summary>
+    void OnInitialRoadPlaced()
+    {
+        initialWaitingForRoad = false;
+
+        // 역순(2라운드)에서 두 번째 마을 인접 자원 지급
+        if (initialRound == 1)
+        {
+            GrantInitialResources(lastPlacedVertexId);
+        }
+
+        // 다음 플레이어로
+        if (!AdvanceInitialPlacement())
+        {
+            // 초기 배치 완료 → 본 게임 시작
+            FinishInitialPlacement();
+        }
+    }
+
+    /// <summary>다음 초기 배치 플레이어 진행. false = 초기 배치 종료</summary>
+    bool AdvanceInitialPlacement()
+    {
+        if (initialRound == 0)
+        {
+            // 정순: 0 → 1 → 2 → 3
+            if (currentPlayerIndex < playerCount - 1)
+            {
+                currentPlayerIndex++;
+            }
+            else
+            {
+                // 정순 끝 → 역순 시작 (마지막 플레이어부터)
+                initialRound = 1;
+                // currentPlayerIndex는 그대로 (마지막 플레이어가 연속 2번)
+            }
+        }
+        else
+        {
+            // 역순: 3 → 2 → 1 → 0
+            if (currentPlayerIndex > 0)
+            {
+                currentPlayerIndex--;
+            }
+            else
+            {
+                // 역순 끝 → 초기 배치 종료
+                return false;
+            }
+        }
+
+        OnTurnChanged?.Invoke(currentPlayerIndex);
+        Debug.Log($"[Local] 초기 배치 - {GetPlayerName(currentPlayerIndex)} 마을을 배치하세요 (라운드 {initialRound + 1})");
+        StartInitialSettlementMode();
+        return true;
+    }
+
+    /// <summary>두 번째 마을 인접 타일 자원 지급</summary>
+    void GrantInitialResources(int vertexId)
+    {
+        var vertex = grid.Vertices[vertexId];
+        var player = players[currentPlayerIndex];
+
+        foreach (var tile in vertex.AdjacentTiles)
+        {
+            if (tile.ProducesResource)
+            {
+                player.AddResource(tile.Resource, 1);
+                OnResourceChanged?.Invoke(currentPlayerIndex, tile.Resource, player.Resources[tile.Resource]);
+                Debug.Log($"[Local] {GetPlayerName(currentPlayerIndex)}: 초기 자원 +1 {tile.Resource}");
+            }
+        }
+    }
+
+    void FinishInitialPlacement()
+    {
+        BuildModeController.Instance?.SetInitialPlacement(false);
+        currentPlayerIndex = 0;
+        turnNumber = 1;
+
+        SetPhase(GamePhase.RollDice);
+        OnTurnChanged?.Invoke(currentPlayerIndex);
+        Debug.Log($"[Local] 초기 배치 완료! 본 게임 시작 - 턴 1 {GetPlayerName(0)}");
     }
 
     // ========================
@@ -236,12 +342,14 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     }
 
     // ========================
-    // 건설 (BuildModeController가 호출)
+    // 건설
     // ========================
 
     public void EnterBuildMode(BuildMode mode)
     {
-        if (currentPhase != GamePhase.Action || !IsMyTurn()) return;
+        if (currentPhase == GamePhase.InitialPlacement) return; // 초기 배치는 자동 진행
+
+        if (currentPhase != GamePhase.Action) return;
 
         var player = players[currentPlayerIndex];
         var cost = GetBuildCost(mode);
@@ -254,7 +362,6 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         currentBuildMode = mode;
         OnBuildModeChanged?.Invoke(mode);
 
-        // BuildModeController가 하이라이트 + 입력 처리
         BuildModeController.Instance?.EnterBuildMode(mode);
     }
 
@@ -267,21 +374,35 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
     public bool TryBuildSettlement(int vertexId)
     {
-        if (currentPhase != GamePhase.Action) return false;
+        bool isInitial = currentPhase == GamePhase.InitialPlacement;
+
+        if (!isInitial && currentPhase != GamePhase.Action) return false;
 
         var player = players[currentPlayerIndex];
-        if (!player.CanAfford(BuildingCosts.Settlement)) return false;
+
+        // 초기 배치: 자원 소모 없음
+        if (!isInitial)
+        {
+            if (!player.CanAfford(BuildingCosts.Settlement)) return false;
+        }
         if (player.SettlementsRemaining <= 0) return false;
-        if (!buildingSystem.CanPlaceSettlement(vertexId, currentPlayerIndex)) return false;
+        if (!buildingSystem.CanPlaceSettlement(vertexId, currentPlayerIndex, isInitial)) return false;
 
         buildingSystem.PlaceSettlement(vertexId, currentPlayerIndex);
-        player.DeductCost(BuildingCosts.Settlement);
+        if (!isInitial)
+            player.DeductCost(BuildingCosts.Settlement);
         player.SettlementsRemaining--;
         player.OwnedVertices.Add(grid.Vertices[vertexId]);
 
-        NotifyAllResources(currentPlayerIndex);
+        if (!isInitial)
+            NotifyAllResources(currentPlayerIndex);
         OnBuildingPlaced?.Invoke(currentPlayerIndex, vertexId, BuildingType.Settlement);
         CheckVictory(currentPlayerIndex);
+
+        // 초기 배치: 마을 후 도로로 자동 전환
+        if (isInitial)
+            OnInitialSettlementPlaced(vertexId);
+
         return true;
     }
 
@@ -307,20 +428,33 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
     public bool TryBuildRoad(int edgeId)
     {
-        if (currentPhase != GamePhase.Action) return false;
+        bool isInitial = currentPhase == GamePhase.InitialPlacement;
+
+        if (!isInitial && currentPhase != GamePhase.Action) return false;
 
         var player = players[currentPlayerIndex];
-        if (!player.CanAfford(BuildingCosts.Road)) return false;
+
+        if (!isInitial)
+        {
+            if (!player.CanAfford(BuildingCosts.Road)) return false;
+        }
         if (player.RoadsRemaining <= 0) return false;
-        if (!buildingSystem.CanPlaceRoad(edgeId, currentPlayerIndex)) return false;
+        if (!buildingSystem.CanPlaceRoad(edgeId, currentPlayerIndex, isInitial)) return false;
 
         buildingSystem.PlaceRoad(edgeId, currentPlayerIndex);
-        player.DeductCost(BuildingCosts.Road);
+        if (!isInitial)
+            player.DeductCost(BuildingCosts.Road);
         player.RoadsRemaining--;
         player.OwnedEdges.Add(grid.Edges[edgeId]);
 
-        NotifyAllResources(currentPlayerIndex);
+        if (!isInitial)
+            NotifyAllResources(currentPlayerIndex);
         OnRoadPlaced?.Invoke(currentPlayerIndex, edgeId);
+
+        // 초기 배치: 도로 후 다음 플레이어로
+        if (isInitial)
+            OnInitialRoadPlaced();
+
         return true;
     }
 

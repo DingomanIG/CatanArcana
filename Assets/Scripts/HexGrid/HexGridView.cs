@@ -14,8 +14,8 @@ public class HexGridView : MonoBehaviour
 
     [Header("비주얼 설정")]
     [SerializeField] float tileGap = 0.05f;
-    [SerializeField] bool showVertices = true;
-    [SerializeField] bool showEdges = true;
+    [SerializeField] bool showVertices = false;
+    [SerializeField] bool showEdges = false;
 
     HexGrid grid;
     Dictionary<HexCoord, GameObject> tileViews = new();
