@@ -43,8 +43,11 @@ public class GameHUDController : MonoBehaviour
     // Overlays
     VisualElement buildOverlay;
     VisualElement tradeOverlay;
+    VisualElement rulesOverlay;
     Button btnCloseBuild;
     Button btnCloseTrade;
+    Button btnRules;
+    Button btnCloseRules;
 
     // Build Buttons
     Button btnBuildRoad;
@@ -103,8 +106,11 @@ public class GameHUDController : MonoBehaviour
 
         buildOverlay = root.Q<VisualElement>("build-overlay");
         tradeOverlay = root.Q<VisualElement>("trade-overlay");
+        rulesOverlay = root.Q<VisualElement>("rules-overlay");
         btnCloseBuild = root.Q<Button>("btn-close-build");
         btnCloseTrade = root.Q<Button>("btn-close-trade");
+        btnRules = root.Q<Button>("btn-rules");
+        btnCloseRules = root.Q<Button>("btn-close-rules");
 
         btnBuildRoad = root.Q<Button>("btn-build-road");
         btnBuildSettlement = root.Q<Button>("btn-build-settlement");
@@ -162,6 +168,8 @@ public class GameHUDController : MonoBehaviour
         btnBuyDevCard.clicked += OnBuyDevCardClicked;
         btnCloseBuild.clicked += OnCloseBuildClicked;
         btnCloseTrade.clicked += OnCloseTradeClicked;
+        btnRules.clicked += OnRulesClicked;
+        btnCloseRules.clicked += OnCloseRulesClicked;
 
         btnBuildRoad.clicked += () => Debug.Log("[HUD] 도로 건설 (미구현)");
         btnBuildSettlement.clicked += () => Debug.Log("[HUD] 마을 건설 (미구현)");
@@ -179,6 +187,8 @@ public class GameHUDController : MonoBehaviour
 
     void OnCloseBuildClicked() => buildOverlay.AddToClassList("overlay--hidden");
     void OnCloseTradeClicked() => tradeOverlay.AddToClassList("overlay--hidden");
+    void OnRulesClicked() => rulesOverlay.RemoveFromClassList("overlay--hidden");
+    void OnCloseRulesClicked() => rulesOverlay.AddToClassList("overlay--hidden");
 
     // ========================
     // EVENT HANDLERS

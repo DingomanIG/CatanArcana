@@ -42,6 +42,8 @@
                 <ui:Button name="btn-build" class="action-btn" text="건설" />
                 <ui:Button name="btn-trade" class="action-btn" text="거래" />
                 <ui:Button name="btn-buy-devcard" class="action-btn" text="발전카드 구매" />
+                <ui:VisualElement class="action-separator" />
+                <ui:Button name="btn-rules" class="action-btn action-btn--info" text="? 규칙" />
             </ui:VisualElement>
 
         </ui:VisualElement>
@@ -111,6 +113,76 @@
                 <ui:Label text="거래" class="overlay-title" />
                 <ui:Label class="placeholder-text" text="거래 시스템 준비 중..." />
                 <ui:Button name="btn-close-trade" class="overlay-close-btn" text="닫기" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- ===== OVERLAY: Rules ===== -->
+        <ui:VisualElement name="rules-overlay" class="overlay overlay--hidden">
+            <ui:VisualElement class="overlay-panel rules-panel">
+                <ui:Label text="카탄의 개척자들 - 게임 규칙" class="overlay-title" />
+                <ui:ScrollView class="rules-scroll">
+
+                    <!-- 게임 목표 -->
+                    <ui:Label class="rules-section-title" text="게임 목표" />
+                    <ui:Label class="rules-text" text="자원을 모아 도로, 마을, 도시를 건설하여 10 승리점을 먼저 달성하면 승리!" />
+
+                    <!-- 승리점 -->
+                    <ui:Label class="rules-section-title" text="승리점 획득" />
+                    <ui:Label class="rules-text" text="마을 = 1점 | 도시 = 2점&#10;최장교역로 (도로 5개+) = 2점&#10;최대기사단 (기사 3장+) = 2점&#10;승리점 발전카드 = 1점" />
+
+                    <!-- 자원 -->
+                    <ui:Label class="rules-section-title" text="자원 (5종)" />
+                    <ui:VisualElement class="rules-resource-list">
+                        <ui:VisualElement class="rules-resource-row">
+                            <ui:VisualElement class="resource-icon resource-icon--wood rules-resource-icon" />
+                            <ui:Label class="rules-text-inline" text="목재 (숲)" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="rules-resource-row">
+                            <ui:VisualElement class="resource-icon resource-icon--brick rules-resource-icon" />
+                            <ui:Label class="rules-text-inline" text="벽돌 (언덕)" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="rules-resource-row">
+                            <ui:VisualElement class="resource-icon resource-icon--wool rules-resource-icon" />
+                            <ui:Label class="rules-text-inline" text="양모 (초원)" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="rules-resource-row">
+                            <ui:VisualElement class="resource-icon resource-icon--wheat rules-resource-icon" />
+                            <ui:Label class="rules-text-inline" text="밀 (밭)" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="rules-resource-row">
+                            <ui:VisualElement class="resource-icon resource-icon--ore rules-resource-icon" />
+                            <ui:Label class="rules-text-inline" text="광석 (산)" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <!-- 턴 진행 -->
+                    <ui:Label class="rules-section-title" text="턴 진행" />
+                    <ui:Label class="rules-subtitle" text="1. 주사위 굴리기" />
+                    <ui:Label class="rules-text" text="2d6 굴림 → 해당 숫자 타일에 인접한 마을은 자원 1개, 도시는 2개 획득. 7이 나오면 도적 이동!" />
+                    <ui:Label class="rules-subtitle" text="2. 거래" />
+                    <ui:Label class="rules-text" text="은행 거래: 같은 자원 4개 → 1개&#10;일반 항구: 3:1 | 특수 항구: 2:1&#10;플레이어 간 자유 거래 가능" />
+                    <ui:Label class="rules-subtitle" text="3. 건설" />
+                    <ui:Label class="rules-text" text="도로: 목재1 + 벽돌1&#10;마을: 목재1 + 벽돌1 + 양모1 + 밀1&#10;도시: 밀2 + 광석3 (마을 업그레이드)&#10;발전카드: 양모1 + 밀1 + 광석1" />
+                    <ui:Label class="rules-subtitle" text="4. 턴 종료" />
+
+                    <!-- 건설 규칙 -->
+                    <ui:Label class="rules-section-title" text="건설 규칙" />
+                    <ui:Label class="rules-text" text="도로: 자신의 도로/건물에 연결된 변에만 건설&#10;마을: 자신의 도로에 연결 + 다른 건물과 도로 2칸 이상 거리&#10;도시: 자신의 마을을 업그레이드" />
+
+                    <!-- 도적 -->
+                    <ui:Label class="rules-section-title" text="도적 (주사위 7)" />
+                    <ui:Label class="rules-text" text="1. 자원 8장 이상인 플레이어는 절반 버림&#10;2. 도적을 원하는 타일로 이동&#10;3. 도적 타일은 자원 생산 불가&#10;4. 해당 타일의 플레이어에게서 자원 1장 약탈" />
+
+                    <!-- 발전카드 -->
+                    <ui:Label class="rules-section-title" text="발전카드" />
+                    <ui:Label class="rules-text" text="한 턴에 1장만 사용, 구매한 턴에는 사용 불가&#10;&#10;기사 (14장): 도적 이동&#10;승리점 (5장): 즉시 1점&#10;도로건설 (2장): 도로 2개 무료&#10;풍년 (2장): 원하는 자원 2개 획득&#10;독점 (2장): 자원 1종 전부 약탈" />
+
+                    <!-- 확률 팁 -->
+                    <ui:Label class="rules-section-title" text="전략 팁" />
+                    <ui:Label class="rules-text rules-text--tip" text="6과 8이 가장 자주 나옵니다 (7 제외). 이 숫자 근처에 건물을 배치하세요!" />
+
+                </ui:ScrollView>
+                <ui:Button name="btn-close-rules" class="overlay-close-btn" text="닫기" />
             </ui:VisualElement>
         </ui:VisualElement>
 

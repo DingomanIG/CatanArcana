@@ -346,3 +346,80 @@
     -unity-text-align: middle-center;
     padding: 24px;
 }
+
+/* === INFO BUTTON === */
+.action-btn--info {
+    background-color: #2a4a5a;
+    border-color: #4a7a8a;
+}
+
+.action-btn--info:hover {
+    background-color: #3a5a6a;
+}
+
+/* === RULES OVERLAY === */
+.rules-panel {
+    min-width: 520px;
+    max-width: 600px;
+    max-height: 80%;
+}
+
+.rules-scroll {
+    max-height: 500px;
+}
+
+.rules-section-title {
+    color: #d4a845;
+    font-size: 16px;
+    -unity-font-style: bold;
+    margin-top: 14px;
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(212, 168, 69, 0.3);
+}
+
+.rules-subtitle {
+    color: #e8dcc8;
+    font-size: 14px;
+    -unity-font-style: bold;
+    margin-top: 8px;
+    margin-bottom: 2px;
+}
+
+.rules-text {
+    color: #c8bca8;
+    font-size: 13px;
+    margin-bottom: 4px;
+    white-space: normal;
+}
+
+.rules-text--tip {
+    color: #d4a845;
+    -unity-font-style: italic;
+    padding: 8px 12px;
+    margin-top: 4px;
+    background-color: rgba(212, 168, 69, 0.1);
+    border-radius: 6px;
+}
+
+.rules-text-inline {
+    color: #c8bca8;
+    font-size: 13px;
+}
+
+.rules-resource-list {
+    margin-bottom: 4px;
+}
+
+.rules-resource-row {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 3px;
+}
+
+.rules-resource-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+}
