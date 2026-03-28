@@ -50,7 +50,8 @@ public class TurnManager : NetworkBehaviour
 
         var connectedClients = NetworkManager.Singleton.ConnectedClientsIds;
         playerOrder = new ulong[connectedClients.Count];
-        connectedClients.CopyTo(playerOrder, 0);
+        for (int i = 0; i < connectedClients.Count; i++)
+            playerOrder[i] = connectedClients[i];
 
         // 순서 섞기
         for (int i = playerOrder.Length - 1; i > 0; i--)

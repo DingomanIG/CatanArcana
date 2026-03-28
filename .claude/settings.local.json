@@ -33,7 +33,11 @@
       "Bash(\"c:/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Assets/Scripts.meta\":*)",
       "Bash(\"c:/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Assets/Scripts/CameraController.cs.meta\":*)",
       "Bash(cmd //c \"mkdir C:\\\\Users\\\\bonek\\\\Documents\\\\AntigravityFolder\\\\ArcanaCatan\\\\ArcanaCatan\\\\Assets\\\\Scripts\\\\Network\")",
-      "Bash(\"c:/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Assets/Scripts/Network.meta\":*)"
+      "Bash(\"c:/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Assets/Scripts/Network.meta\":*)",
+      "Bash(unity-cli:*)",
+      "Bash(cmd //c \"dir c:\\\\Users\\\\bonek\\\\Documents\\\\AntigravityFolder\\\\ArcanaCatan\\\\ArcanaCatan\\\\Library /b\")",
+      "Read(//c/Users/bonek/AppData/Local/Unity/Editor/**)",
+      "Read(//c/Users/bonek/AppData/Local/Unity/**)"
     ],
     "additionalDirectories": [
       "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\$BASE\\Art",
