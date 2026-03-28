@@ -14,6 +14,12 @@ public class HexEdge
 
     public List<HexTile> AdjacentTiles { get; } = new(2);
 
+    /// <summary>소유 플레이어 (-1 = 비어있음)</summary>
+    public int OwnerPlayerIndex { get; set; } = -1;
+
+    /// <summary>도로 건설 여부</summary>
+    public bool HasRoad { get; set; }
+
     public HexEdge(int id, Vector3 midPoint, HexVertex vertexA, HexVertex vertexB)
     {
         Id = id;

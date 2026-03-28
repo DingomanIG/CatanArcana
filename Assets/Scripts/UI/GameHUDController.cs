@@ -182,6 +182,8 @@ public class GameHUDController : MonoBehaviour
             GM.OnPhaseChanged += HandlePhaseChanged;
             GM.OnDiceRolled += HandleDiceRolled;
             GM.OnPlayerListChanged += HandlePlayerListChanged;
+            GM.OnResourceChanged += HandleResourceChanged;
+            GM.OnVPChanged += HandleVPChanged;
         }
     }
 
@@ -193,6 +195,8 @@ public class GameHUDController : MonoBehaviour
             GM.OnPhaseChanged -= HandlePhaseChanged;
             GM.OnDiceRolled -= HandleDiceRolled;
             GM.OnPlayerListChanged -= HandlePlayerListChanged;
+            GM.OnResourceChanged -= HandleResourceChanged;
+            GM.OnVPChanged -= HandleVPChanged;
         }
     }
 
@@ -213,9 +217,21 @@ public class GameHUDController : MonoBehaviour
         btnRules.clicked += OnRulesClicked;
         btnCloseRules.clicked += OnCloseRulesClicked;
 
-        btnBuildRoad.clicked += () => Debug.Log("[HUD] 도로 건설 (미구현)");
-        btnBuildSettlement.clicked += () => Debug.Log("[HUD] 마을 건설 (미구현)");
-        btnBuildCity.clicked += () => Debug.Log("[HUD] 도시 건설 (미구현)");
+        btnBuildRoad.clicked += () =>
+        {
+            buildOverlay.AddToClassList("overlay--hidden");
+            GM?.EnterBuildMode(BuildMode.PlacingRoad);
+        };
+        btnBuildSettlement.clicked += () =>
+        {
+            buildOverlay.AddToClassList("overlay--hidden");
+            GM?.EnterBuildMode(BuildMode.PlacingSettlement);
+        };
+        btnBuildCity.clicked += () =>
+        {
+            buildOverlay.AddToClassList("overlay--hidden");
+            GM?.EnterBuildMode(BuildMode.PlacingCity);
+        };
         btnBuildDevCard.clicked += () => Debug.Log("[HUD] 발전카드 구매 (미구현)");
     }
 
@@ -262,6 +278,17 @@ public class GameHUDController : MonoBehaviour
     {
         RebuildPlayerList();
         UpdateActionButtons();
+    }
+
+    void HandleResourceChanged(int playerIndex, ResourceType type, int newCount)
+    {
+        if (playerIndex == GM.LocalPlayerIndex)
+            UpdateResource(type, newCount);
+    }
+
+    void HandleVPChanged(int playerIndex, int vp)
+    {
+        UpdatePlayerVP(playerIndex, vp);
     }
 
     // ========================
@@ -497,6 +524,7 @@ public class GameHUDController : MonoBehaviour
         GamePhase.WaitingForPlayers => "대기 중",
         GamePhase.RollDice => "주사위 굴리기",
         GamePhase.Action => "행동",
+        GamePhase.MoveRobber => "도적 이동",
         GamePhase.GameOver => "게임 종료",
         _ => phase.ToString()
     };

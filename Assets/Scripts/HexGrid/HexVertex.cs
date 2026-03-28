@@ -14,6 +14,12 @@ public class HexVertex
     public List<HexEdge> AdjacentEdges { get; } = new(3);
     public List<HexVertex> AdjacentVertices { get; } = new(3);
 
+    /// <summary>소유 플레이어 (-1 = 비어있음)</summary>
+    public int OwnerPlayerIndex { get; set; } = -1;
+
+    /// <summary>건물 타입 (None/Settlement/City)</summary>
+    public BuildingType Building { get; set; } = BuildingType.None;
+
     public HexVertex(int id, Vector3 position)
     {
         Id = id;
