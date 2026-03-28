@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "Bash(where:*)",
+      "Bash(unity-cli --version:*)",
+      "Bash(unity-cli status:*)",
+      "Bash(unity-cli console:*)",
+      "Bash(unity-cli list:*)",
+      "Bash(unity-cli exec:*)",
+      "Read(//c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/**)",
+      "Read(//c/Users/bonek/.unity-cli/instances/**)",
+      "Bash(curl:*)",
+      "Bash(powershell -Command \"irm https://raw.githubusercontent.com/youngwoocho02/unity-cli/master/install.ps1 | iex\")",
+      "Bash(tasklist:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(git --version:*)",
+      "Bash(powershell -ExecutionPolicy Bypass -File \"c:/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/install-unity-cli.ps1\")",
+      "Bash(export PATH=\"$PATH:$LOCALAPPDATA/unity-cli\")",
+      "Bash(cmd //c \"dir /b C:\\\\Users\\\\bonek\\\\Documents\\\\AntigravityFolder\\\\ArcanaCatan\\\\ArcanaCatan\")",
+      "Bash(gh auth:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(powershell -ExecutionPolicy Bypass -File:*)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\$BASE\\Art"
+    ]
+  }
+}
