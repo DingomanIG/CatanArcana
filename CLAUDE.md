@@ -33,5 +33,9 @@ Docs/
 - Unity .meta 파일 포함하여 커밋
 - Library/, Temp/, Logs/, UserSettings/ 는 gitignore 처리됨
 
+## Resources
+- 구현 중 필요한 리소스(아이콘, 이미지, 3D 모델링 등)는 유저에게 요청할 것
+- 임시 placeholder 사용 가능하나, 최종 에셋은 별도 제공 필요
+
 ## Related
 - ArcanaStock 기획서: `C:\Users\bonek\Documents\AntigravityFolder\ArcanaStock\CLAUDE.md`
