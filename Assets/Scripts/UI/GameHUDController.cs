@@ -30,8 +30,9 @@ public class GameHUDController : MonoBehaviour
 
     // Dice Display
     VisualElement diceDisplay;
+    VisualElement die1Face;
+    VisualElement die2Face;
     Label diceResultLabel;
-    Label diceDetailLabel;
 
     // Resource Counts
     Label resWoodCount;
@@ -55,10 +56,50 @@ public class GameHUDController : MonoBehaviour
     Button btnBuildCity;
     Button btnBuildDevCard;
 
+    // Dice dot elements (3x3 grid per die)
+    VisualElement[,] die1Dots;
+    VisualElement[,] die2Dots;
+
     // State
     readonly Dictionary<ulong, VisualElement> playerEntries = new();
     Coroutine diceHideCoroutine;
     const float DICE_DISPLAY_DURATION = 3f;
+
+    // Dice face patterns: which dots (row,col) are visible for each value 1-6
+    static readonly bool[][,] DiceDotPatterns = new bool[][,]
+    {
+        null, // index 0 unused
+        new bool[,] { // 1
+            { false, false, false },
+            { false, true,  false },
+            { false, false, false }
+        },
+        new bool[,] { // 2
+            { false, false, true  },
+            { false, false, false },
+            { true,  false, false }
+        },
+        new bool[,] { // 3
+            { false, false, true  },
+            { false, true,  false },
+            { true,  false, false }
+        },
+        new bool[,] { // 4
+            { true,  false, true  },
+            { false, false, false },
+            { true,  false, true  }
+        },
+        new bool[,] { // 5
+            { true,  false, true  },
+            { false, true,  false },
+            { true,  false, true  }
+        },
+        new bool[,] { // 6
+            { true,  false, true  },
+            { true,  false, true  },
+            { true,  false, true  }
+        },
+    };
 
     void OnEnable()
     {
@@ -95,8 +136,12 @@ public class GameHUDController : MonoBehaviour
         btnBuyDevCard = root.Q<Button>("btn-buy-devcard");
 
         diceDisplay = root.Q<VisualElement>("dice-display");
+        die1Face = root.Q<VisualElement>("die-1");
+        die2Face = root.Q<VisualElement>("die-2");
         diceResultLabel = root.Q<Label>("dice-result");
-        diceDetailLabel = root.Q<Label>("dice-detail");
+
+        die1Dots = BuildDieDots(die1Face);
+        die2Dots = BuildDieDots(die2Face);
 
         resWoodCount = root.Q<Label>("res-wood-count");
         resBrickCount = root.Q<Label>("res-brick-count");
@@ -210,9 +255,9 @@ public class GameHUDController : MonoBehaviour
             HideDice();
     }
 
-    void HandleDiceRolled(int totalResult)
+    void HandleDiceRolled(int die1, int die2, int total)
     {
-        ShowDice(totalResult);
+        ShowDice(die1, die2, total);
         UpdateActionButtons();
     }
 
@@ -295,10 +340,11 @@ public class GameHUDController : MonoBehaviour
     // DICE
     // ========================
 
-    void ShowDice(int total)
+    void ShowDice(int die1, int die2, int total)
     {
+        SetDieFace(die1Dots, die1);
+        SetDieFace(die2Dots, die2);
         diceResultLabel.text = total.ToString();
-        diceDetailLabel.text = $"2d6 = {total}";
         diceDisplay.RemoveFromClassList("dice-display--hidden");
 
         if (diceHideCoroutine != null)
@@ -320,6 +366,44 @@ public class GameHUDController : MonoBehaviour
     {
         yield return new WaitForSeconds(DICE_DISPLAY_DURATION);
         HideDice();
+    }
+
+    /// <summary>주사위 면에 3x3 도트 그리드 생성</summary>
+    static VisualElement[,] BuildDieDots(VisualElement dieFace)
+    {
+        var dots = new VisualElement[3, 3];
+        for (int row = 0; row < 3; row++)
+        {
+            var rowElement = new VisualElement();
+            rowElement.AddToClassList("die-row");
+            for (int col = 0; col < 3; col++)
+            {
+                var dot = new VisualElement();
+                dot.AddToClassList("die-dot");
+                dot.AddToClassList("die-dot--hidden");
+                rowElement.Add(dot);
+                dots[row, col] = dot;
+            }
+            dieFace.Add(rowElement);
+        }
+        return dots;
+    }
+
+    /// <summary>주사위 값(1-6)에 맞는 도트 패턴 표시</summary>
+    static void SetDieFace(VisualElement[,] dots, int value)
+    {
+        value = Mathf.Clamp(value, 1, 6);
+        var pattern = DiceDotPatterns[value];
+        for (int row = 0; row < 3; row++)
+        {
+            for (int col = 0; col < 3; col++)
+            {
+                if (pattern[row, col])
+                    dots[row, col].RemoveFromClassList("die-dot--hidden");
+                else
+                    dots[row, col].AddToClassList("die-dot--hidden");
+            }
+        }
     }
 
     // ========================

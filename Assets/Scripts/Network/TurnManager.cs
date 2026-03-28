@@ -22,9 +22,15 @@ public class TurnManager : NetworkBehaviour
     /// <summary>주사위 결과 (2d6)</summary>
     public NetworkVariable<int> DiceResult = new(0, NetworkVariableReadPermission.Everyone);
 
+    /// <summary>주사위 1 개별 결과</summary>
+    public NetworkVariable<int> Die1Result = new(0, NetworkVariableReadPermission.Everyone);
+
+    /// <summary>주사위 2 개별 결과</summary>
+    public NetworkVariable<int> Die2Result = new(0, NetworkVariableReadPermission.Everyone);
+
     public event Action<ulong> OnTurnChanged;
     public event Action<GamePhase> OnPhaseChanged;
-    public event Action<int> OnDiceRolled;
+    public event Action<int, int, int> OnDiceRolled;
 
     ulong[] playerOrder;
     int currentPlayerIndex;
@@ -38,7 +44,7 @@ public class TurnManager : NetworkBehaviour
     {
         CurrentTurnPlayerId.OnValueChanged += (_, newVal) => OnTurnChanged?.Invoke(newVal);
         CurrentPhase.OnValueChanged += (_, newVal) => OnPhaseChanged?.Invoke(newVal);
-        DiceResult.OnValueChanged += (_, newVal) => OnDiceRolled?.Invoke(newVal);
+        DiceResult.OnValueChanged += (_, newVal) => OnDiceRolled?.Invoke(Die1Result.Value, Die2Result.Value, newVal);
     }
 
     /// <summary>
@@ -85,6 +91,8 @@ public class TurnManager : NetworkBehaviour
 
         int die1 = UnityEngine.Random.Range(1, 7);
         int die2 = UnityEngine.Random.Range(1, 7);
+        Die1Result.Value = die1;
+        Die2Result.Value = die2;
         DiceResult.Value = die1 + die2;
         CurrentPhase.Value = GamePhase.Action;
 

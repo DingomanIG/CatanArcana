@@ -28,8 +28,12 @@
 
             <!-- CENTER: Dice Display -->
             <ui:VisualElement name="dice-display" class="dice-display dice-display--hidden">
+                <ui:VisualElement name="dice-container" class="dice-container">
+                    <ui:VisualElement name="die-1" class="die-face" />
+                    <ui:Label class="dice-plus" text="+" />
+                    <ui:VisualElement name="die-2" class="die-face" />
+                </ui:VisualElement>
                 <ui:Label name="dice-result" class="dice-display__result" text="7" />
-                <ui:Label name="dice-detail" class="dice-display__detail" text="2d6 = 7" />
             </ui:VisualElement>
 
             <!-- RIGHT: Action Panel -->
