@@ -17,23 +17,28 @@
 - **데이터/뷰 분리**: HexGrid(순수 C#) + HexGridView(MonoBehaviour)
 - **확장성**: radius 파라미터로 보드 크기 조절, 임의 형태 지원
 - **토폴로지**: 위치 기반 키로 교차점/변 중복 제거
+- **게임 매니저 추상화**: IGameManager 인터페이스로 로컬/네트워크 분리
+  - LocalGameManager: 로컬 전용 (네트워크 불필요)
+  - TurnManager: 네트워크 모드 (향후 IGameManager 구현)
 
 ## Structure
 ```
 Assets/
   Scripts/
+    IGameManager.cs             # 게임 매니저 인터페이스 + GamePhase
+    LocalGameManager.cs         # 로컬 전용 게임 매니저
     CameraController.cs
     Network/
       GameNetworkManager.cs
       LobbyManager.cs
-      TurnManager.cs
+      TurnManager.cs            # 네트워크 턴 매니저 (향후 IGameManager 구현)
       NetworkTestUI.cs          # 임시 OnGUI (비활성화 예정)
     HexGrid/
       HexCoord.cs, HexTile.cs, HexVertex.cs, HexEdge.cs
       HexGrid.cs, HexBoardSetup.cs
       HexMeshGenerator.cs, HexGridView.cs
     UI/
-      GameHUDController.cs      # 인게임 HUD 컨트롤러
+      GameHUDController.cs      # 인게임 HUD (IGameManager 기반)
   UI/
     UXML/GameHUD.uxml           # HUD 레이아웃
     USS/GameHUD.uss              # HUD 스타일

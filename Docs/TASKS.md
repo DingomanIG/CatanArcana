@@ -15,6 +15,12 @@
 - [x] Netcode 기본 동기화
 - [ ] 호스트 마이그레이션 / 재접속
 
+## 아키텍처
+- [x] IGameManager 인터페이스 (로컬/네트워크 공통)
+- [x] LocalGameManager 로컬 전용 구현
+- [x] GameHUDController → IGameManager 기반 리팩토링
+- [ ] TurnManager → IGameManager 구현 (네트워크 모드)
+
 ## 턴 시스템
 - [x] 턴 매니저 (턴 순서, 페이즈 전환)
 - [x] 주사위 굴림 (2d6)

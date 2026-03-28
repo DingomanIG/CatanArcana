@@ -1,12 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 /// <summary>
 /// 인게임 HUD 컨트롤러
-/// UIDocument에서 UXML 요소를 바인딩하고 TurnManager 이벤트를 구독하여 UI 갱신
+/// IGameManager 인터페이스를 통해 로컬/네트워크 모드 모두 지원
 /// </summary>
 public class GameHUDController : MonoBehaviour
 {
@@ -61,7 +60,7 @@ public class GameHUDController : MonoBehaviour
     VisualElement[,] die2Dots;
 
     // State
-    readonly Dictionary<ulong, VisualElement> playerEntries = new();
+    readonly Dictionary<int, VisualElement> playerEntries = new();
     Coroutine diceHideCoroutine;
     const float DICE_DISPLAY_DURATION = 3f;
 
@@ -100,6 +99,8 @@ public class GameHUDController : MonoBehaviour
             { true,  false, true  }
         },
     };
+
+    IGameManager GM => GameServices.GameManager;
 
     void OnEnable()
     {
@@ -169,33 +170,23 @@ public class GameHUDController : MonoBehaviour
 
     void SubscribeToEvents()
     {
-        if (TurnManager.Instance != null)
+        if (GM != null)
         {
-            TurnManager.Instance.OnTurnChanged += HandleTurnChanged;
-            TurnManager.Instance.OnPhaseChanged += HandlePhaseChanged;
-            TurnManager.Instance.OnDiceRolled += HandleDiceRolled;
-        }
-
-        if (GameNetworkManager.Instance != null)
-        {
-            GameNetworkManager.Instance.OnClientConnected += HandleClientConnected;
-            GameNetworkManager.Instance.OnClientDisconnected += HandleClientDisconnected;
+            GM.OnTurnChanged += HandleTurnChanged;
+            GM.OnPhaseChanged += HandlePhaseChanged;
+            GM.OnDiceRolled += HandleDiceRolled;
+            GM.OnPlayerListChanged += HandlePlayerListChanged;
         }
     }
 
     void UnsubscribeFromEvents()
     {
-        if (TurnManager.Instance != null)
+        if (GM != null)
         {
-            TurnManager.Instance.OnTurnChanged -= HandleTurnChanged;
-            TurnManager.Instance.OnPhaseChanged -= HandlePhaseChanged;
-            TurnManager.Instance.OnDiceRolled -= HandleDiceRolled;
-        }
-
-        if (GameNetworkManager.Instance != null)
-        {
-            GameNetworkManager.Instance.OnClientConnected -= HandleClientConnected;
-            GameNetworkManager.Instance.OnClientDisconnected -= HandleClientDisconnected;
+            GM.OnTurnChanged -= HandleTurnChanged;
+            GM.OnPhaseChanged -= HandlePhaseChanged;
+            GM.OnDiceRolled -= HandleDiceRolled;
+            GM.OnPlayerListChanged -= HandlePlayerListChanged;
         }
     }
 
@@ -222,9 +213,9 @@ public class GameHUDController : MonoBehaviour
         btnBuildDevCard.clicked += () => Debug.Log("[HUD] 발전카드 구매 (미구현)");
     }
 
-    void OnStartGameClicked() => TurnManager.Instance?.StartGame();
-    void OnRollDiceClicked() => TurnManager.Instance?.RollDiceServerRpc();
-    void OnEndTurnClicked() => TurnManager.Instance?.EndTurnServerRpc();
+    void OnStartGameClicked() => GM?.StartGame();
+    void OnRollDiceClicked() => GM?.RollDice();
+    void OnEndTurnClicked() => GM?.EndTurn();
 
     void OnBuildClicked() => buildOverlay.RemoveFromClassList("overlay--hidden");
     void OnTradeClicked() => tradeOverlay.RemoveFromClassList("overlay--hidden");
@@ -239,7 +230,7 @@ public class GameHUDController : MonoBehaviour
     // EVENT HANDLERS
     // ========================
 
-    void HandleTurnChanged(ulong newPlayerId)
+    void HandleTurnChanged(int playerIndex)
     {
         UpdateTopBar();
         UpdateActionButtons();
@@ -261,13 +252,7 @@ public class GameHUDController : MonoBehaviour
         UpdateActionButtons();
     }
 
-    void HandleClientConnected()
-    {
-        RebuildPlayerList();
-        UpdateActionButtons();
-    }
-
-    void HandleClientDisconnected()
+    void HandlePlayerListChanged()
     {
         RebuildPlayerList();
         UpdateActionButtons();
@@ -288,26 +273,25 @@ public class GameHUDController : MonoBehaviour
 
     void UpdateTopBar()
     {
-        if (TurnManager.Instance == null) return;
+        if (GM == null) return;
 
-        turnNumberLabel.text = $"턴: {TurnManager.Instance.TurnNumber.Value}";
-        currentPlayerLabel.text = $"현재: {GetPlayerDisplayName(TurnManager.Instance.CurrentTurnPlayerId.Value)}";
-        phaseIndicatorLabel.text = GetPhaseDisplayName(TurnManager.Instance.CurrentPhase.Value);
+        turnNumberLabel.text = $"턴: {GM.TurnNumber}";
+        currentPlayerLabel.text = $"현재: {GM.GetPlayerName(GM.CurrentPlayerIndex)}";
+        phaseIndicatorLabel.text = GetPhaseDisplayName(GM.CurrentPhase);
     }
 
     void UpdateActionButtons()
     {
-        if (TurnManager.Instance == null)
+        if (GM == null)
         {
             HideAllButtons();
             return;
         }
 
-        var phase = TurnManager.Instance.CurrentPhase.Value;
-        bool isMyTurn = TurnManager.Instance.IsMyTurn();
-        bool isHost = NetworkManager.Singleton != null && NetworkManager.Singleton.IsHost;
+        var phase = GM.CurrentPhase;
+        bool isMyTurn = GM.IsMyTurn();
 
-        SetVisible(btnStartGame, phase == GamePhase.WaitingForPlayers && isHost);
+        SetVisible(btnStartGame, phase == GamePhase.WaitingForPlayers && GM.IsHost);
         SetVisible(btnRollDice, phase == GamePhase.RollDice && isMyTurn);
         SetVisible(btnEndTurn, phase == GamePhase.Action && isMyTurn);
 
@@ -415,29 +399,29 @@ public class GameHUDController : MonoBehaviour
         playerList.Clear();
         playerEntries.Clear();
 
-        if (NetworkManager.Singleton == null) return;
+        if (GM == null) return;
 
-        foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
+        for (int i = 0; i < GM.PlayerCount; i++)
         {
-            var entry = CreatePlayerEntry(clientId);
+            var entry = CreatePlayerEntry(i);
             playerList.Add(entry);
-            playerEntries[clientId] = entry;
+            playerEntries[i] = entry;
         }
 
         UpdatePlayerHighlight();
     }
 
-    VisualElement CreatePlayerEntry(ulong clientId)
+    VisualElement CreatePlayerEntry(int playerIndex)
     {
         var entry = new VisualElement();
         entry.AddToClassList("player-entry");
 
-        var nameLabel = new Label(GetPlayerDisplayName(clientId));
+        var nameLabel = new Label(GM.GetPlayerName(playerIndex));
         nameLabel.AddToClassList("player-entry__name");
 
         var vpLabel = new Label("0 VP");
         vpLabel.AddToClassList("player-entry__vp");
-        vpLabel.name = $"player-vp-{clientId}";
+        vpLabel.name = $"player-vp-{playerIndex}";
 
         entry.Add(nameLabel);
         entry.Add(vpLabel);
@@ -446,12 +430,12 @@ public class GameHUDController : MonoBehaviour
 
     void UpdatePlayerHighlight()
     {
-        if (TurnManager.Instance == null) return;
+        if (GM == null) return;
 
-        ulong currentTurnPlayer = TurnManager.Instance.CurrentTurnPlayerId.Value;
+        int current = GM.CurrentPlayerIndex;
         foreach (var kvp in playerEntries)
         {
-            if (kvp.Key == currentTurnPlayer)
+            if (kvp.Key == current)
                 kvp.Value.AddToClassList("player-entry--active");
             else
                 kvp.Value.RemoveFromClassList("player-entry--active");
@@ -488,11 +472,11 @@ public class GameHUDController : MonoBehaviour
     }
 
     /// <summary>플레이어 승리점 업데이트</summary>
-    public void UpdatePlayerVP(ulong clientId, int vp)
+    public void UpdatePlayerVP(int playerIndex, int vp)
     {
-        if (playerEntries.TryGetValue(clientId, out var entry))
+        if (playerEntries.TryGetValue(playerIndex, out var entry))
         {
-            var vpLabel = entry.Q<Label>($"player-vp-{clientId}");
+            var vpLabel = entry.Q<Label>($"player-vp-{playerIndex}");
             if (vpLabel != null)
                 vpLabel.text = $"{vp} VP";
         }
@@ -501,13 +485,6 @@ public class GameHUDController : MonoBehaviour
     // ========================
     // HELPERS
     // ========================
-
-    string GetPlayerDisplayName(ulong clientId)
-    {
-        bool isLocal = NetworkManager.Singleton != null &&
-                       clientId == NetworkManager.Singleton.LocalClientId;
-        return isLocal ? $"Player {clientId} (나)" : $"Player {clientId}";
-    }
 
     static string GetPhaseDisplayName(GamePhase phase) => phase switch
     {

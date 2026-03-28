@@ -137,11 +137,3 @@ public class TurnManager : NetworkBehaviour
         return playerOrder?.Length ?? 0;
     }
 }
-
-public enum GamePhase
-{
-    WaitingForPlayers,
-    RollDice,
-    Action,
-    GameOver
-}
