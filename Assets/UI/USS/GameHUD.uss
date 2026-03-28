@@ -305,15 +305,15 @@
     border-width: 2px;
     border-color: #d4a845;
     border-radius: 12px;
-    padding: 24px;
-    min-width: 400px;
+    padding: 20px;
+    min-width: 360px;
 }
 
 .overlay-title {
     color: #d4a845;
-    font-size: 20px;
+    font-size: 18px;
     -unity-font-style: bold;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     -unity-text-align: middle-center;
 }
 
@@ -333,6 +333,11 @@
 }
 
 /* === BUILD MENU === */
+.build-panel {
+    max-width: 420px;
+    max-height: 80%;
+}
+
 .build-grid {
     flex-direction: row;
     flex-wrap: wrap;
@@ -341,8 +346,8 @@
 
 .build-option {
     width: 48%;
-    padding: 12px;
-    margin-bottom: 8px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
     background-color: rgba(53, 46, 40, 0.8);
     border-radius: 8px;
     border-width: 1px;
@@ -351,19 +356,19 @@
 
 .build-option__name {
     color: #e8dcc8;
-    font-size: 16px;
+    font-size: 14px;
     -unity-font-style: bold;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 
 .build-option__cost {
     color: #a89880;
     font-size: 11px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .build-option__btn {
-    height: 30px;
+    height: 28px;
     border-radius: 4px;
     background-color: #3a6830;
     border-color: #5a9e4b;
