@@ -1,0 +1,119 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements"
+         xmlns:uie="UnityEditor.UIElements"
+         xsi="http://www.w3.org/2001/XMLSchema-instance"
+         engine="UnityEngine.UIElements"
+         editor="UnityEditor.UIElements"
+         noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd"
+         editor-extension-mode="False">
+
+    <Style src="../USS/GameHUD.uss" />
+
+    <ui:VisualElement name="hud-root" class="hud-root">
+
+        <!-- ===== TOP BAR ===== -->
+        <ui:VisualElement name="top-bar" class="top-bar">
+            <ui:Label name="turn-number" class="top-bar__label" text="턴: 0" />
+            <ui:Label name="current-player" class="top-bar__label top-bar__player" text="현재 플레이어: -" />
+            <ui:Label name="phase-indicator" class="top-bar__label top-bar__phase" text="대기 중" />
+        </ui:VisualElement>
+
+        <!-- ===== MIDDLE AREA ===== -->
+        <ui:VisualElement name="middle-area" class="middle-area">
+
+            <!-- LEFT: Player List -->
+            <ui:VisualElement name="player-panel" class="player-panel">
+                <ui:Label text="플레이어" class="panel-title" />
+                <ui:VisualElement name="player-list" class="player-list" />
+            </ui:VisualElement>
+
+            <!-- CENTER: Dice Display -->
+            <ui:VisualElement name="dice-display" class="dice-display dice-display--hidden">
+                <ui:Label name="dice-result" class="dice-display__result" text="7" />
+                <ui:Label name="dice-detail" class="dice-display__detail" text="2d6 = 7" />
+            </ui:VisualElement>
+
+            <!-- RIGHT: Action Panel -->
+            <ui:VisualElement name="action-panel" class="action-panel">
+                <ui:Label text="행동" class="panel-title" />
+                <ui:Button name="btn-start-game" class="action-btn action-btn--primary" text="게임 시작" />
+                <ui:Button name="btn-roll-dice" class="action-btn action-btn--primary" text="주사위 굴리기" />
+                <ui:Button name="btn-end-turn" class="action-btn action-btn--warning" text="턴 종료" />
+                <ui:VisualElement class="action-separator" />
+                <ui:Button name="btn-build" class="action-btn" text="건설" />
+                <ui:Button name="btn-trade" class="action-btn" text="거래" />
+                <ui:Button name="btn-buy-devcard" class="action-btn" text="발전카드 구매" />
+            </ui:VisualElement>
+
+        </ui:VisualElement>
+
+        <!-- ===== BOTTOM: Resource Panel ===== -->
+        <ui:VisualElement name="resource-panel" class="resource-panel">
+            <ui:VisualElement name="res-wood" class="resource-item">
+                <ui:VisualElement class="resource-icon resource-icon--wood" />
+                <ui:Label class="resource-name" text="목재" />
+                <ui:Label name="res-wood-count" class="resource-count" text="0" />
+            </ui:VisualElement>
+            <ui:VisualElement name="res-brick" class="resource-item">
+                <ui:VisualElement class="resource-icon resource-icon--brick" />
+                <ui:Label class="resource-name" text="벽돌" />
+                <ui:Label name="res-brick-count" class="resource-count" text="0" />
+            </ui:VisualElement>
+            <ui:VisualElement name="res-wool" class="resource-item">
+                <ui:VisualElement class="resource-icon resource-icon--wool" />
+                <ui:Label class="resource-name" text="양모" />
+                <ui:Label name="res-wool-count" class="resource-count" text="0" />
+            </ui:VisualElement>
+            <ui:VisualElement name="res-wheat" class="resource-item">
+                <ui:VisualElement class="resource-icon resource-icon--wheat" />
+                <ui:Label class="resource-name" text="밀" />
+                <ui:Label name="res-wheat-count" class="resource-count" text="0" />
+            </ui:VisualElement>
+            <ui:VisualElement name="res-ore" class="resource-item">
+                <ui:VisualElement class="resource-icon resource-icon--ore" />
+                <ui:Label class="resource-name" text="광석" />
+                <ui:Label name="res-ore-count" class="resource-count" text="0" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- ===== OVERLAY: Build Menu ===== -->
+        <ui:VisualElement name="build-overlay" class="overlay overlay--hidden">
+            <ui:VisualElement class="overlay-panel build-panel">
+                <ui:Label text="건설 메뉴" class="overlay-title" />
+                <ui:VisualElement class="build-grid">
+                    <ui:VisualElement class="build-option">
+                        <ui:Label class="build-option__name" text="도로" />
+                        <ui:Label class="build-option__cost" text="목재 1 + 벽돌 1" />
+                        <ui:Button name="btn-build-road" class="build-option__btn" text="건설" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="build-option">
+                        <ui:Label class="build-option__name" text="마을" />
+                        <ui:Label class="build-option__cost" text="목재 1 + 벽돌 1 + 양모 1 + 밀 1" />
+                        <ui:Button name="btn-build-settlement" class="build-option__btn" text="건설" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="build-option">
+                        <ui:Label class="build-option__name" text="도시" />
+                        <ui:Label class="build-option__cost" text="밀 2 + 광석 3" />
+                        <ui:Button name="btn-build-city" class="build-option__btn" text="건설" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="build-option">
+                        <ui:Label class="build-option__name" text="발전카드" />
+                        <ui:Label class="build-option__cost" text="양모 1 + 밀 1 + 광석 1" />
+                        <ui:Button name="btn-build-devcard" class="build-option__btn" text="구매" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:Button name="btn-close-build" class="overlay-close-btn" text="닫기" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- ===== OVERLAY: Trade Panel ===== -->
+        <ui:VisualElement name="trade-overlay" class="overlay overlay--hidden">
+            <ui:VisualElement class="overlay-panel trade-panel">
+                <ui:Label text="거래" class="overlay-title" />
+                <ui:Label class="placeholder-text" text="거래 시스템 준비 중..." />
+                <ui:Button name="btn-close-trade" class="overlay-close-btn" text="닫기" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+    </ui:VisualElement>
+
+</ui:UXML>

@@ -12,21 +12,39 @@
 - **UI**: UI Toolkit
 - **Input**: Unity Input System
 
+## Architecture Decisions
+- **좌표계**: 큐브 좌표 (q+r+s=0), flat-top 헥스
+- **데이터/뷰 분리**: HexGrid(순수 C#) + HexGridView(MonoBehaviour)
+- **확장성**: radius 파라미터로 보드 크기 조절, 임의 형태 지원
+- **토폴로지**: 위치 기반 키로 교차점/변 중복 제거
+
 ## Structure
 ```
 Assets/
   Scripts/
-    CameraController.cs        # 2.5D 카메라 + 줌
+    CameraController.cs
     Network/
-      GameNetworkManager.cs     # Relay 연결, 호스트/클라이언트
-      LobbyManager.cs           # 방 생성/참가
-      TurnManager.cs             # 턴 동기화 (2d6)
-      NetworkTestUI.cs           # 테스트용 OnGUI
-  Scenes/
-    SampleScene.unity
+      GameNetworkManager.cs
+      LobbyManager.cs
+      TurnManager.cs
+      NetworkTestUI.cs          # 임시 OnGUI (비활성화 예정)
+    HexGrid/
+      HexCoord.cs, HexTile.cs, HexVertex.cs, HexEdge.cs
+      HexGrid.cs, HexBoardSetup.cs
+      HexMeshGenerator.cs, HexGridView.cs
+    UI/
+      GameHUDController.cs      # 인게임 HUD 컨트롤러
+  UI/
+    UXML/GameHUD.uxml           # HUD 레이아웃
+    USS/GameHUD.uss              # HUD 스타일
+    Fonts/                      # 폰트 에셋
 Docs/
-  GDD.md                        # 게임 기획서
+  GDD.md
 ```
+
+## Tone
+- 대답은 매우 간략하게, 위트 있는 대화 스타일로
+- 일은 즐겁게!
 
 ## Rules
 - 커밋 시 항상 push까지 수행
@@ -36,6 +54,12 @@ Docs/
 ## Resources
 - 구현 중 필요한 리소스(아이콘, 이미지, 3D 모델링 등)는 유저에게 요청할 것
 - 임시 placeholder 사용 가능하나, 최종 에셋은 별도 제공 필요
+
+## Agents
+- 3에이전트 병렬 개발: 기획 / UI / 구현
+- 상세: `Docs/AGENTS.md`
+- 기획 선행 → UI·구현 병렬 (기획 간단하면 3개 동시)
+- 폴더 경계 엄수 (충돌 방지)
 
 ## Related
 - ArcanaStock 기획서: `C:\Users\bonek\Documents\AntigravityFolder\ArcanaStock\CLAUDE.md`

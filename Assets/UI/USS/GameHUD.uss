@@ -1,0 +1,348 @@
+/* ============================================
+   ArcanaCatan - In-Game HUD Stylesheet
+   Theme: Dark + Warm (Catan earthy tones)
+
+   Color Palette:
+   bg-dark:       #1a1612
+   bg-panel:      #2a2420
+   bg-panel-alt:  #352e28
+   border:        #4a3f35
+   text-primary:  #e8dcc8
+   text-secondary:#a89880
+   accent-gold:   #d4a845
+   accent-red:    #c45c3e
+   accent-green:  #5a9e4b
+   ============================================ */
+
+/* === ROOT === */
+.hud-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+/* === TOP BAR === */
+.top-bar {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    height: 48px;
+    padding: 0 24px;
+    background-color: rgba(26, 22, 18, 0.88);
+    border-bottom-width: 2px;
+    border-bottom-color: #4a3f35;
+}
+
+.top-bar__label {
+    color: #e8dcc8;
+    font-size: 16px;
+    -unity-font-style: bold;
+}
+
+.top-bar__player {
+    color: #e8dcc8;
+}
+
+.top-bar__phase {
+    color: #d4a845;
+    font-size: 14px;
+    background-color: rgba(212, 168, 69, 0.15);
+    padding: 4px 12px;
+    border-radius: 4px;
+}
+
+/* === MIDDLE AREA === */
+.middle-area {
+    flex-grow: 1;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: stretch;
+}
+
+/* === PLAYER PANEL (LEFT) === */
+.player-panel {
+    width: 200px;
+    padding: 12px;
+    background-color: rgba(42, 36, 32, 0.82);
+    border-right-width: 1px;
+    border-right-color: #4a3f35;
+    margin-top: 8px;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.panel-title {
+    color: #d4a845;
+    font-size: 14px;
+    -unity-font-style: bold;
+    margin-bottom: 8px;
+    border-bottom-width: 1px;
+    border-bottom-color: #4a3f35;
+    padding-bottom: 6px;
+}
+
+.player-entry {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+    background-color: rgba(53, 46, 40, 0.6);
+}
+
+.player-entry--active {
+    background-color: rgba(90, 158, 75, 0.25);
+    border-left-width: 3px;
+    border-left-color: #5a9e4b;
+}
+
+.player-entry__name {
+    color: #e8dcc8;
+    font-size: 13px;
+}
+
+.player-entry__vp {
+    color: #d4a845;
+    font-size: 13px;
+    -unity-font-style: bold;
+}
+
+/* === ACTION PANEL (RIGHT) === */
+.action-panel {
+    width: 180px;
+    padding: 12px;
+    background-color: rgba(42, 36, 32, 0.82);
+    border-left-width: 1px;
+    border-left-color: #4a3f35;
+    margin-top: 8px;
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.action-btn {
+    height: 38px;
+    margin-bottom: 6px;
+    border-radius: 6px;
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: #e8dcc8;
+    background-color: #352e28;
+    border-width: 1px;
+    border-color: #4a3f35;
+}
+
+.action-btn:hover {
+    background-color: #4a3f35;
+}
+
+.action-btn:disabled {
+    opacity: 0.4;
+}
+
+.action-btn--primary {
+    background-color: #3a6830;
+    border-color: #5a9e4b;
+}
+
+.action-btn--primary:hover {
+    background-color: #4a7a3e;
+}
+
+.action-btn--warning {
+    background-color: #8b3a25;
+    border-color: #c45c3e;
+}
+
+.action-btn--warning:hover {
+    background-color: #a04530;
+}
+
+.action-separator {
+    height: 1px;
+    background-color: #4a3f35;
+    margin: 8px 0;
+}
+
+/* === DICE DISPLAY (CENTER) === */
+.dice-display {
+    position: absolute;
+    left: 50%;
+    top: 35%;
+    translate: -50% -50%;
+    align-items: center;
+    padding: 16px 32px;
+    background-color: rgba(26, 22, 18, 0.92);
+    border-width: 2px;
+    border-color: #d4a845;
+    border-radius: 12px;
+}
+
+.dice-display--hidden {
+    display: none;
+}
+
+.dice-display__result {
+    color: #d4a845;
+    font-size: 48px;
+    -unity-font-style: bold;
+}
+
+.dice-display__detail {
+    color: #a89880;
+    font-size: 16px;
+    margin-top: 4px;
+}
+
+/* === RESOURCE PANEL (BOTTOM) === */
+.resource-panel {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    height: 72px;
+    padding: 0 24px;
+    background-color: rgba(26, 22, 18, 0.88);
+    border-top-width: 2px;
+    border-top-color: #4a3f35;
+}
+
+.resource-item {
+    flex-direction: row;
+    align-items: center;
+    padding: 8px 16px;
+    margin: 0 8px;
+    border-radius: 6px;
+    background-color: rgba(53, 46, 40, 0.6);
+}
+
+.resource-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    margin-right: 8px;
+}
+
+.resource-icon--wood  { background-color: #6b8e50; }
+.resource-icon--brick { background-color: #c4694a; }
+.resource-icon--wool  { background-color: #a8c87a; }
+.resource-icon--wheat { background-color: #dbb84d; }
+.resource-icon--ore   { background-color: #8899aa; }
+
+.resource-name {
+    color: #a89880;
+    font-size: 12px;
+    margin-right: 6px;
+}
+
+.resource-count {
+    color: #e8dcc8;
+    font-size: 20px;
+    -unity-font-style: bold;
+    min-width: 24px;
+    -unity-text-align: middle-center;
+}
+
+/* === OVERLAYS === */
+.overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.overlay--hidden {
+    display: none;
+}
+
+.overlay-panel {
+    background-color: #2a2420;
+    border-width: 2px;
+    border-color: #d4a845;
+    border-radius: 12px;
+    padding: 24px;
+    min-width: 400px;
+}
+
+.overlay-title {
+    color: #d4a845;
+    font-size: 20px;
+    -unity-font-style: bold;
+    margin-bottom: 16px;
+    -unity-text-align: middle-center;
+}
+
+.overlay-close-btn {
+    height: 36px;
+    margin-top: 16px;
+    border-radius: 6px;
+    background-color: #352e28;
+    border-color: #4a3f35;
+    border-width: 1px;
+    color: #e8dcc8;
+    font-size: 14px;
+}
+
+.overlay-close-btn:hover {
+    background-color: #4a3f35;
+}
+
+/* === BUILD MENU === */
+.build-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.build-option {
+    width: 48%;
+    padding: 12px;
+    margin-bottom: 8px;
+    background-color: rgba(53, 46, 40, 0.8);
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: #4a3f35;
+}
+
+.build-option__name {
+    color: #e8dcc8;
+    font-size: 16px;
+    -unity-font-style: bold;
+    margin-bottom: 4px;
+}
+
+.build-option__cost {
+    color: #a89880;
+    font-size: 11px;
+    margin-bottom: 8px;
+}
+
+.build-option__btn {
+    height: 30px;
+    border-radius: 4px;
+    background-color: #3a6830;
+    border-color: #5a9e4b;
+    border-width: 1px;
+    color: #e8dcc8;
+    font-size: 12px;
+}
+
+.build-option__btn:hover {
+    background-color: #4a7a3e;
+}
+
+.build-option__btn:disabled {
+    opacity: 0.4;
+}
+
+.placeholder-text {
+    color: #a89880;
+    font-size: 14px;
+    -unity-text-align: middle-center;
+    padding: 24px;
+}
