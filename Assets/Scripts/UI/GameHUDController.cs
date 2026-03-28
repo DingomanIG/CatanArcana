@@ -100,12 +100,18 @@ public class GameHUDController : MonoBehaviour
         },
     };
 
-    IGameManager GM => GameServices.GameManager;
+    IGameManager gm;
+    IGameManager GM => gm ??= GameServices.GameManager;
 
     void OnEnable()
     {
         CacheUIElements();
         RegisterButtonCallbacks();
+    }
+
+    void Start()
+    {
+        gm = GameServices.GameManager;
         SubscribeToEvents();
         RefreshAllUI();
     }

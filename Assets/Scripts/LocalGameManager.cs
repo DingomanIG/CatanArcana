@@ -5,6 +5,7 @@ using UnityEngine;
 /// 로컬 전용 게임 매니저 - 네트워크 없이 단독 플레이
 /// 나중에 TurnManager(NetworkBehaviour)가 IGameManager를 구현하면 네트워크 모드로 전환
 /// </summary>
+[DefaultExecutionOrder(-100)]
 public class LocalGameManager : MonoBehaviour, IGameManager
 {
     [Header("게임 설정")]
