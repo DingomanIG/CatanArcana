@@ -470,3 +470,117 @@
     height: 20px;
     margin-right: 8px;
 }
+
+/* === DEV CARD OVERLAY === */
+.devcard-panel {
+    max-width: 500px;
+    max-height: 80%;
+}
+
+.devcard-hand {
+    max-height: 400px;
+}
+
+.devcard-entry {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    border-radius: 6px;
+    background-color: rgba(53, 46, 40, 0.8);
+    border-width: 1px;
+    border-color: #4a3f35;
+}
+
+.devcard-entry--disabled {
+    opacity: 0.5;
+}
+
+.devcard-entry__info {
+    flex-grow: 1;
+    margin-right: 8px;
+}
+
+.devcard-entry__name {
+    color: #e8dcc8;
+    font-size: 14px;
+    -unity-font-style: bold;
+}
+
+.devcard-entry__desc {
+    color: #a89880;
+    font-size: 11px;
+}
+
+.devcard-entry__btn {
+    height: 28px;
+    min-width: 60px;
+    border-radius: 4px;
+    background-color: #3a6830;
+    border-color: #5a9e4b;
+    border-width: 1px;
+    color: #e8dcc8;
+    font-size: 12px;
+}
+
+.devcard-entry__btn:hover {
+    background-color: #4a7a3e;
+}
+
+.devcard-entry__btn:disabled {
+    opacity: 0.4;
+}
+
+/* === RESOURCE SELECT OVERLAY === */
+.resource-select-panel {
+    max-width: 360px;
+}
+
+.resource-select-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 8px 0;
+}
+
+.resource-select-btn {
+    width: 80px;
+    height: 60px;
+    margin: 4px;
+    border-radius: 6px;
+    font-size: 13px;
+    -unity-font-style: bold;
+    background-color: #352e28;
+    border-color: #4a3f35;
+    border-width: 1px;
+    color: #e8dcc8;
+}
+
+.resource-select-btn:hover {
+    background-color: #4a3f35;
+}
+
+.resource-select-btn--wood  { border-bottom-width: 3px; border-bottom-color: #6b8e50; }
+.resource-select-btn--brick { border-bottom-width: 3px; border-bottom-color: #c4694a; }
+.resource-select-btn--wool  { border-bottom-width: 3px; border-bottom-color: #a8c87a; }
+.resource-select-btn--wheat { border-bottom-width: 3px; border-bottom-color: #dbb84d; }
+.resource-select-btn--ore   { border-bottom-width: 3px; border-bottom-color: #8899aa; }
+
+/* === BONUS STATUS === */
+.bonus-status {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top-width: 1px;
+    border-top-color: #4a3f35;
+}
+
+.bonus-label {
+    color: #d4a845;
+    font-size: 12px;
+    padding: 3px 0;
+}
+
+.bonus-label--hidden {
+    display: none;
+}

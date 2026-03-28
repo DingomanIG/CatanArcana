@@ -76,6 +76,9 @@ public class HexGridView : MonoBehaviour
         mr.material = new Material(defaultMaterial);
         mr.material.color = RESOURCE_COLORS[tile.Resource];
 
+        // 도적 이동용 콜라이더
+        go.AddComponent<MeshCollider>();
+
         // 숫자 토큰 라벨
         if (tile.NumberToken > 0)
         {
@@ -200,6 +203,42 @@ public class HexGridView : MonoBehaviour
                 var tile = grid.AddTile(coord);
                 tile.Resource = ResourceType.Sea;
             }
+        }
+    }
+
+    /// <summary>히트된 게임 오브젝트에서 타일 좌표 조회</summary>
+    public bool TryGetTileCoord(GameObject go, out HexCoord coord)
+    {
+        foreach (var kv in tileViews)
+        {
+            if (kv.Value == go)
+            {
+                coord = kv.Key;
+                return true;
+            }
+        }
+        coord = default;
+        return false;
+    }
+
+    /// <summary>도적 마커를 새 위치로 이동</summary>
+    public void MoveRobberVisual(HexCoord newCoord)
+    {
+        // 기존 도적 마커 제거
+        foreach (var kv in tileViews)
+        {
+            var robber = kv.Value.transform.Find("Robber");
+            if (robber != null)
+            {
+                Destroy(robber.gameObject);
+                break;
+            }
+        }
+
+        // 새 위치에 도적 마커 생성
+        if (tileViews.TryGetValue(newCoord, out var tileGo))
+        {
+            CreateRobberMarker(tileGo);
         }
     }
 

@@ -24,4 +24,11 @@ public static class BuildingCosts
         { ResourceType.Wheat, 2 },
         { ResourceType.Ore, 3 },
     };
+
+    public static readonly Dictionary<ResourceType, int> DevelopmentCard = new()
+    {
+        { ResourceType.Wool, 1 },
+        { ResourceType.Wheat, 1 },
+        { ResourceType.Ore, 1 },
+    };
 }

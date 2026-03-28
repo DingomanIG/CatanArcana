@@ -4,7 +4,7 @@ using UnityEngine;
 
 /// <summary>
 /// 로컬 전용 게임 매니저 - 네트워크 없이 단독 플레이
-/// 자원 분배, 건설, 도적, 승리 판정까지 처리
+/// 자원 분배, 건설, 도적, 발전카드, 최장교역로, 최대기사단 처리
 /// </summary>
 [DefaultExecutionOrder(-100)]
 public class LocalGameManager : MonoBehaviour, IGameManager
@@ -22,9 +22,18 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     BuildMode currentBuildMode = BuildMode.None;
 
     // 초기 배치 상태
-    int initialRound;         // 0 = 정순, 1 = 역순
-    bool initialWaitingForRoad; // true = 도로 대기 중 (마을 배치 후)
-    int lastPlacedVertexId;   // 마을 배치 후 도로 연결용
+    int initialRound;
+    bool initialWaitingForRoad;
+    int lastPlacedVertexId;
+
+    // 발전카드 상태
+    DevCardDeck devCardDeck;
+    DevCardUseState devCardUseState = DevCardUseState.None;
+    int freeRoadsRemaining;
+
+    // 보너스 보유자 (-1 = 없음)
+    int longestRoadHolder = -1;
+    int largestArmyHolder = -1;
 
     // 시스템
     HexGrid grid;
@@ -39,11 +48,12 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
     public int TurnNumber => turnNumber;
     public int CurrentPlayerIndex => currentPlayerIndex;
-    public int LocalPlayerIndex => currentPlayerIndex; // 테스트용: 항상 현재 플레이어 = 로컬
+    public int LocalPlayerIndex => currentPlayerIndex;
     public int PlayerCount => playerCount;
     public GamePhase CurrentPhase => currentPhase;
     public bool IsHost => true;
     public BuildMode CurrentBuildMode => currentBuildMode;
+    public DevCardUseState DevCardState => devCardUseState;
 
     // ========================
     // 이벤트
@@ -61,6 +71,11 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     public event Action<HexCoord> OnRobberMoved;
     public event Action<BuildMode> OnBuildModeChanged;
 
+    public event Action<int, DevCardType> OnDevCardPurchased;
+    public event Action<int, DevCardType> OnDevCardUsed;
+    public event Action<int, bool> OnLongestRoadChanged;
+    public event Action<int, bool> OnLargestArmyChanged;
+
     // ========================
     // LIFECYCLE
     // ========================
@@ -74,6 +89,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     {
         grid = hexGridView.Grid;
         buildingSystem = new BuildingSystem(grid);
+        devCardDeck = new DevCardDeck();
         players = new PlayerState[playerCount];
         for (int i = 0; i < playerCount; i++)
             players[i] = new PlayerState(i);
@@ -96,7 +112,6 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         OnTurnChanged?.Invoke(currentPlayerIndex);
         Debug.Log($"[Local] 초기 배치 시작! {GetPlayerName(0)} - 마을을 배치하세요");
 
-        // 자동으로 마을 건설 모드 진입
         StartInitialSettlementMode();
     }
 
@@ -127,6 +142,9 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         if (currentPhase != GamePhase.Action) return;
 
         CancelBuildMode();
+        devCardUseState = DevCardUseState.None;
+        freeRoadsRemaining = 0;
+        players[currentPlayerIndex].HasUsedDevCardThisTurn = false;
 
         currentPlayerIndex = (currentPlayerIndex + 1) % playerCount;
         if (currentPlayerIndex == 0) turnNumber++;
@@ -136,7 +154,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         Debug.Log($"[Local] 턴 {turnNumber} - {GetPlayerName(currentPlayerIndex)}");
     }
 
-    public bool IsMyTurn() => true; // 테스트용: 항상 내 턴
+    public bool IsMyTurn() => true;
 
     public string GetPlayerName(int index)
     {
@@ -160,7 +178,6 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         BuildModeController.Instance?.EnterBuildMode(BuildMode.PlacingRoad);
     }
 
-    /// <summary>초기 배치 진행: 마을 배치 후 호출</summary>
     void OnInitialSettlementPlaced(int vertexId)
     {
         lastPlacedVertexId = vertexId;
@@ -169,52 +186,42 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         StartInitialRoadMode();
     }
 
-    /// <summary>초기 배치 진행: 도로 배치 후 호출</summary>
     void OnInitialRoadPlaced()
     {
         initialWaitingForRoad = false;
 
-        // 역순(2라운드)에서 두 번째 마을 인접 자원 지급
         if (initialRound == 1)
         {
             GrantInitialResources(lastPlacedVertexId);
         }
 
-        // 다음 플레이어로
         if (!AdvanceInitialPlacement())
         {
-            // 초기 배치 완료 → 본 게임 시작
             FinishInitialPlacement();
         }
     }
 
-    /// <summary>다음 초기 배치 플레이어 진행. false = 초기 배치 종료</summary>
     bool AdvanceInitialPlacement()
     {
         if (initialRound == 0)
         {
-            // 정순: 0 → 1 → 2 → 3
             if (currentPlayerIndex < playerCount - 1)
             {
                 currentPlayerIndex++;
             }
             else
             {
-                // 정순 끝 → 역순 시작 (마지막 플레이어부터)
                 initialRound = 1;
-                // currentPlayerIndex는 그대로 (마지막 플레이어가 연속 2번)
             }
         }
         else
         {
-            // 역순: 3 → 2 → 1 → 0
             if (currentPlayerIndex > 0)
             {
                 currentPlayerIndex--;
             }
             else
             {
-                // 역순 끝 → 초기 배치 종료
                 return false;
             }
         }
@@ -225,7 +232,6 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         return true;
     }
 
-    /// <summary>두 번째 마을 인접 타일 자원 지급</summary>
     void GrantInitialResources(int vertexId)
     {
         var vertex = grid.Vertices[vertexId];
@@ -323,7 +329,9 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
     public bool TryMoveRobber(HexCoord newTile)
     {
-        if (currentPhase != GamePhase.MoveRobber) return false;
+        // 기사 카드에서도 도적 이동 허용
+        if (currentPhase != GamePhase.MoveRobber && devCardUseState != DevCardUseState.SelectingKnightTarget)
+            return false;
 
         var tile = grid.GetTile(newTile);
         if (tile == null || tile.Resource == ResourceType.Sea) return false;
@@ -337,7 +345,16 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         OnRobberMoved?.Invoke(newTile);
         Debug.Log($"[Local] 도적 이동: {newTile}");
 
-        SetPhase(GamePhase.Action);
+        if (devCardUseState == DevCardUseState.SelectingKnightTarget)
+        {
+            devCardUseState = DevCardUseState.None;
+            // 기사 카드는 Action 페이즈 유지
+        }
+        else
+        {
+            SetPhase(GamePhase.Action);
+        }
+
         return true;
     }
 
@@ -347,16 +364,23 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
     public void EnterBuildMode(BuildMode mode)
     {
-        if (currentPhase == GamePhase.InitialPlacement) return; // 초기 배치는 자동 진행
-
+        if (currentPhase == GamePhase.InitialPlacement) return;
         if (currentPhase != GamePhase.Action) return;
 
-        var player = players[currentPlayerIndex];
-        var cost = GetBuildCost(mode);
-        if (cost != null && !player.CanAfford(cost))
+        // 무료 도로 모드에서는 자원 체크 생략
+        bool isFreeRoad = (devCardUseState == DevCardUseState.PlacingFreeRoad1 ||
+                           devCardUseState == DevCardUseState.PlacingFreeRoad2) &&
+                          mode == BuildMode.PlacingRoad;
+
+        if (!isFreeRoad)
         {
-            Debug.Log($"[Local] 건설 불가: 자원 부족 ({mode})");
-            return;
+            var player = players[currentPlayerIndex];
+            var cost = GetBuildCost(mode);
+            if (cost != null && !player.CanAfford(cost))
+            {
+                Debug.Log($"[Local] 건설 불가: 자원 부족 ({mode})");
+                return;
+            }
         }
 
         currentBuildMode = mode;
@@ -380,7 +404,6 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
         var player = players[currentPlayerIndex];
 
-        // 초기 배치: 자원 소모 없음
         if (!isInitial)
         {
             if (!player.CanAfford(BuildingCosts.Settlement)) return false;
@@ -399,7 +422,6 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         OnBuildingPlaced?.Invoke(currentPlayerIndex, vertexId, BuildingType.Settlement);
         CheckVictory(currentPlayerIndex);
 
-        // 초기 배치: 마을 후 도로로 자동 전환
         if (isInitial)
             OnInitialSettlementPlaced(vertexId);
 
@@ -429,12 +451,15 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     public bool TryBuildRoad(int edgeId)
     {
         bool isInitial = currentPhase == GamePhase.InitialPlacement;
+        bool isFreeRoad = devCardUseState == DevCardUseState.PlacingFreeRoad1 ||
+                          devCardUseState == DevCardUseState.PlacingFreeRoad2;
 
-        if (!isInitial && currentPhase != GamePhase.Action) return false;
+        if (!isInitial && !isFreeRoad && currentPhase != GamePhase.Action) return false;
 
         var player = players[currentPlayerIndex];
 
-        if (!isInitial)
+        // 초기 배치 & 무료 도로: 자원 소모 없음
+        if (!isInitial && !isFreeRoad)
         {
             if (!player.CanAfford(BuildingCosts.Road)) return false;
         }
@@ -442,14 +467,34 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         if (!buildingSystem.CanPlaceRoad(edgeId, currentPlayerIndex, isInitial)) return false;
 
         buildingSystem.PlaceRoad(edgeId, currentPlayerIndex);
-        if (!isInitial)
+        if (!isInitial && !isFreeRoad)
             player.DeductCost(BuildingCosts.Road);
         player.RoadsRemaining--;
         player.OwnedEdges.Add(grid.Edges[edgeId]);
 
-        if (!isInitial)
+        if (!isInitial && !isFreeRoad)
             NotifyAllResources(currentPlayerIndex);
         OnRoadPlaced?.Invoke(currentPlayerIndex, edgeId);
+
+        // 최장교역로 갱신
+        UpdateLongestRoad();
+
+        // 무료 도로 모드 처리
+        if (isFreeRoad)
+        {
+            freeRoadsRemaining--;
+            if (freeRoadsRemaining <= 0)
+            {
+                devCardUseState = DevCardUseState.None;
+                Debug.Log("[Local] 도로건설 카드 완료");
+            }
+            else
+            {
+                devCardUseState = DevCardUseState.PlacingFreeRoad2;
+                BuildModeController.Instance?.EnterBuildMode(BuildMode.PlacingRoad);
+                Debug.Log("[Local] 도로건설 카드: 두 번째 도로를 배치하세요");
+            }
+        }
 
         // 초기 배치: 도로 후 다음 플레이어로
         if (isInitial)
@@ -465,6 +510,238 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         BuildMode.PlacingCity => BuildingCosts.City,
         _ => null
     };
+
+    // ========================
+    // 발전카드
+    // ========================
+
+    public bool TryBuyDevCard()
+    {
+        if (currentPhase != GamePhase.Action) return false;
+
+        var player = players[currentPlayerIndex];
+        if (!player.CanAfford(BuildingCosts.DevelopmentCard)) return false;
+        if (devCardDeck.RemainingCount <= 0)
+        {
+            Debug.Log("[Local] 발전카드 덱이 비었습니다");
+            return false;
+        }
+
+        var cardType = devCardDeck.Draw();
+        if (cardType == null) return false;
+
+        player.DeductCost(BuildingCosts.DevelopmentCard);
+        var card = new DevelopmentCard(cardType.Value, turnNumber);
+        player.DevCards.Add(card);
+
+        NotifyAllResources(currentPlayerIndex);
+        OnDevCardPurchased?.Invoke(currentPlayerIndex, cardType.Value);
+
+        if (cardType.Value == DevCardType.VictoryPoint)
+            CheckVictory(currentPlayerIndex);
+
+        Debug.Log($"[Local] {GetPlayerName(currentPlayerIndex)} 발전카드 구매: {cardType.Value}");
+        return true;
+    }
+
+    public bool TryUseKnight(HexCoord robberTarget)
+    {
+        if (currentPhase != GamePhase.Action && devCardUseState != DevCardUseState.SelectingKnightTarget)
+            return false;
+
+        var player = players[currentPlayerIndex];
+
+        // 이미 기사 카드 사용 시작한 상태면 도적 이동만 처리
+        if (devCardUseState == DevCardUseState.SelectingKnightTarget)
+        {
+            return TryMoveRobber(robberTarget);
+        }
+
+        if (player.HasUsedDevCardThisTurn) return false;
+        var card = player.FindUsableCard(DevCardType.Knight, turnNumber);
+        if (card == null) return false;
+
+        card.IsUsed = true;
+        player.HasUsedDevCardThisTurn = true;
+        player.KnightsPlayed++;
+
+        OnDevCardUsed?.Invoke(currentPlayerIndex, DevCardType.Knight);
+        devCardUseState = DevCardUseState.SelectingKnightTarget;
+
+        Debug.Log($"[Local] {GetPlayerName(currentPlayerIndex)} 기사 카드 사용 → 도적을 이동하세요");
+
+        UpdateLargestArmy();
+        CheckVictory(currentPlayerIndex);
+        return true;
+    }
+
+    public bool TryUseRoadBuilding()
+    {
+        if (currentPhase != GamePhase.Action) return false;
+
+        var player = players[currentPlayerIndex];
+        if (player.HasUsedDevCardThisTurn) return false;
+        if (player.RoadsRemaining <= 0) return false;
+
+        var card = player.FindUsableCard(DevCardType.RoadBuilding, turnNumber);
+        if (card == null) return false;
+
+        card.IsUsed = true;
+        player.HasUsedDevCardThisTurn = true;
+        freeRoadsRemaining = Mathf.Min(2, player.RoadsRemaining);
+        devCardUseState = DevCardUseState.PlacingFreeRoad1;
+
+        OnDevCardUsed?.Invoke(currentPlayerIndex, DevCardType.RoadBuilding);
+
+        // 무료 도로 건설 모드 진입
+        BuildModeController.Instance?.SetInitialPlacement(false);
+        BuildModeController.Instance?.EnterBuildMode(BuildMode.PlacingRoad);
+
+        Debug.Log($"[Local] {GetPlayerName(currentPlayerIndex)} 도로건설 카드 사용 → 무료 도로 {freeRoadsRemaining}개");
+        return true;
+    }
+
+    public bool TryUseYearOfPlenty(ResourceType res1, ResourceType res2)
+    {
+        if (currentPhase != GamePhase.Action) return false;
+
+        var player = players[currentPlayerIndex];
+        if (player.HasUsedDevCardThisTurn) return false;
+
+        var card = player.FindUsableCard(DevCardType.YearOfPlenty, turnNumber);
+        if (card == null) return false;
+
+        card.IsUsed = true;
+        player.HasUsedDevCardThisTurn = true;
+
+        player.AddResource(res1, 1);
+        player.AddResource(res2, 1);
+
+        NotifyAllResources(currentPlayerIndex);
+        OnDevCardUsed?.Invoke(currentPlayerIndex, DevCardType.YearOfPlenty);
+
+        Debug.Log($"[Local] {GetPlayerName(currentPlayerIndex)} 풍년 카드: {res1} + {res2}");
+        return true;
+    }
+
+    public bool TryUseMonopoly(ResourceType targetResource)
+    {
+        if (currentPhase != GamePhase.Action) return false;
+
+        var player = players[currentPlayerIndex];
+        if (player.HasUsedDevCardThisTurn) return false;
+
+        var card = player.FindUsableCard(DevCardType.Monopoly, turnNumber);
+        if (card == null) return false;
+
+        card.IsUsed = true;
+        player.HasUsedDevCardThisTurn = true;
+
+        int totalStolen = 0;
+        for (int i = 0; i < playerCount; i++)
+        {
+            if (i == currentPlayerIndex) continue;
+            int amount = players[i].Resources[targetResource];
+            if (amount > 0)
+            {
+                players[i].Resources[targetResource] = 0;
+                totalStolen += amount;
+                NotifyAllResources(i);
+            }
+        }
+
+        player.AddResource(targetResource, totalStolen);
+        NotifyAllResources(currentPlayerIndex);
+        OnDevCardUsed?.Invoke(currentPlayerIndex, DevCardType.Monopoly);
+
+        Debug.Log($"[Local] {GetPlayerName(currentPlayerIndex)} 독점 카드: {targetResource} x{totalStolen} 획득");
+        return true;
+    }
+
+    // ========================
+    // 최장교역로 / 최대기사단
+    // ========================
+
+    void UpdateLongestRoad()
+    {
+        int maxLength = 0;
+        int maxPlayer = -1;
+
+        for (int i = 0; i < playerCount; i++)
+        {
+            int len = LongestRoadCalculator.Calculate(i, grid);
+            if (len >= 5 && len > maxLength)
+            {
+                maxLength = len;
+                maxPlayer = i;
+            }
+        }
+
+        // 동률이면 기존 보유자 유지 (카탄 규칙)
+        if (maxPlayer != -1 && longestRoadHolder >= 0 && maxPlayer != longestRoadHolder)
+        {
+            int holderLen = LongestRoadCalculator.Calculate(longestRoadHolder, grid);
+            if (maxLength <= holderLen)
+                maxPlayer = longestRoadHolder;
+        }
+
+        if (maxPlayer != longestRoadHolder)
+        {
+            if (longestRoadHolder >= 0)
+            {
+                players[longestRoadHolder].HasLongestRoad = false;
+                OnLongestRoadChanged?.Invoke(longestRoadHolder, false);
+                OnVPChanged?.Invoke(longestRoadHolder, players[longestRoadHolder].VictoryPoints);
+            }
+
+            longestRoadHolder = maxPlayer;
+
+            if (longestRoadHolder >= 0)
+            {
+                players[longestRoadHolder].HasLongestRoad = true;
+                OnLongestRoadChanged?.Invoke(longestRoadHolder, true);
+                OnVPChanged?.Invoke(longestRoadHolder, players[longestRoadHolder].VictoryPoints);
+                Debug.Log($"[Local] 최장교역로: {GetPlayerName(longestRoadHolder)} ({maxLength}칸)");
+                CheckVictory(longestRoadHolder);
+            }
+        }
+    }
+
+    void UpdateLargestArmy()
+    {
+        int maxKnights = 0;
+        int maxPlayer = -1;
+
+        for (int i = 0; i < playerCount; i++)
+        {
+            if (players[i].KnightsPlayed >= 3 && players[i].KnightsPlayed > maxKnights)
+            {
+                maxKnights = players[i].KnightsPlayed;
+                maxPlayer = i;
+            }
+        }
+
+        if (maxPlayer != largestArmyHolder)
+        {
+            if (largestArmyHolder >= 0)
+            {
+                players[largestArmyHolder].HasLargestArmy = false;
+                OnLargestArmyChanged?.Invoke(largestArmyHolder, false);
+                OnVPChanged?.Invoke(largestArmyHolder, players[largestArmyHolder].VictoryPoints);
+            }
+
+            largestArmyHolder = maxPlayer;
+
+            if (largestArmyHolder >= 0)
+            {
+                players[largestArmyHolder].HasLargestArmy = true;
+                OnLargestArmyChanged?.Invoke(largestArmyHolder, true);
+                OnVPChanged?.Invoke(largestArmyHolder, players[largestArmyHolder].VictoryPoints);
+                Debug.Log($"[Local] 최대기사단: {GetPlayerName(largestArmyHolder)} ({maxKnights}명)");
+                CheckVictory(largestArmyHolder);
+            }
+        }
+    }
 
     // ========================
     // 승리 판정
@@ -494,6 +771,15 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     }
 
     public HexGrid GetGrid() => grid;
+
+    public int GetLongestRoadLength(int playerIndex)
+    {
+        if (playerIndex < 0 || playerIndex >= playerCount) return 0;
+        return LongestRoadCalculator.Calculate(playerIndex, grid);
+    }
+
+    public int GetLongestRoadHolder() => longestRoadHolder;
+    public int GetLargestArmyHolder() => largestArmyHolder;
 
     // ========================
     // 헬퍼

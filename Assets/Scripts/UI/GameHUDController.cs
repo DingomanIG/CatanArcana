@@ -19,6 +19,10 @@ public class GameHUDController : MonoBehaviour
     // Player Panel
     VisualElement playerList;
 
+    // Bonus Status
+    Label longestRoadLabel;
+    Label largestArmyLabel;
+
     // Action Buttons
     Button btnStartGame;
     Button btnRollDice;
@@ -26,6 +30,7 @@ public class GameHUDController : MonoBehaviour
     Button btnBuild;
     Button btnTrade;
     Button btnBuyDevCard;
+    Button btnDevCardHand;
 
     // Dice Display
     VisualElement diceDisplay;
@@ -44,16 +49,31 @@ public class GameHUDController : MonoBehaviour
     VisualElement buildOverlay;
     VisualElement tradeOverlay;
     VisualElement rulesOverlay;
+    VisualElement devCardOverlay;
+    VisualElement resourceSelectOverlay;
     Button btnCloseBuild;
     Button btnCloseTrade;
     Button btnRules;
     Button btnCloseRules;
+    Button btnCloseDevCard;
+    Button btnCancelResourceSelect;
 
     // Build Buttons
     Button btnBuildRoad;
     Button btnBuildSettlement;
     Button btnBuildCity;
     Button btnBuildDevCard;
+
+    // Resource Select
+    Label resourceSelectTitle;
+    Button btnSelectWood;
+    Button btnSelectBrick;
+    Button btnSelectWool;
+    Button btnSelectWheat;
+    Button btnSelectOre;
+
+    // Dev Card Hand
+    ScrollView devCardHand;
 
     // Dice dot elements (3x3 grid per die)
     VisualElement[,] die1Dots;
@@ -63,6 +83,11 @@ public class GameHUDController : MonoBehaviour
     readonly Dictionary<int, VisualElement> playerEntries = new();
     Coroutine diceHideCoroutine;
     const float DICE_DISPLAY_DURATION = 3f;
+
+    // 자원 선택 상태
+    enum ResourceSelectMode { None, YearOfPlenty1, YearOfPlenty2, Monopoly }
+    ResourceSelectMode resourceSelectMode = ResourceSelectMode.None;
+    ResourceType yearOfPlentyFirstChoice;
 
     // Dice face patterns: which dots (row,col) are visible for each value 1-6
     static readonly bool[][,] DiceDotPatterns = new bool[][,]
@@ -135,12 +160,16 @@ public class GameHUDController : MonoBehaviour
 
         playerList = root.Q<VisualElement>("player-list");
 
+        longestRoadLabel = root.Q<Label>("longest-road-label");
+        largestArmyLabel = root.Q<Label>("largest-army-label");
+
         btnStartGame = root.Q<Button>("btn-start-game");
         btnRollDice = root.Q<Button>("btn-roll-dice");
         btnEndTurn = root.Q<Button>("btn-end-turn");
         btnBuild = root.Q<Button>("btn-build");
         btnTrade = root.Q<Button>("btn-trade");
         btnBuyDevCard = root.Q<Button>("btn-buy-devcard");
+        btnDevCardHand = root.Q<Button>("btn-devcard-hand");
 
         diceDisplay = root.Q<VisualElement>("dice-display");
         die1Face = root.Q<VisualElement>("die-1");
@@ -159,15 +188,28 @@ public class GameHUDController : MonoBehaviour
         buildOverlay = root.Q<VisualElement>("build-overlay");
         tradeOverlay = root.Q<VisualElement>("trade-overlay");
         rulesOverlay = root.Q<VisualElement>("rules-overlay");
+        devCardOverlay = root.Q<VisualElement>("devcard-overlay");
+        resourceSelectOverlay = root.Q<VisualElement>("resource-select-overlay");
         btnCloseBuild = root.Q<Button>("btn-close-build");
         btnCloseTrade = root.Q<Button>("btn-close-trade");
         btnRules = root.Q<Button>("btn-rules");
         btnCloseRules = root.Q<Button>("btn-close-rules");
+        btnCloseDevCard = root.Q<Button>("btn-close-devcard");
+        btnCancelResourceSelect = root.Q<Button>("btn-cancel-resource-select");
 
         btnBuildRoad = root.Q<Button>("btn-build-road");
         btnBuildSettlement = root.Q<Button>("btn-build-settlement");
         btnBuildCity = root.Q<Button>("btn-build-city");
         btnBuildDevCard = root.Q<Button>("btn-build-devcard");
+
+        resourceSelectTitle = root.Q<Label>("resource-select-title");
+        btnSelectWood = root.Q<Button>("btn-select-wood");
+        btnSelectBrick = root.Q<Button>("btn-select-brick");
+        btnSelectWool = root.Q<Button>("btn-select-wool");
+        btnSelectWheat = root.Q<Button>("btn-select-wheat");
+        btnSelectOre = root.Q<Button>("btn-select-ore");
+
+        devCardHand = root.Q<ScrollView>("devcard-hand");
     }
 
     // ========================
@@ -184,6 +226,11 @@ public class GameHUDController : MonoBehaviour
             GM.OnPlayerListChanged += HandlePlayerListChanged;
             GM.OnResourceChanged += HandleResourceChanged;
             GM.OnVPChanged += HandleVPChanged;
+            GM.OnDevCardPurchased += HandleDevCardPurchased;
+            GM.OnDevCardUsed += HandleDevCardUsed;
+            GM.OnLongestRoadChanged += HandleLongestRoadChanged;
+            GM.OnLargestArmyChanged += HandleLargestArmyChanged;
+            GM.OnRobberMoved += HandleRobberMoved;
         }
     }
 
@@ -197,6 +244,11 @@ public class GameHUDController : MonoBehaviour
             GM.OnPlayerListChanged -= HandlePlayerListChanged;
             GM.OnResourceChanged -= HandleResourceChanged;
             GM.OnVPChanged -= HandleVPChanged;
+            GM.OnDevCardPurchased -= HandleDevCardPurchased;
+            GM.OnDevCardUsed -= HandleDevCardUsed;
+            GM.OnLongestRoadChanged -= HandleLongestRoadChanged;
+            GM.OnLargestArmyChanged -= HandleLargestArmyChanged;
+            GM.OnRobberMoved -= HandleRobberMoved;
         }
     }
 
@@ -212,10 +264,13 @@ public class GameHUDController : MonoBehaviour
         btnBuild.clicked += OnBuildClicked;
         btnTrade.clicked += OnTradeClicked;
         btnBuyDevCard.clicked += OnBuyDevCardClicked;
+        btnDevCardHand.clicked += OnDevCardHandClicked;
         btnCloseBuild.clicked += OnCloseBuildClicked;
         btnCloseTrade.clicked += OnCloseTradeClicked;
         btnRules.clicked += OnRulesClicked;
         btnCloseRules.clicked += OnCloseRulesClicked;
+        btnCloseDevCard.clicked += OnCloseDevCardClicked;
+        btnCancelResourceSelect.clicked += OnCancelResourceSelect;
 
         btnBuildRoad.clicked += () =>
         {
@@ -232,7 +287,18 @@ public class GameHUDController : MonoBehaviour
             buildOverlay.AddToClassList("overlay--hidden");
             GM?.EnterBuildMode(BuildMode.PlacingCity);
         };
-        btnBuildDevCard.clicked += () => Debug.Log("[HUD] 발전카드 구매 (미구현)");
+        btnBuildDevCard.clicked += () =>
+        {
+            GM?.TryBuyDevCard();
+            buildOverlay.AddToClassList("overlay--hidden");
+        };
+
+        // 자원 선택 버튼
+        btnSelectWood.clicked += () => OnResourceSelected(ResourceType.Wood);
+        btnSelectBrick.clicked += () => OnResourceSelected(ResourceType.Brick);
+        btnSelectWool.clicked += () => OnResourceSelected(ResourceType.Wool);
+        btnSelectWheat.clicked += () => OnResourceSelected(ResourceType.Wheat);
+        btnSelectOre.clicked += () => OnResourceSelected(ResourceType.Ore);
     }
 
     void OnStartGameClicked() => GM?.StartGame();
@@ -241,12 +307,29 @@ public class GameHUDController : MonoBehaviour
 
     void OnBuildClicked() => buildOverlay.RemoveFromClassList("overlay--hidden");
     void OnTradeClicked() => tradeOverlay.RemoveFromClassList("overlay--hidden");
-    void OnBuyDevCardClicked() => Debug.Log("[HUD] 발전카드 구매 (미구현)");
+
+    void OnBuyDevCardClicked()
+    {
+        GM?.TryBuyDevCard();
+    }
+
+    void OnDevCardHandClicked()
+    {
+        RefreshDevCardHand();
+        devCardOverlay.RemoveFromClassList("overlay--hidden");
+    }
 
     void OnCloseBuildClicked() => buildOverlay.AddToClassList("overlay--hidden");
     void OnCloseTradeClicked() => tradeOverlay.AddToClassList("overlay--hidden");
     void OnRulesClicked() => rulesOverlay.RemoveFromClassList("overlay--hidden");
     void OnCloseRulesClicked() => rulesOverlay.AddToClassList("overlay--hidden");
+    void OnCloseDevCardClicked() => devCardOverlay.AddToClassList("overlay--hidden");
+
+    void OnCancelResourceSelect()
+    {
+        resourceSelectMode = ResourceSelectMode.None;
+        resourceSelectOverlay.AddToClassList("overlay--hidden");
+    }
 
     // ========================
     // EVENT HANDLERS
@@ -291,6 +374,35 @@ public class GameHUDController : MonoBehaviour
         UpdatePlayerVP(playerIndex, vp);
     }
 
+    void HandleDevCardPurchased(int playerIndex, DevCardType cardType)
+    {
+        if (playerIndex == GM.LocalPlayerIndex)
+            Debug.Log($"[HUD] 발전카드 구매: {cardType}");
+    }
+
+    void HandleDevCardUsed(int playerIndex, DevCardType cardType)
+    {
+        if (playerIndex == GM.LocalPlayerIndex)
+            Debug.Log($"[HUD] 발전카드 사용: {cardType}");
+    }
+
+    void HandleLongestRoadChanged(int playerIndex, bool gained)
+    {
+        UpdateBonusStatus();
+    }
+
+    void HandleLargestArmyChanged(int playerIndex, bool gained)
+    {
+        UpdateBonusStatus();
+    }
+
+    void HandleRobberMoved(HexCoord newCoord)
+    {
+        var gridView = FindObjectOfType<HexGridView>();
+        if (gridView != null)
+            gridView.MoveRobberVisual(newCoord);
+    }
+
     // ========================
     // UI UPDATES
     // ========================
@@ -302,6 +414,7 @@ public class GameHUDController : MonoBehaviour
         RebuildPlayerList();
         HideDice();
         UpdateResourceDisplay(0, 0, 0, 0, 0);
+        UpdateBonusStatus();
     }
 
     void UpdateTopBar()
@@ -332,10 +445,12 @@ public class GameHUDController : MonoBehaviour
         SetVisible(btnBuild, actionPhase);
         SetVisible(btnTrade, actionPhase);
         SetVisible(btnBuyDevCard, actionPhase);
+        SetVisible(btnDevCardHand, actionPhase);
 
         btnBuild.SetEnabled(actionPhase);
         btnTrade.SetEnabled(actionPhase);
         btnBuyDevCard.SetEnabled(actionPhase);
+        btnDevCardHand.SetEnabled(actionPhase);
     }
 
     void HideAllButtons()
@@ -346,11 +461,168 @@ public class GameHUDController : MonoBehaviour
         SetVisible(btnBuild, false);
         SetVisible(btnTrade, false);
         SetVisible(btnBuyDevCard, false);
+        SetVisible(btnDevCardHand, false);
     }
 
     static void SetVisible(VisualElement element, bool visible)
     {
         element.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+    }
+
+    // ========================
+    // BONUS STATUS
+    // ========================
+
+    void UpdateBonusStatus()
+    {
+        if (GM == null) return;
+
+        int roadHolder = GM.GetLongestRoadHolder();
+        if (roadHolder >= 0)
+        {
+            longestRoadLabel.text = $"최장교역로: {GM.GetPlayerName(roadHolder)} ({GM.GetLongestRoadLength(roadHolder)})";
+            longestRoadLabel.RemoveFromClassList("bonus-label--hidden");
+        }
+        else
+        {
+            longestRoadLabel.AddToClassList("bonus-label--hidden");
+        }
+
+        int armyHolder = GM.GetLargestArmyHolder();
+        if (armyHolder >= 0)
+        {
+            var state = GM.GetPlayerState(armyHolder);
+            largestArmyLabel.text = $"최대기사단: {GM.GetPlayerName(armyHolder)} ({state.KnightsPlayed})";
+            largestArmyLabel.RemoveFromClassList("bonus-label--hidden");
+        }
+        else
+        {
+            largestArmyLabel.AddToClassList("bonus-label--hidden");
+        }
+    }
+
+    // ========================
+    // DEV CARD HAND
+    // ========================
+
+    void RefreshDevCardHand()
+    {
+        devCardHand.Clear();
+
+        if (GM == null) return;
+
+        var state = GM.GetPlayerState(GM.LocalPlayerIndex);
+        if (state == null || state.DevCards.Count == 0)
+        {
+            var emptyLabel = new Label("보유한 발전카드가 없습니다.");
+            emptyLabel.AddToClassList("placeholder-text");
+            devCardHand.Add(emptyLabel);
+            return;
+        }
+
+        foreach (var card in state.DevCards)
+        {
+            if (card.IsUsed) continue;
+
+            var entry = new VisualElement();
+            entry.AddToClassList("devcard-entry");
+
+            var info = new VisualElement();
+            info.AddToClassList("devcard-entry__info");
+
+            var nameLabel = new Label(GetDevCardName(card.Type));
+            nameLabel.AddToClassList("devcard-entry__name");
+
+            var descLabel = new Label(GetDevCardDesc(card.Type));
+            descLabel.AddToClassList("devcard-entry__desc");
+
+            info.Add(nameLabel);
+            info.Add(descLabel);
+            entry.Add(info);
+
+            // 승리점 카드는 사용 버튼 없음
+            if (card.Type != DevCardType.VictoryPoint)
+            {
+                var useBtn = new Button();
+                useBtn.text = "사용";
+                useBtn.AddToClassList("devcard-entry__btn");
+
+                bool canUse = !state.HasUsedDevCardThisTurn
+                              && card.CanUseOnTurn(GM.TurnNumber)
+                              && GM.CurrentPhase == GamePhase.Action;
+
+                useBtn.SetEnabled(canUse);
+                if (!canUse) entry.AddToClassList("devcard-entry--disabled");
+
+                var capturedCard = card;
+                useBtn.clicked += () => UseDevCard(capturedCard);
+
+                entry.Add(useBtn);
+            }
+
+            devCardHand.Add(entry);
+        }
+    }
+
+    void UseDevCard(DevelopmentCard card)
+    {
+        devCardOverlay.AddToClassList("overlay--hidden");
+
+        switch (card.Type)
+        {
+            case DevCardType.Knight:
+                // 첫 호출: 카드 소비 + SelectingKnightTarget 상태 진입
+                // BuildModeController가 타일 클릭 감지 후 TryUseKnight(coord) 재호출
+                GM?.TryUseKnight(default);
+                break;
+
+            case DevCardType.RoadBuilding:
+                GM?.TryUseRoadBuilding();
+                break;
+
+            case DevCardType.YearOfPlenty:
+                OpenResourceSelect(ResourceSelectMode.YearOfPlenty1, "풍년: 첫 번째 자원 선택");
+                break;
+
+            case DevCardType.Monopoly:
+                OpenResourceSelect(ResourceSelectMode.Monopoly, "독점: 자원 선택");
+                break;
+        }
+    }
+
+    // ========================
+    // RESOURCE SELECT
+    // ========================
+
+    void OpenResourceSelect(ResourceSelectMode mode, string title)
+    {
+        resourceSelectMode = mode;
+        resourceSelectTitle.text = title;
+        resourceSelectOverlay.RemoveFromClassList("overlay--hidden");
+    }
+
+    void OnResourceSelected(ResourceType type)
+    {
+        switch (resourceSelectMode)
+        {
+            case ResourceSelectMode.YearOfPlenty1:
+                yearOfPlentyFirstChoice = type;
+                resourceSelectMode = ResourceSelectMode.YearOfPlenty2;
+                resourceSelectTitle.text = "풍년: 두 번째 자원 선택";
+                break;
+
+            case ResourceSelectMode.YearOfPlenty2:
+                resourceSelectOverlay.AddToClassList("overlay--hidden");
+                GM?.TryUseYearOfPlenty(yearOfPlentyFirstChoice, type);
+                resourceSelectMode = ResourceSelectMode.None;
+                break;
+
+            case ResourceSelectMode.Monopoly:
+                resourceSelectOverlay.AddToClassList("overlay--hidden");
+                GM?.TryUseMonopoly(type);
+                resourceSelectMode = ResourceSelectMode.None;
+                break;
+        }
     }
 
     // ========================
@@ -476,7 +748,7 @@ public class GameHUDController : MonoBehaviour
     }
 
     // ========================
-    // PUBLIC API (향후 시스템 연동용)
+    // PUBLIC API
     // ========================
 
     /// <summary>자원 UI 일괄 업데이트</summary>
@@ -528,5 +800,25 @@ public class GameHUDController : MonoBehaviour
         GamePhase.MoveRobber => "도적 이동",
         GamePhase.GameOver => "게임 종료",
         _ => phase.ToString()
+    };
+
+    static string GetDevCardName(DevCardType type) => type switch
+    {
+        DevCardType.Knight => "기사",
+        DevCardType.VictoryPoint => "승리점",
+        DevCardType.RoadBuilding => "도로건설",
+        DevCardType.YearOfPlenty => "풍년",
+        DevCardType.Monopoly => "독점",
+        _ => type.ToString()
+    };
+
+    static string GetDevCardDesc(DevCardType type) => type switch
+    {
+        DevCardType.Knight => "도적을 이동합니다",
+        DevCardType.VictoryPoint => "즉시 1 승리점",
+        DevCardType.RoadBuilding => "도로 2개를 무료로 건설",
+        DevCardType.YearOfPlenty => "원하는 자원 2개 획득",
+        DevCardType.Monopoly => "선택한 자원을 전부 약탈",
+        _ => ""
     };
 }

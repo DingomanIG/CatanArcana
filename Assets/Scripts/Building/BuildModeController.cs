@@ -117,8 +117,18 @@ public class BuildModeController : MonoBehaviour
 
     void Update()
     {
-        if (currentMode == BuildMode.None) return;
         if (Mouse.current == null) return;
+
+        // 도적 이동 모드 (주사위 7 또는 기사 카드)
+        var gm = GameServices.GameManager;
+        if (gm != null && (gm.CurrentPhase == GamePhase.MoveRobber
+                        || gm.DevCardState == DevCardUseState.SelectingKnightTarget))
+        {
+            HandleRobberPlacement(gm);
+            return;
+        }
+
+        if (currentMode == BuildMode.None) return;
 
         // ESC 또는 우클릭으로 취소
         if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
@@ -224,6 +234,30 @@ public class BuildModeController : MonoBehaviour
                         CancelBuildMode();
                 }
                 break;
+            }
+        }
+    }
+
+    /// <summary>도적 이동: 타일 클릭으로 도적 배치</summary>
+    void HandleRobberPlacement(IGameManager gm)
+    {
+        if (IsPointerOverUI()) return;
+
+        if (!Mouse.current.leftButton.wasPressedThisFrame) return;
+
+        var ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+        var hits = Physics.RaycastAll(ray, 100f);
+
+        foreach (var hit in hits)
+        {
+            var go = hit.collider.gameObject;
+            if (gridView != null && gridView.TryGetTileCoord(go, out var coord))
+            {
+                if (gm.DevCardState == DevCardUseState.SelectingKnightTarget)
+                    gm.TryUseKnight(coord);
+                else
+                    gm.TryMoveRobber(coord);
+                return;
             }
         }
     }

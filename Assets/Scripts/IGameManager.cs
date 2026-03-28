@@ -3,8 +3,6 @@ using System.Collections.Generic;
 
 /// <summary>
 /// 게임 매니저 인터페이스 - 로컬/네트워크 모드 공통
-/// 로컬: LocalGameManager 구현
-/// 네트워크: TurnManager가 구현 (향후)
 /// </summary>
 public interface IGameManager
 {
@@ -16,6 +14,7 @@ public interface IGameManager
     GamePhase CurrentPhase { get; }
     bool IsHost { get; }
     BuildMode CurrentBuildMode { get; }
+    DevCardUseState DevCardState { get; }
 
     // 기존 이벤트
     event Action<int> OnTurnChanged;
@@ -30,6 +29,12 @@ public interface IGameManager
     event Action<int, int> OnVPChanged;
     event Action<HexCoord> OnRobberMoved;
     event Action<BuildMode> OnBuildModeChanged;
+
+    // 발전카드 이벤트
+    event Action<int, DevCardType> OnDevCardPurchased;
+    event Action<int, DevCardType> OnDevCardUsed;
+    event Action<int, bool> OnLongestRoadChanged;  // (playerIndex, gained)
+    event Action<int, bool> OnLargestArmyChanged;  // (playerIndex, gained)
 
     // 기본 액션
     void StartGame();
@@ -48,9 +53,19 @@ public interface IGameManager
     // 도적
     bool TryMoveRobber(HexCoord newTile);
 
+    // 발전카드 액션
+    bool TryBuyDevCard();
+    bool TryUseKnight(HexCoord robberTarget);
+    bool TryUseRoadBuilding();
+    bool TryUseYearOfPlenty(ResourceType res1, ResourceType res2);
+    bool TryUseMonopoly(ResourceType targetResource);
+
     // 조회
     PlayerState GetPlayerState(int playerIndex);
     HexGrid GetGrid();
+    int GetLongestRoadLength(int playerIndex);
+    int GetLongestRoadHolder();
+    int GetLargestArmyHolder();
 }
 
 /// <summary>글로벌 게임 매니저 참조</summary>

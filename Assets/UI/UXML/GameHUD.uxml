@@ -10,6 +10,10 @@
             <ui:VisualElement name="player-panel" class="player-panel">
                 <ui:Label text="플레이어" class="panel-title"/>
                 <ui:VisualElement name="player-list" class="player-list"/>
+                <ui:VisualElement name="bonus-status" class="bonus-status">
+                    <ui:Label name="longest-road-label" text="" class="bonus-label"/>
+                    <ui:Label name="largest-army-label" text="" class="bonus-label"/>
+                </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="dice-display" class="dice-display dice-display--hidden">
                 <ui:VisualElement name="dice-container" class="dice-container">
@@ -28,6 +32,7 @@
                 <ui:Button name="btn-build" text="건설" class="action-btn"/>
                 <ui:Button name="btn-trade" text="거래" class="action-btn"/>
                 <ui:Button name="btn-buy-devcard" text="발전카드 구매" class="action-btn"/>
+                <ui:Button name="btn-devcard-hand" text="카드 보기" class="action-btn"/>
                 <ui:VisualElement class="action-separator"/>
                 <ui:Button name="btn-rules" text="? 규칙" class="action-btn action-btn--info"/>
             </ui:VisualElement>
@@ -92,6 +97,26 @@
                 <ui:Label text="거래" class="overlay-title"/>
                 <ui:Label text="거래 시스템 준비 중..." class="placeholder-text"/>
                 <ui:Button name="btn-close-trade" text="닫기" class="overlay-close-btn"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="devcard-overlay" class="overlay overlay--hidden">
+            <ui:VisualElement class="overlay-panel devcard-panel">
+                <ui:Label text="발전카드" class="overlay-title"/>
+                <ui:ScrollView name="devcard-hand" class="devcard-hand"/>
+                <ui:Button name="btn-close-devcard" text="닫기" class="overlay-close-btn"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="resource-select-overlay" class="overlay overlay--hidden">
+            <ui:VisualElement class="overlay-panel resource-select-panel">
+                <ui:Label name="resource-select-title" text="자원 선택" class="overlay-title"/>
+                <ui:VisualElement class="resource-select-grid">
+                    <ui:Button name="btn-select-wood" text="목재" class="resource-select-btn resource-select-btn--wood"/>
+                    <ui:Button name="btn-select-brick" text="벽돌" class="resource-select-btn resource-select-btn--brick"/>
+                    <ui:Button name="btn-select-wool" text="양모" class="resource-select-btn resource-select-btn--wool"/>
+                    <ui:Button name="btn-select-wheat" text="밀" class="resource-select-btn resource-select-btn--wheat"/>
+                    <ui:Button name="btn-select-ore" text="광석" class="resource-select-btn resource-select-btn--ore"/>
+                </ui:VisualElement>
+                <ui:Button name="btn-cancel-resource-select" text="취소" class="overlay-close-btn"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="rules-overlay" class="overlay overlay--hidden">

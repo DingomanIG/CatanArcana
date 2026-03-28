@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// 플레이어 상태 - 자원/건물/승리점 관리
+/// 플레이어 상태 - 자원/건물/발전카드/승리점 관리
 /// 순수 C# 클래스 (MonoBehaviour 아님)
 /// </summary>
 public class PlayerState
@@ -27,6 +27,19 @@ public class PlayerState
     public List<HexVertex> OwnedVertices { get; } = new();
     public List<HexEdge> OwnedEdges { get; } = new();
 
+    /// <summary>발전카드 보유</summary>
+    public List<DevelopmentCard> DevCards { get; } = new();
+
+    /// <summary>사용한 기사 카드 수</summary>
+    public int KnightsPlayed { get; set; }
+
+    /// <summary>보너스 보유 여부</summary>
+    public bool HasLongestRoad { get; set; }
+    public bool HasLargestArmy { get; set; }
+
+    /// <summary>이번 턴 발전카드 사용 여부</summary>
+    public bool HasUsedDevCardThisTurn { get; set; }
+
     /// <summary>총 보유 자원 수</summary>
     public int TotalResourceCount
     {
@@ -38,7 +51,7 @@ public class PlayerState
         }
     }
 
-    /// <summary>승리점 계산</summary>
+    /// <summary>승리점 계산 (건물 + 발전카드 + 보너스)</summary>
     public int VictoryPoints
     {
         get
@@ -49,6 +62,12 @@ public class PlayerState
                 if (v.Building == BuildingType.Settlement) vp += 1;
                 else if (v.Building == BuildingType.City) vp += 2;
             }
+            foreach (var card in DevCards)
+            {
+                if (card.Type == DevCardType.VictoryPoint) vp += 1;
+            }
+            if (HasLongestRoad) vp += 2;
+            if (HasLargestArmy) vp += 2;
             return vp;
         }
     }
@@ -78,5 +97,28 @@ public class PlayerState
     {
         if (type == ResourceType.None || type == ResourceType.Sea) return;
         Resources[type] += amount;
+    }
+
+    /// <summary>특정 타입의 사용 가능한 발전카드 찾기</summary>
+    public DevelopmentCard FindUsableCard(DevCardType type, int currentTurn)
+    {
+        foreach (var card in DevCards)
+        {
+            if (card.Type == type && card.CanUseOnTurn(currentTurn))
+                return card;
+        }
+        return null;
+    }
+
+    /// <summary>사용 가능한 발전카드가 있는지</summary>
+    public bool HasUsableDevCard(int currentTurn)
+    {
+        if (HasUsedDevCardThisTurn) return false;
+        foreach (var card in DevCards)
+        {
+            if (card.Type != DevCardType.VictoryPoint && card.CanUseOnTurn(currentTurn))
+                return true;
+        }
+        return false;
     }
 }
