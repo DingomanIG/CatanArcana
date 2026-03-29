@@ -110,53 +110,62 @@ public static class HexBoardSetup
         }
     }
 
-    /// <summary>해안 변에 항구 배치 (표준 9개)</summary>
-    public static void SetupPorts(HexGrid grid, System.Random random = null)
+    /// <summary>해안 변에 항구 배치 (표준 9개, 바다 링 매 2칸마다)</summary>
+    public static void SetupPorts(HexGrid grid, int boardRadius = 2, System.Random random = null)
     {
         random ??= new System.Random();
 
-        // 해안 변 찾기: 육지 타일 1개만 인접한 변
-        var coastalEdges = new List<HexEdge>();
-        foreach (var edge in grid.Edges)
+        // 첫 번째 바다 링 (ring boardRadius+1) → 18칸, 매 2칸마다 항구 = 9개
+        int seaRing = boardRadius + 1;
+        var ringCoords = HexCoord.Ring(HexCoord.Zero, seaRing);
+
+        // 매 2칸마다 항구 배치할 바다 타일 선택 (랜덤 시작점)
+        int startOffset = random.Next(2);
+        var portSeaTiles = new List<HexTile>();
+        for (int i = 0; i < ringCoords.Count; i++)
         {
-            int landCount = 0;
-            foreach (var tile in edge.AdjacentTiles)
+            if ((i + startOffset) % 2 == 0)
             {
-                if (tile.Resource != ResourceType.Sea)
-                    landCount++;
+                var tile = grid.GetTile(ringCoords[i]);
+                if (tile != null) portSeaTiles.Add(tile);
             }
-            if (landCount == 1)
-                coastalEdges.Add(edge);
         }
 
-        if (coastalEdges.Count < 9)
-        {
-            UnityEngine.Debug.LogWarning($"[HexBoardSetup] 해안 변 부족: {coastalEdges.Count}개 (9개 필요)");
-            return;
-        }
-
-        // 해안 변을 균일하게 분산 배치 (매 3~4번째)
-        int spacing = coastalEdges.Count / 9;
+        // 각 항구 바다 타일에서 육지와 접한 해안 변 찾기
         var portEdges = new List<HexEdge>();
-        int startOffset = random.Next(spacing);
-        for (int i = 0; i < 9; i++)
+        foreach (var seaTile in portSeaTiles)
         {
-            int idx = (startOffset + i * spacing) % coastalEdges.Count;
-            portEdges.Add(coastalEdges[idx]);
+            foreach (var edge in seaTile.Edges)
+            {
+                bool touchesLand = false;
+                foreach (var adjTile in edge.AdjacentTiles)
+                {
+                    if (adjTile != seaTile && adjTile.Resource != ResourceType.Sea)
+                    {
+                        touchesLand = true;
+                        break;
+                    }
+                }
+                if (touchesLand)
+                {
+                    portEdges.Add(edge);
+                    break;
+                }
+            }
         }
 
         // 항구 타입 셔플 및 할당
         var ports = STANDARD_PORTS.ToArray();
         Shuffle(ports, random);
 
-        for (int i = 0; i < portEdges.Count; i++)
+        for (int i = 0; i < portEdges.Count && i < ports.Length; i++)
         {
             var edge = portEdges[i];
             edge.VertexA.Port = ports[i];
             edge.VertexB.Port = ports[i];
         }
 
-        UnityEngine.Debug.Log($"[HexBoardSetup] 항구 {portEdges.Count}개 배치 완료 (해안 변: {coastalEdges.Count})");
+        UnityEngine.Debug.Log($"[HexBoardSetup] 항구 {portEdges.Count}개 배치 완료 (바다 링 {seaRing}, {ringCoords.Count}칸 중 매 2칸)");
     }
 
     static void Shuffle<T>(T[] array, System.Random random)

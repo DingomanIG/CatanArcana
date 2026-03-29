@@ -44,7 +44,7 @@ public class HexGridView : MonoBehaviour
         grid.GenerateHexagonal(boardRadius);
         HexBoardSetup.SetupStandardBoard(grid);
         AddSeaRings();
-        HexBoardSetup.SetupPorts(grid);
+        HexBoardSetup.SetupPorts(grid, boardRadius);
 
         BuildVisuals();
     }
@@ -332,7 +332,7 @@ public class HexGridView : MonoBehaviour
             HexBoardSetup.SetupStandardBoard(grid);
         }
         AddSeaRings();
-        HexBoardSetup.SetupPorts(grid);
+        HexBoardSetup.SetupPorts(grid, boardRadius);
         BuildVisuals();
     }
 }
