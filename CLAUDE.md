@@ -14,7 +14,7 @@
 - **IDE 연동**: Claude Code ↔ Unity Editor (씬/USS/UXML 직접 편집 가능)
 
 ## Architecture Decisions
-- **좌표계**: 큐브 좌표 (q+r+s=0), flat-top 헥스
+- **좌표계**: 큐브 좌표 (q+r+s=0), pointy-top 헥스
 - **데이터/뷰 분리**: HexGrid(순수 C#) + HexGridView(MonoBehaviour)
 - **확장성**: radius 파라미터로 보드 크기 조절, 임의 형태 지원
 - **토폴로지**: 위치 기반 키로 교차점/변 중복 제거

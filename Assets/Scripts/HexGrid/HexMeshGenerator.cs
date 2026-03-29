@@ -5,7 +5,7 @@ using UnityEngine;
 /// </summary>
 public static class HexMeshGenerator
 {
-    /// <summary>flat-top 헥스 메시 생성 (XZ 평면, 위에서 보는 방향)</summary>
+    /// <summary>pointy-top 헥스 메시 생성 (XZ 평면, 위에서 보는 방향)</summary>
     public static Mesh CreateFlatHexMesh(float size)
     {
         var mesh = new Mesh();
@@ -19,10 +19,10 @@ public static class HexMeshGenerator
         vertices[0] = Vector3.zero;
         uv[0] = new Vector2(0.5f, 0.5f);
 
-        // 6개 코너 (flat-top)
+        // 6개 코너 (pointy-top: 30° 오프셋)
         for (int i = 0; i < 6; i++)
         {
-            float angle = Mathf.Deg2Rad * (60f * i);
+            float angle = Mathf.Deg2Rad * (60f * i + 30f);
             vertices[i + 1] = new Vector3(
                 size * Mathf.Cos(angle),
                 0f,
