@@ -152,6 +152,49 @@
     padding: 24px 0;
 }
 
+/* === AI SETTINGS === */
+.ai-settings {
+    margin-bottom: 8px;
+    padding: 10px 12px;
+    background-color: rgba(26, 22, 18, 0.7);
+    border-width: 1px;
+    border-color: #4a3f35;
+    border-radius: 8px;
+}
+
+.ai-slot-row {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.ai-slot__label {
+    color: #a89880;
+    font-size: 13px;
+    -unity-font-style: bold;
+    min-width: 32px;
+    margin-right: 8px;
+}
+
+.ai-dropdown {
+    flex-grow: 1;
+    height: 28px;
+}
+
+.ai-dropdown > .unity-popup-field__input {
+    background-color: #2a2420;
+    border-color: #4a3f35;
+    border-radius: 4px;
+    color: #e8dcc8;
+    font-size: 13px;
+    padding: 2px 8px;
+    min-height: 24px;
+}
+
+.ai-dropdown:hover > .unity-popup-field__input {
+    border-color: #d4a845;
+}
+
 /* === VERSION LABEL === */
 .version-label {
     position: absolute;

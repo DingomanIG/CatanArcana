@@ -18,6 +18,7 @@ public class SceneFlowManager : MonoBehaviour
     public bool IsHosting { get; set; }
     public bool IsLocalPlay { get; set; }
     public int LocalPlayerCount { get; set; } = 4;
+    public AIDifficulty[] AIDifficulties { get; set; } = { AIDifficulty.None, AIDifficulty.Medium, AIDifficulty.Medium, AIDifficulty.Medium };
 
     void Awake()
     {

@@ -5,7 +5,7 @@ using Unity.Services.Lobbies.Models;
 
 /// <summary>
 /// 메인 메뉴 UI 컨트롤러
-/// 로컬 플레이, 방 생성, 코드 참가, 방 목록 브라우징
+/// 로컬 플레이 (AI 난이도 선택), 방 생성, 코드 참가, 방 목록 브라우징
 /// </summary>
 public class MainMenuController : MonoBehaviour
 {
@@ -23,6 +23,11 @@ public class MainMenuController : MonoBehaviour
     Label statusMessage;
     VisualElement roomListPanel;
     ScrollView roomListScroll;
+
+    // AI 난이도 드롭다운
+    DropdownField[] aiDropdowns = new DropdownField[3];
+
+    static readonly List<string> DifficultyChoices = new() { "없음", "쉬움", "보통", "어려움" };
 
     bool networkReady;
 
@@ -42,6 +47,17 @@ public class MainMenuController : MonoBehaviour
         roomListPanel = root.Q<VisualElement>("room-list-panel");
         roomListScroll = root.Q<ScrollView>("room-list-scroll");
 
+        // AI 난이도 드롭다운 초기화
+        for (int i = 0; i < 3; i++)
+        {
+            aiDropdowns[i] = root.Q<DropdownField>($"ai-diff-{i + 1}");
+            if (aiDropdowns[i] != null)
+            {
+                aiDropdowns[i].choices = DifficultyChoices;
+                aiDropdowns[i].index = 2; // 기본: 보통(Medium)
+            }
+        }
+
         btnLocalPlay.clicked += OnLocalPlay;
         btnCreateRoom.clicked += OnCreateRoom;
         btnJoinRoom.clicked += OnJoinRoom;
@@ -51,7 +67,6 @@ public class MainMenuController : MonoBehaviour
 
         inputJoinCode.value = "";
 
-        // 저장된 플레이어 이름 복원
         string savedName = PlayerPrefs.GetString("PlayerName", "");
         if (!string.IsNullOrEmpty(savedName))
             inputPlayerName.value = savedName;
@@ -59,7 +74,6 @@ public class MainMenuController : MonoBehaviour
 
     void Start()
     {
-        // 온라인 버튼 비활성화 (네트워크 준비 전)
         SetNetworkButtonsEnabled(false);
         SetStatus("서비스 연결 중...");
         WaitForServices();
@@ -102,10 +116,29 @@ public class MainMenuController : MonoBehaviour
     {
         SavePlayerName(GetPlayerName());
 
+        // AI 난이도 수집
+        var difficulties = new AIDifficulty[4];
+        difficulties[0] = AIDifficulty.None; // 플레이어 본인
+
+        int activeCount = 1;
+        for (int i = 0; i < 3; i++)
+        {
+            int idx = aiDropdowns[i] != null ? aiDropdowns[i].index : 2;
+            difficulties[i + 1] = (AIDifficulty)idx;
+            if (idx > 0) activeCount++;
+        }
+
+        if (activeCount < 2)
+        {
+            SetStatus("최소 AI 1명은 참가해야 합니다", true);
+            return;
+        }
+
         var flow = SceneFlowManager.Instance;
         flow.PlayerName = GetPlayerName();
         flow.IsLocalPlay = true;
-        flow.LocalPlayerCount = 4;
+        flow.LocalPlayerCount = activeCount;
+        flow.AIDifficulties = difficulties;
         flow.GoToGame();
     }
 

@@ -41,6 +41,13 @@ public class AIController : MonoBehaviour
         difficulties = new[] { player0AI, player1AI, player2AI, player3AI };
     }
 
+    /// <summary>외부에서 난이도 설정 (메인 메뉴 → SceneFlowManager 경유)</summary>
+    public void SetDifficulties(AIDifficulty[] diffs)
+    {
+        for (int i = 0; i < Mathf.Min(diffs.Length, 4); i++)
+            difficulties[i] = diffs[i];
+    }
+
     void Start()
     {
         gm = GameServices.GameManager;

@@ -19,7 +19,21 @@
             <ui:VisualElement style="height: 12px;"/>
 
             <!-- 로컬 플레이 -->
-            <ui:Button name="btn-local-play" text="로컬 플레이 (AI 대전)" class="btn btn--gold menu-btn"/>
+            <ui:VisualElement name="ai-settings" class="ai-settings">
+                <ui:VisualElement class="ai-slot-row">
+                    <ui:Label text="P2" class="ai-slot__label"/>
+                    <ui:DropdownField name="ai-diff-1" class="ai-dropdown"/>
+                </ui:VisualElement>
+                <ui:VisualElement class="ai-slot-row">
+                    <ui:Label text="P3" class="ai-slot__label"/>
+                    <ui:DropdownField name="ai-diff-2" class="ai-dropdown"/>
+                </ui:VisualElement>
+                <ui:VisualElement class="ai-slot-row">
+                    <ui:Label text="P4" class="ai-slot__label"/>
+                    <ui:DropdownField name="ai-diff-3" class="ai-dropdown"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:Button name="btn-local-play" text="로컬 플레이 시작" class="btn btn--gold menu-btn"/>
 
             <ui:VisualElement style="height: 8px;"/>
             <ui:Label text="── 온라인 ──" class="label-muted" style="align-self: center;"/>

@@ -101,8 +101,12 @@ public class LocalGameManager : MonoBehaviour, IGameManager
             humanPlayerIndex = 0;
 
             // AIController가 없으면 자동 추가
-            if (GetComponent<AIController>() == null)
-                gameObject.AddComponent<AIController>();
+            var ai = GetComponent<AIController>();
+            if (ai == null)
+                ai = gameObject.AddComponent<AIController>();
+
+            // 메뉴에서 선택한 난이도 적용
+            ai.SetDifficulties(SceneFlowManager.Instance.AIDifficulties);
         }
     }
 
