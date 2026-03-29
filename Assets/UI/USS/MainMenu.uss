@@ -1,0 +1,164 @@
+/* ============================================
+   ArcanaCatan - Main Menu Stylesheet
+   ============================================ */
+
+/* === BACKGROUND === */
+.menu-bg-decoration {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #1a1612;
+    /* 헥스 패턴 배경 효과 (그라데이션) */
+    border-width: 0;
+}
+
+/* === CONTAINER === */
+.menu-container {
+    width: 380px;
+    padding: 40px 36px;
+    background-color: rgba(42, 36, 32, 0.95);
+    border-width: 2px;
+    border-color: #4a3f35;
+    border-radius: 16px;
+    align-items: stretch;
+}
+
+/* === TITLE === */
+.menu-title {
+    color: #d4a845;
+    font-size: 32px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    margin-bottom: 4px;
+    letter-spacing: 2px;
+}
+
+.menu-subtitle {
+    color: #a89880;
+    font-size: 14px;
+    -unity-text-align: middle-center;
+    letter-spacing: 4px;
+    -unity-font-style: italic;
+}
+
+/* === BUTTONS === */
+.menu-btn {
+    height: 48px;
+    font-size: 16px;
+}
+
+/* === JOIN SECTION === */
+.join-section {
+    flex-direction: row;
+    margin-bottom: 8px;
+}
+
+.join-code-input {
+    flex-grow: 1;
+    margin-right: 8px;
+    margin-bottom: 0;
+    -unity-text-align: middle-center;
+    font-size: 18px;
+    letter-spacing: 4px;
+}
+
+.join-code-input > .unity-text-element {
+    color: #e8dcc8;
+    -unity-text-align: middle-center;
+}
+
+.join-code-input #unity-text-input {
+    background-color: #1a1612;
+    border-color: #4a3f35;
+    border-radius: 6px;
+    color: #e8dcc8;
+    -unity-text-align: middle-center;
+}
+
+.join-code-input:focus #unity-text-input {
+    border-color: #d4a845;
+}
+
+.join-btn {
+    width: 80px;
+    margin-bottom: 0;
+}
+
+/* === ROOM LIST === */
+.room-list-panel {
+    margin-top: 12px;
+    padding: 16px;
+    background-color: #1a1612;
+    border-width: 1px;
+    border-color: #4a3f35;
+    border-radius: 8px;
+}
+
+.room-list-panel--hidden {
+    display: none;
+}
+
+.room-list-scroll {
+    max-height: 200px;
+    margin-bottom: 8px;
+}
+
+.room-entry {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    margin-bottom: 4px;
+    background-color: rgba(53, 46, 40, 0.6);
+    border-radius: 6px;
+}
+
+.room-entry__info {
+    flex-grow: 1;
+}
+
+.room-entry__name {
+    color: #e8dcc8;
+    font-size: 14px;
+    -unity-font-style: bold;
+}
+
+.room-entry__players {
+    color: #a89880;
+    font-size: 12px;
+}
+
+.room-entry__join-btn {
+    height: 30px;
+    min-width: 56px;
+    border-radius: 4px;
+    background-color: #3a6830;
+    border-color: #5a9e4b;
+    border-width: 1px;
+    color: #e8dcc8;
+    font-size: 12px;
+}
+
+.room-entry__join-btn:hover {
+    background-color: #4a7a3e;
+}
+
+.room-list-empty {
+    color: #a89880;
+    font-size: 13px;
+    -unity-text-align: middle-center;
+    padding: 24px 0;
+}
+
+/* === VERSION LABEL === */
+.version-label {
+    position: absolute;
+    bottom: 16px;
+    left: 0;
+    right: 0;
+    color: rgba(168, 152, 128, 0.4);
+    font-size: 11px;
+    -unity-text-align: middle-center;
+}

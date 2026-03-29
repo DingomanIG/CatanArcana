@@ -1,0 +1,115 @@
+/* ============================================
+   ArcanaCatan - Lobby Screen Stylesheet
+   ============================================ */
+
+/* === CONTAINER === */
+.lobby-container {
+    width: 440px;
+    padding: 32px 36px;
+    background-color: rgba(42, 36, 32, 0.95);
+    border-width: 2px;
+    border-color: #4a3f35;
+    border-radius: 16px;
+    align-items: stretch;
+}
+
+/* === HEADER === */
+.lobby-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.lobby-title {
+    color: #d4a845;
+    font-size: 24px;
+    -unity-font-style: bold;
+}
+
+.lobby-code-area {
+    align-items: center;
+}
+
+.lobby-code {
+    color: #e8dcc8;
+    font-size: 24px;
+    -unity-font-style: bold;
+    letter-spacing: 6px;
+    background-color: #1a1612;
+    padding: 6px 16px;
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: #d4a845;
+}
+
+/* === PLAYER SLOTS === */
+.player-slots {
+    margin-bottom: 4px;
+}
+
+.player-slot {
+    flex-direction: row;
+    align-items: center;
+    padding: 10px 14px;
+    margin-bottom: 6px;
+    background-color: rgba(53, 46, 40, 0.6);
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: transparent;
+}
+
+.player-slot--filled {
+    background-color: rgba(53, 46, 40, 0.9);
+    border-color: #4a3f35;
+}
+
+.player-slot__color {
+    width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    margin-right: 12px;
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* 카탄 플레이어 색상 */
+.player-slot__color--0 { background-color: #c45c3e; }  /* 빨강 */
+.player-slot__color--1 { background-color: #4a8ec4; }  /* 파랑 */
+.player-slot__color--2 { background-color: #e8a838; }  /* 주황 */
+.player-slot__color--3 { background-color: #e8e8e8; }  /* 흰색 */
+
+.player-slot__name {
+    color: #e8dcc8;
+    font-size: 15px;
+    -unity-font-style: bold;
+    flex-grow: 1;
+}
+
+.player-slot__name--empty {
+    color: #665a4e;
+    -unity-font-style: italic;
+    -unity-font-style: normal;
+}
+
+.player-slot__badge {
+    color: #d4a845;
+    font-size: 11px;
+    -unity-font-style: bold;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background-color: rgba(212, 168, 69, 0.15);
+}
+
+.player-slot__badge--hidden {
+    display: none;
+}
+
+/* === BUTTONS === */
+.lobby-buttons {
+    margin-top: 8px;
+}
+
+.lobby-btn {
+    height: 48px;
+    font-size: 16px;
+}

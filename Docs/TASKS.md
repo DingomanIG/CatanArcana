@@ -5,8 +5,9 @@
 - [x] 교차점/변 데이터 구조 (HexVertex, HexEdge)
 - [x] 타일 자원 타입/숫자 토큰 할당
 - [x] 헥스 메시 생성 + 뷰 (HexMeshGenerator, HexGridView)
-- [x] 카메라 세팅 (2.5D 오소그래픽, 45°)
-- [ ] 씬 분리 (MainMenu, Lobby, Game)
+- [x] 카메라 세팅 (2.5D 오소그래픽, 45° + 팬/줌)
+- [x] 바다 타일 + 씬 구성
+- [x] 씬 분리 (MainMenu, Lobby, Game) + SceneFlowManager
 
 ## 네트워크
 - [x] Unity Authentication 연동
@@ -39,8 +40,9 @@
 - [x] 인게임 규칙 뷰어 (스크롤 오버레이)
 - [x] 자원 UI ↔ 게임 로직 연동 (OnResourceChanged)
 - [x] VP UI ↔ 게임 로직 연동 (OnVPChanged)
-- [ ] 메인 메뉴 UI
-- [ ] 로비 / 대기실 UI
+- [x] 메인 메뉴 UI (MainMenuController + UXML/USS)
+- [x] 로비 / 대기실 UI (LobbyController + UXML/USS)
+- [x] 공통 스타일시트 (Common.uss)
 - [x] 발전카드 목록 UI
 - [ ] 결과 화면 UI
 - [ ] NetworkTestUI → GameHUD 전환 (씬 설정)
@@ -63,9 +65,10 @@
 - [x] 도적 이동 (7 굴림 → MoveRobber 페이즈)
 - [x] 자원 7장 초과 시 반납 (자동 폐기)
 - [x] 승리 조건 체크 (10점)
-- [ ] 도적 자원 약탈 (인접 플레이어에서 도둑질)
-- [x] 발전카드 구매/사용
-- [x] 최장교역로 판정 (2점)
+- [x] 도적 자원 약탈 (인접 플레이어에서 도둑질, StealResource 페이즈 + UI)
+- [x] 발전카드 구매/사용 (기사/독점/풍년/도로건설/승점)
+- [x] 발전카드 덱 (DevCardDeck)
+- [x] 최장교역로 판정 (LongestRoadCalculator, 2점)
 - [x] 최대기사단 판정 (2점)
 
 ## 초기 배치

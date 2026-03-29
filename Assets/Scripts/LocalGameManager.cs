@@ -31,6 +31,10 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     DevCardUseState devCardUseState = DevCardUseState.None;
     int freeRoadsRemaining;
 
+    // 도적 약탈 상태
+    List<int> robberStealCandidates = new();
+    bool returnToActionAfterSteal; // 기사 카드 사용 후 약탈 시 true
+
     // 보너스 보유자 (-1 = 없음)
     int longestRoadHolder = -1;
     int largestArmyHolder = -1;
@@ -75,6 +79,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     public event Action<int, DevCardType> OnDevCardUsed;
     public event Action<int, bool> OnLongestRoadChanged;
     public event Action<int, bool> OnLargestArmyChanged;
+    public event Action<int, int, ResourceType> OnRobberSteal;
 
     // ========================
     // LIFECYCLE
@@ -345,17 +350,95 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         OnRobberMoved?.Invoke(newTile);
         Debug.Log($"[Local] 도적 이동: {newTile}");
 
-        if (devCardUseState == DevCardUseState.SelectingKnightTarget)
-        {
+        bool fromKnight = devCardUseState == DevCardUseState.SelectingKnightTarget;
+        if (fromKnight)
             devCardUseState = DevCardUseState.None;
-            // 기사 카드는 Action 페이즈 유지
+
+        // 약탈 후보 확인
+        robberStealCandidates = FindStealCandidates(tile);
+
+        if (robberStealCandidates.Count == 0)
+        {
+            // 약탈 대상 없음 → 바로 진행
+            if (!fromKnight)
+                SetPhase(GamePhase.Action);
+            Debug.Log("[Local] 도적 약탈 대상 없음");
+        }
+        else if (robberStealCandidates.Count == 1)
+        {
+            // 대상 1명 → 자동 약탈
+            StealRandomResource(currentPlayerIndex, robberStealCandidates[0]);
+            robberStealCandidates.Clear();
+            if (!fromKnight)
+                SetPhase(GamePhase.Action);
         }
         else
         {
-            SetPhase(GamePhase.Action);
+            // 대상 2명 이상 → 선택 UI 표시
+            returnToActionAfterSteal = !fromKnight;
+            SetPhase(GamePhase.StealResource);
+            Debug.Log($"[Local] 도적 약탈 대상 선택 필요: {robberStealCandidates.Count}명");
         }
 
         return true;
+    }
+
+    public bool TryStealFromPlayer(int victimIndex)
+    {
+        if (currentPhase != GamePhase.StealResource) return false;
+        if (!robberStealCandidates.Contains(victimIndex)) return false;
+
+        StealRandomResource(currentPlayerIndex, victimIndex);
+        robberStealCandidates.Clear();
+
+        if (returnToActionAfterSteal)
+            SetPhase(GamePhase.Action);
+        else
+            SetPhase(GamePhase.Action);
+
+        return true;
+    }
+
+    public List<int> GetRobberStealCandidates() => new(robberStealCandidates);
+
+    List<int> FindStealCandidates(HexTile tile)
+    {
+        var candidates = new HashSet<int>();
+        foreach (var vertex in tile.Vertices)
+        {
+            if (vertex.Building == BuildingType.None) continue;
+            int owner = vertex.OwnerPlayerIndex;
+            if (owner < 0 || owner == currentPlayerIndex) continue;
+            if (players[owner].TotalResourceCount <= 0) continue;
+            candidates.Add(owner);
+        }
+        return new List<int>(candidates);
+    }
+
+    void StealRandomResource(int thiefIndex, int victimIndex)
+    {
+        var victim = players[victimIndex];
+        var thief = players[thiefIndex];
+
+        // 보유 자원을 풀로 만들어 랜덤 선택
+        var pool = new List<ResourceType>();
+        foreach (var kv in victim.Resources)
+        {
+            for (int i = 0; i < kv.Value; i++)
+                pool.Add(kv.Key);
+        }
+
+        if (pool.Count == 0) return;
+
+        var stolen = pool[UnityEngine.Random.Range(0, pool.Count)];
+        victim.Resources[stolen]--;
+        thief.AddResource(stolen, 1);
+
+        NotifyAllResources(victimIndex);
+        NotifyAllResources(thiefIndex);
+        OnRobberSteal?.Invoke(thiefIndex, victimIndex, stolen);
+
+        Debug.Log($"[Local] {GetPlayerName(thiefIndex)}이 {GetPlayerName(victimIndex)}에게서 {stolen} 1장 약탈!");
     }
 
     // ========================

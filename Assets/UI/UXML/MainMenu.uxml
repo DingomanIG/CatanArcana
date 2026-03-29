@@ -1,0 +1,48 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/USS/Common.uss"/>
+    <Style src="project://database/Assets/UI/USS/MainMenu.uss"/>
+    <ui:VisualElement name="menu-root" class="screen-root">
+        <!-- 배경 장식 -->
+        <ui:VisualElement class="menu-bg-decoration"/>
+
+        <!-- 메인 컨테이너 -->
+        <ui:VisualElement name="menu-container" class="menu-container">
+            <!-- 타이틀 -->
+            <ui:Label text="카탄의 개척자들" class="menu-title"/>
+            <ui:Label text="ArcanaCatan" class="menu-subtitle"/>
+            <ui:VisualElement class="divider" style="margin: 20px 0;"/>
+
+            <!-- 이름 입력 -->
+            <ui:Label text="플레이어 이름" class="label-text" style="margin-bottom: 4px;"/>
+            <ui:TextField name="input-player-name" value="Player" max-length="16" class="text-input"/>
+
+            <ui:VisualElement style="height: 12px;"/>
+
+            <!-- 방 만들기 -->
+            <ui:Button name="btn-create-room" text="방 만들기" class="btn btn--primary menu-btn"/>
+
+            <!-- 방 참가 -->
+            <ui:VisualElement class="join-section">
+                <ui:TextField name="input-join-code" max-length="6" class="text-input join-code-input"/>
+                <ui:Button name="btn-join-room" text="참가" class="btn btn--gold join-btn"/>
+            </ui:VisualElement>
+
+            <!-- 방 목록 -->
+            <ui:Button name="btn-browse-rooms" text="방 목록 보기" class="btn menu-btn"/>
+
+            <!-- 상태 메시지 -->
+            <ui:Label name="status-message" class="status-message"/>
+
+            <!-- 방 목록 패널 (숨김) -->
+            <ui:VisualElement name="room-list-panel" class="room-list-panel room-list-panel--hidden">
+                <ui:Label text="열린 방 목록" class="label-title"/>
+                <ui:ScrollView name="room-list-scroll" class="room-list-scroll"/>
+                <ui:Button name="btn-refresh-rooms" text="새로고침" class="btn"/>
+                <ui:Button name="btn-close-rooms" text="닫기" class="btn"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- 하단 버전 -->
+        <ui:Label text="ArcanaCatan v0.1 - Prototype" class="version-label"/>
+    </ui:VisualElement>
+</ui:UXML>

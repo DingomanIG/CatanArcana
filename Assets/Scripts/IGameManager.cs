@@ -35,6 +35,7 @@ public interface IGameManager
     event Action<int, DevCardType> OnDevCardUsed;
     event Action<int, bool> OnLongestRoadChanged;  // (playerIndex, gained)
     event Action<int, bool> OnLargestArmyChanged;  // (playerIndex, gained)
+    event Action<int, int, ResourceType> OnRobberSteal; // (thief, victim, resource)
 
     // 기본 액션
     void StartGame();
@@ -52,6 +53,8 @@ public interface IGameManager
 
     // 도적
     bool TryMoveRobber(HexCoord newTile);
+    bool TryStealFromPlayer(int victimIndex);
+    List<int> GetRobberStealCandidates();
 
     // 발전카드 액션
     bool TryBuyDevCard();
@@ -81,5 +84,6 @@ public enum GamePhase
     RollDice,
     Action,
     MoveRobber,
+    StealResource,
     GameOver
 }

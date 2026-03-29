@@ -1,0 +1,54 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/USS/Common.uss"/>
+    <Style src="project://database/Assets/UI/USS/LobbyScreen.uss"/>
+    <ui:VisualElement name="lobby-root" class="screen-root">
+        <ui:VisualElement name="lobby-container" class="lobby-container">
+            <!-- 헤더 -->
+            <ui:VisualElement class="lobby-header">
+                <ui:Label name="lobby-title" text="대기실" class="lobby-title"/>
+                <ui:VisualElement class="lobby-code-area">
+                    <ui:Label text="참가 코드" class="label-muted"/>
+                    <ui:Label name="lobby-code" text="------" class="lobby-code"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement class="divider"/>
+
+            <!-- 플레이어 슬롯 -->
+            <ui:Label text="플레이어" class="label-title" style="margin-bottom: 8px;"/>
+            <ui:VisualElement name="player-slots" class="player-slots">
+                <ui:VisualElement name="slot-0" class="player-slot">
+                    <ui:VisualElement class="player-slot__color player-slot__color--0"/>
+                    <ui:Label text="빈 자리" class="player-slot__name player-slot__name--empty"/>
+                    <ui:Label class="player-slot__badge"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="slot-1" class="player-slot">
+                    <ui:VisualElement class="player-slot__color player-slot__color--1"/>
+                    <ui:Label text="빈 자리" class="player-slot__name player-slot__name--empty"/>
+                    <ui:Label class="player-slot__badge"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="slot-2" class="player-slot">
+                    <ui:VisualElement class="player-slot__color player-slot__color--2"/>
+                    <ui:Label text="빈 자리" class="player-slot__name player-slot__name--empty"/>
+                    <ui:Label class="player-slot__badge"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="slot-3" class="player-slot">
+                    <ui:VisualElement class="player-slot__color player-slot__color--3"/>
+                    <ui:Label text="빈 자리" class="player-slot__name player-slot__name--empty"/>
+                    <ui:Label class="player-slot__badge"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement class="divider"/>
+
+            <!-- 상태 메시지 -->
+            <ui:Label name="lobby-status" text="플레이어를 기다리는 중..." class="status-message"/>
+
+            <!-- 버튼 -->
+            <ui:VisualElement class="lobby-buttons">
+                <ui:Button name="btn-start-game" text="게임 시작" class="btn btn--primary lobby-btn"/>
+                <ui:Button name="btn-leave" text="나가기" class="btn btn--danger lobby-btn"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

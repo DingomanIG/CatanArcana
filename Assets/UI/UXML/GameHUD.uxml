@@ -119,6 +119,12 @@
                 <ui:Button name="btn-cancel-resource-select" text="취소" class="overlay-close-btn"/>
             </ui:VisualElement>
         </ui:VisualElement>
+        <ui:VisualElement name="steal-overlay" class="overlay overlay--hidden">
+            <ui:VisualElement class="overlay-panel steal-panel">
+                <ui:Label name="steal-title" text="약탈할 플레이어 선택" class="overlay-title"/>
+                <ui:VisualElement name="steal-player-list" class="steal-player-list"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
         <ui:VisualElement name="rules-overlay" class="overlay overlay--hidden">
             <ui:VisualElement class="overlay-panel rules-panel">
                 <ui:Label text="카탄의 개척자들 - 게임 규칙" class="overlay-title"/>

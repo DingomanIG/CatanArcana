@@ -72,6 +72,10 @@ public class GameHUDController : MonoBehaviour
     Button btnSelectWheat;
     Button btnSelectOre;
 
+    // Steal Overlay
+    VisualElement stealOverlay;
+    VisualElement stealPlayerList;
+
     // Dev Card Hand
     ScrollView devCardHand;
 
@@ -210,6 +214,9 @@ public class GameHUDController : MonoBehaviour
         btnSelectOre = root.Q<Button>("btn-select-ore");
 
         devCardHand = root.Q<ScrollView>("devcard-hand");
+
+        stealOverlay = root.Q<VisualElement>("steal-overlay");
+        stealPlayerList = root.Q<VisualElement>("steal-player-list");
     }
 
     // ========================
@@ -231,6 +238,7 @@ public class GameHUDController : MonoBehaviour
             GM.OnLongestRoadChanged += HandleLongestRoadChanged;
             GM.OnLargestArmyChanged += HandleLargestArmyChanged;
             GM.OnRobberMoved += HandleRobberMoved;
+            GM.OnRobberSteal += HandleRobberSteal;
         }
     }
 
@@ -249,6 +257,7 @@ public class GameHUDController : MonoBehaviour
             GM.OnLongestRoadChanged -= HandleLongestRoadChanged;
             GM.OnLargestArmyChanged -= HandleLargestArmyChanged;
             GM.OnRobberMoved -= HandleRobberMoved;
+            GM.OnRobberSteal -= HandleRobberSteal;
         }
     }
 
@@ -349,6 +358,11 @@ public class GameHUDController : MonoBehaviour
 
         if (newPhase == GamePhase.RollDice)
             HideDice();
+
+        if (newPhase == GamePhase.StealResource)
+            ShowStealOverlay();
+        else
+            stealOverlay?.AddToClassList("overlay--hidden");
     }
 
     void HandleDiceRolled(int die1, int die2, int total)
@@ -401,6 +415,11 @@ public class GameHUDController : MonoBehaviour
         var gridView = FindObjectOfType<HexGridView>();
         if (gridView != null)
             gridView.MoveRobberVisual(newCoord);
+    }
+
+    void HandleRobberSteal(int thief, int victim, ResourceType resource)
+    {
+        Debug.Log($"[HUD] {GM.GetPlayerName(thief)}이 {GM.GetPlayerName(victim)}에게서 {resource} 약탈!");
     }
 
     // ========================
@@ -626,6 +645,39 @@ public class GameHUDController : MonoBehaviour
     }
 
     // ========================
+    // STEAL
+    // ========================
+
+    void ShowStealOverlay()
+    {
+        if (stealOverlay == null || stealPlayerList == null) return;
+
+        stealPlayerList.Clear();
+
+        var candidates = GM?.GetRobberStealCandidates();
+        if (candidates == null || candidates.Count == 0) return;
+
+        foreach (int playerIndex in candidates)
+        {
+            var state = GM.GetPlayerState(playerIndex);
+            var btn = new Button();
+            btn.text = $"{GM.GetPlayerName(playerIndex)} (자원 {state.TotalResourceCount}장)";
+            btn.AddToClassList("steal-player-btn");
+
+            int captured = playerIndex;
+            btn.clicked += () =>
+            {
+                GM.TryStealFromPlayer(captured);
+                stealOverlay.AddToClassList("overlay--hidden");
+            };
+
+            stealPlayerList.Add(btn);
+        }
+
+        stealOverlay.RemoveFromClassList("overlay--hidden");
+    }
+
+    // ========================
     // DICE
     // ========================
 
@@ -798,6 +850,7 @@ public class GameHUDController : MonoBehaviour
         GamePhase.Action => "행동",
         GamePhase.InitialPlacement => "초기 배치",
         GamePhase.MoveRobber => "도적 이동",
+        GamePhase.StealResource => "자원 약탈",
         GamePhase.GameOver => "게임 종료",
         _ => phase.ToString()
     };

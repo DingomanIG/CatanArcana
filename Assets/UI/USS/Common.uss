@@ -1,0 +1,156 @@
+/* ============================================
+   ArcanaCatan - Common Stylesheet
+   Shared styles for MainMenu, Lobby, Game
+
+   Color Palette:
+   bg-dark:       #1a1612
+   bg-panel:      #2a2420
+   bg-panel-alt:  #352e28
+   border:        #4a3f35
+   text-primary:  #e8dcc8
+   text-secondary:#a89880
+   accent-gold:   #d4a845
+   accent-red:    #c45c3e
+   accent-green:  #5a9e4b
+   ============================================ */
+
+/* === FULL SCREEN ROOT === */
+.screen-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #1a1612;
+    align-items: center;
+    justify-content: center;
+}
+
+/* === COMMON BUTTON === */
+.btn {
+    height: 44px;
+    border-radius: 6px;
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: #e8dcc8;
+    background-color: #352e28;
+    border-width: 1px;
+    border-color: #4a3f35;
+    padding: 0 20px;
+    margin-bottom: 8px;
+}
+
+.btn:hover {
+    background-color: #4a3f35;
+}
+
+.btn:disabled {
+    opacity: 0.4;
+}
+
+.btn--primary {
+    background-color: #3a6830;
+    border-color: #5a9e4b;
+}
+
+.btn--primary:hover {
+    background-color: #4a7a3e;
+}
+
+.btn--danger {
+    background-color: #8b3a25;
+    border-color: #c45c3e;
+}
+
+.btn--danger:hover {
+    background-color: #a04530;
+}
+
+.btn--gold {
+    background-color: #8a6d20;
+    border-color: #d4a845;
+}
+
+.btn--gold:hover {
+    background-color: #a08030;
+}
+
+/* === COMMON TEXT INPUT === */
+.text-input {
+    height: 40px;
+    border-radius: 6px;
+    font-size: 15px;
+    color: #e8dcc8;
+    background-color: #1a1612;
+    border-width: 1px;
+    border-color: #4a3f35;
+    padding: 0 12px;
+    margin-bottom: 8px;
+}
+
+.text-input:focus {
+    border-color: #d4a845;
+}
+
+.text-input > .unity-text-element {
+    color: #e8dcc8;
+}
+
+/* === COMMON PANEL === */
+.panel {
+    background-color: #2a2420;
+    border-width: 1px;
+    border-color: #4a3f35;
+    border-radius: 12px;
+    padding: 24px;
+}
+
+/* === COMMON LABEL === */
+.label-title {
+    color: #d4a845;
+    font-size: 18px;
+    -unity-font-style: bold;
+    margin-bottom: 16px;
+    -unity-text-align: middle-center;
+}
+
+.label-subtitle {
+    color: #a89880;
+    font-size: 13px;
+    -unity-text-align: middle-center;
+    margin-bottom: 8px;
+}
+
+.label-text {
+    color: #e8dcc8;
+    font-size: 14px;
+}
+
+.label-muted {
+    color: #a89880;
+    font-size: 12px;
+}
+
+/* === DIVIDER === */
+.divider {
+    height: 1px;
+    background-color: #4a3f35;
+    margin: 12px 0;
+}
+
+/* === STATUS MESSAGE === */
+.status-message {
+    color: #a89880;
+    font-size: 13px;
+    -unity-text-align: middle-center;
+    min-height: 20px;
+    margin-top: 8px;
+}
+
+.status-message--error {
+    color: #c45c3e;
+}
+
+.status-message--success {
+    color: #5a9e4b;
+}

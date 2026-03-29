@@ -567,6 +567,32 @@
 .resource-select-btn--wheat { border-bottom-width: 3px; border-bottom-color: #dbb84d; }
 .resource-select-btn--ore   { border-bottom-width: 3px; border-bottom-color: #8899aa; }
 
+/* === STEAL OVERLAY === */
+.steal-panel {
+    max-width: 360px;
+}
+
+.steal-player-list {
+    padding: 8px 0;
+}
+
+.steal-player-btn {
+    height: 44px;
+    margin-bottom: 6px;
+    border-radius: 6px;
+    font-size: 14px;
+    -unity-font-style: bold;
+    background-color: #352e28;
+    border-color: #c45c3e;
+    border-width: 1px;
+    color: #e8dcc8;
+}
+
+.steal-player-btn:hover {
+    background-color: #4a3020;
+    border-color: #e06040;
+}
+
 /* === BONUS STATUS === */
 .bonus-status {
     margin-top: 8px;

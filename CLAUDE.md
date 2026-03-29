@@ -25,27 +25,44 @@
 ## Structure
 ```
 Assets/
+  Scenes/
+    MainMenu.unity              # 메인 메뉴 씬
+    Lobby.unity                 # 로비 대기실 씬
+    Game.unity                  # 인게임 씬 (기존 SampleScene)
   Scripts/
     IGameManager.cs             # 게임 매니저 인터페이스 + GamePhase
     LocalGameManager.cs         # 로컬 전용 게임 매니저
     CameraController.cs
+    PlayerState.cs, BuildingCosts.cs
     Network/
-      GameNetworkManager.cs
-      LobbyManager.cs
+      GameNetworkManager.cs     # DontDestroyOnLoad 싱글톤
+      LobbyManager.cs           # DontDestroyOnLoad 싱글톤
       TurnManager.cs            # 네트워크 턴 매니저 (향후 IGameManager 구현)
       NetworkTestUI.cs          # 임시 OnGUI (비활성화 예정)
     HexGrid/
       HexCoord.cs, HexTile.cs, HexVertex.cs, HexEdge.cs
       HexGrid.cs, HexBoardSetup.cs
       HexMeshGenerator.cs, HexGridView.cs
+    Building/
+      BuildingType.cs, BuildingSystem.cs
+      BuildingVisuals.cs, BuildModeController.cs
+    DevCard/
+      DevelopmentCard.cs, DevCardDeck.cs
+      LongestRoadCalculator.cs
     UI/
+      SceneFlowManager.cs       # 씬 전환 관리 (DontDestroyOnLoad)
+      MainMenuController.cs     # 메인 메뉴 UI
+      LobbyController.cs        # 로비 대기실 UI
       GameHUDController.cs      # 인게임 HUD (IGameManager 기반)
   UI/
-    UXML/GameHUD.uxml           # HUD 레이아웃
-    USS/GameHUD.uss              # HUD 스타일
+    UXML/
+      MainMenu.uxml, LobbyScreen.uxml, GameHUD.uxml
+    USS/
+      Common.uss                # 공통 스타일 (카탄 다크 테마)
+      MainMenu.uss, LobbyScreen.uss, GameHUD.uss
     Fonts/                      # 폰트 에셋
 Docs/
-  GDD.md
+  GDD.md, ROADMAP.md, TASKS.md
 ```
 
 ## Tone
