@@ -208,13 +208,23 @@ public class HexGridView : MonoBehaviour
 
             processedEdges.Add(edge.Id);
             var portType = edge.VertexA.Port;
-            var midPoint = edge.MidPoint;
+
+            // 인접 바다 타일 중심에 배치
+            Vector3 pos = edge.MidPoint;
+            foreach (var tile in edge.AdjacentTiles)
+            {
+                if (tile.Resource == ResourceType.Sea)
+                {
+                    pos = tile.Coord.ToWorldPosition(hexSize);
+                    break;
+                }
+            }
 
             // 항구 마커 (작은 큐브)
             var marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
             marker.name = $"Port_{portType}_{edge.Id}";
             marker.transform.SetParent(portParent.transform);
-            marker.transform.position = midPoint + Vector3.up * 0.05f;
+            marker.transform.position = pos + Vector3.up * 0.05f;
             marker.transform.localScale = new Vector3(hexSize * 0.25f, 0.08f, hexSize * 0.25f);
 
             var mr = marker.GetComponent<MeshRenderer>();
@@ -229,7 +239,7 @@ public class HexGridView : MonoBehaviour
 
             var tm = label.AddComponent<TextMesh>();
             tm.text = PORT_LABELS.GetValueOrDefault(portType, "?");
-            tm.characterSize = hexSize * 0.12f;
+            tm.characterSize = hexSize * 0.06f;
             tm.anchor = TextAnchor.MiddleCenter;
             tm.alignment = TextAlignment.Center;
             tm.fontSize = 36;
