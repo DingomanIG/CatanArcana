@@ -81,11 +81,18 @@
 - [x] 두 번째 마을 자원 지급
 
 ## AI
-- [ ] IPlayerController 인터페이스
-- [ ] AI 쉬움 (랜덤)
-- [ ] AI 보통 (확률 기반)
-- [ ] AI 어려움 (전략적)
-- [ ] AI 거래/도적 로직
+- [x] AIController 시스템 (MonoBehaviour, 코루틴 기반 턴 처리)
+- [x] AIBoardEvaluator 보드 평가 (교차점/도로/도적 타겟 스코어링)
+- [x] AIDifficulty 3단계 (Easy=랜덤, Medium=확률, Hard=전략)
+- [x] IGameManager에 AI 쿼리 메서드 추가 (유효 배치 위치)
+- [x] LocalGameManager AI 모드 (humanPlayerIndex, IsMyTurn 제어)
+- [x] AI 초기 배치 (마을+도로 자동 배치)
+- [x] AI 주사위 → 건설 → 발전카드 → 거래 → 턴종료 흐름
+- [x] AI 도적 배치 (상대 VP/타일 가치 기반)
+- [x] AI 약탈 대상 선택 (VP+자원 높은 상대)
+- [x] AI 발전카드 사용 (기사/도로건설/풍년/독점)
+- [x] AI 은행 거래 (잉여→부족 자원 교환)
+- [ ] AI 플레이어 간 거래 (제안/수락)
 
 ## 아트 & 폴리싱
 - [ ] 3D 타일/건물 모델

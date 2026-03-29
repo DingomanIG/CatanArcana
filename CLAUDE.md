@@ -49,6 +49,9 @@ Assets/
     DevCard/
       DevelopmentCard.cs, DevCardDeck.cs
       LongestRoadCalculator.cs
+    AI/
+      AIController.cs             # AI 컨트롤러 (난이도별 자동 플레이)
+      AIBoardEvaluator.cs         # 보드 평가 (타일/교차점/도로 스코어링)
     UI/
       SceneFlowManager.cs       # 씬 전환 관리 (DontDestroyOnLoad)
       MainMenuController.cs     # 메인 메뉴 UI
