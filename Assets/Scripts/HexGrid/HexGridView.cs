@@ -208,28 +208,29 @@ public class HexGridView : MonoBehaviour
 
             processedEdges.Add(edge.Id);
             var portType = edge.VertexA.Port;
+            var portColor = PORT_COLORS.GetValueOrDefault(portType, Color.white);
 
             // 인접 바다 타일 중심에 배치
-            Vector3 pos = edge.MidPoint;
+            Vector3 seaCenter = edge.MidPoint;
             foreach (var tile in edge.AdjacentTiles)
             {
                 if (tile.Resource == ResourceType.Sea)
                 {
-                    pos = tile.Coord.ToWorldPosition(hexSize);
+                    seaCenter = tile.Coord.ToWorldPosition(hexSize);
                     break;
                 }
             }
 
-            // 항구 마커 (작은 큐브)
+            // 항구 마커 (바다 타일 중심 - 자원 큐브)
             var marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
             marker.name = $"Port_{portType}_{edge.Id}";
             marker.transform.SetParent(portParent.transform);
-            marker.transform.position = pos + Vector3.up * 0.05f;
+            marker.transform.position = seaCenter + Vector3.up * 0.05f;
             marker.transform.localScale = new Vector3(hexSize * 0.25f, 0.08f, hexSize * 0.25f);
 
             var mr = marker.GetComponent<MeshRenderer>();
             mr.material = new Material(defaultMaterial);
-            mr.material.color = PORT_COLORS.GetValueOrDefault(portType, Color.white);
+            mr.material.color = portColor;
 
             // 항구 라벨
             var label = new GameObject("PortLabel");
@@ -244,7 +245,42 @@ public class HexGridView : MonoBehaviour
             tm.alignment = TextAlignment.Center;
             tm.fontSize = 36;
             tm.color = portType == PortType.Generic ? Color.black : Color.white;
+
+            // 부두 마커 (항구 꼭짓점 2개)
+            CreateDockMarker(portParent.transform, edge.VertexA.Position, seaCenter, portColor);
+            CreateDockMarker(portParent.transform, edge.VertexB.Position, seaCenter, portColor);
         }
+    }
+
+    void CreateDockMarker(Transform parent, Vector3 vertexPos, Vector3 seaCenter, Color color)
+    {
+        // 부두 기둥 (꼭짓점 위치)
+        var dock = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        dock.name = "Dock";
+        dock.transform.SetParent(parent);
+        dock.transform.position = vertexPos + Vector3.up * 0.1f;
+        dock.transform.localScale = new Vector3(hexSize * 0.12f, 0.1f, hexSize * 0.12f);
+
+        var dockMr = dock.GetComponent<MeshRenderer>();
+        dockMr.material = new Material(defaultMaterial);
+        dockMr.material.color = new Color(0.45f, 0.30f, 0.15f); // 나무색
+
+        // 다리 (바다 중심 → 꼭짓점 연결)
+        var bridge = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        bridge.name = "Bridge";
+        bridge.transform.SetParent(parent);
+
+        var midPoint = (seaCenter + vertexPos) / 2f + Vector3.up * 0.05f;
+        var dir = vertexPos - seaCenter;
+        float length = dir.magnitude;
+
+        bridge.transform.position = midPoint;
+        bridge.transform.rotation = Quaternion.LookRotation(dir);
+        bridge.transform.localScale = new Vector3(hexSize * 0.06f, 0.04f, length);
+
+        var bridgeMr = bridge.GetComponent<MeshRenderer>();
+        bridgeMr.material = new Material(defaultMaterial);
+        bridgeMr.material.color = new Color(0.55f, 0.38f, 0.20f); // 밝은 나무색
     }
 
     void ClearVisuals()
