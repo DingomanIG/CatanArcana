@@ -44,6 +44,9 @@ public class AIController : MonoBehaviour
     /// <summary>외부에서 난이도 설정 (메인 메뉴 → SceneFlowManager 경유)</summary>
     public void SetDifficulties(AIDifficulty[] diffs)
     {
+        // Awake보다 먼저 호출될 수 있음 (LocalGameManager DefaultExecutionOrder -100)
+        difficulties ??= new[] { player0AI, player1AI, player2AI, player3AI };
+        if (diffs == null) return;
         for (int i = 0; i < Mathf.Min(diffs.Length, 4); i++)
             difficulties[i] = diffs[i];
     }

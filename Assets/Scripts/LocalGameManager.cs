@@ -108,6 +108,11 @@ public class LocalGameManager : MonoBehaviour, IGameManager
             // 메뉴에서 선택한 난이도 적용
             ai.SetDifficulties(SceneFlowManager.Instance.AIDifficulties);
         }
+
+        // players는 Awake에서 초기화 (Start 전에 접근될 수 있음)
+        players = new PlayerState[playerCount];
+        for (int i = 0; i < playerCount; i++)
+            players[i] = new PlayerState(i);
     }
 
     void Start()
@@ -115,9 +120,6 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         grid = hexGridView.Grid;
         buildingSystem = new BuildingSystem(grid);
         devCardDeck = new DevCardDeck();
-        players = new PlayerState[playerCount];
-        for (int i = 0; i < playerCount; i++)
-            players[i] = new PlayerState(i);
 
         OnPlayerListChanged?.Invoke();
     }
