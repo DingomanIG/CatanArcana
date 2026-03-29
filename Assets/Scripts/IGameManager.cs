@@ -10,6 +10,7 @@ public interface IGameManager
     int TurnNumber { get; }
     int CurrentPlayerIndex { get; }
     int LocalPlayerIndex { get; }
+    int FirstPlayerIndex { get; }
     int PlayerCount { get; }
     GamePhase CurrentPhase { get; }
     bool IsHost { get; }

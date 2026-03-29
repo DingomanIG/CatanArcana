@@ -21,11 +21,13 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     // 상태
     int turnNumber;
     int currentPlayerIndex;
+    int firstPlayerIndex;
     GamePhase currentPhase = GamePhase.WaitingForPlayers;
     BuildMode currentBuildMode = BuildMode.None;
 
     // 초기 배치 상태
     int initialRound;
+    int initialStepInRound;
     bool initialWaitingForRoad;
     int lastPlacedVertexId;
 
@@ -56,6 +58,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     public int TurnNumber => turnNumber;
     public int CurrentPlayerIndex => currentPlayerIndex;
     public int LocalPlayerIndex => humanPlayerIndex >= 0 ? humanPlayerIndex : currentPlayerIndex;
+    public int FirstPlayerIndex => firstPlayerIndex;
     public int PlayerCount => playerCount;
     public GamePhase CurrentPhase => currentPhase;
     public bool IsHost => true;
@@ -130,14 +133,16 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
     public void StartGame()
     {
-        currentPlayerIndex = 0;
+        firstPlayerIndex = UnityEngine.Random.Range(0, playerCount);
+        currentPlayerIndex = firstPlayerIndex;
         turnNumber = 0;
         initialRound = 0;
+        initialStepInRound = 0;
         initialWaitingForRoad = false;
 
         SetPhase(GamePhase.InitialPlacement);
         OnTurnChanged?.Invoke(currentPlayerIndex);
-        Debug.Log($"[Local] 초기 배치 시작! {GetPlayerName(0)} - 마을을 배치하세요");
+        Debug.Log($"[Local] 초기 배치 시작! 선플레이어: {GetPlayerName(firstPlayerIndex)} - 마을을 배치하세요");
 
         StartInitialSettlementMode();
     }
@@ -233,27 +238,28 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
     bool AdvanceInitialPlacement()
     {
-        if (initialRound == 0)
+        initialStepInRound++;
+
+        if (initialStepInRound >= playerCount)
         {
-            if (currentPlayerIndex < playerCount - 1)
+            if (initialRound == 0)
             {
-                currentPlayerIndex++;
+                // 라운드 1 시작 (역순) - 마지막 플레이어가 연속 배치
+                initialRound = 1;
+                initialStepInRound = 0;
+                // currentPlayerIndex 유지 (스네이크 드래프트)
             }
             else
             {
-                initialRound = 1;
+                return false; // 초기 배치 완료
             }
         }
         else
         {
-            if (currentPlayerIndex > 0)
-            {
-                currentPlayerIndex--;
-            }
+            if (initialRound == 0)
+                currentPlayerIndex = (firstPlayerIndex + initialStepInRound) % playerCount;
             else
-            {
-                return false;
-            }
+                currentPlayerIndex = (firstPlayerIndex + playerCount - 1 - initialStepInRound) % playerCount;
         }
 
         OnTurnChanged?.Invoke(currentPlayerIndex);
@@ -281,12 +287,12 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     void FinishInitialPlacement()
     {
         BuildModeController.Instance?.SetInitialPlacement(false);
-        currentPlayerIndex = 0;
+        currentPlayerIndex = firstPlayerIndex;
         turnNumber = 1;
 
         SetPhase(GamePhase.RollDice);
         OnTurnChanged?.Invoke(currentPlayerIndex);
-        Debug.Log($"[Local] 초기 배치 완료! 본 게임 시작 - 턴 1 {GetPlayerName(0)}");
+        Debug.Log($"[Local] 초기 배치 완료! 본 게임 시작 - 턴 1 {GetPlayerName(firstPlayerIndex)}");
     }
 
     // ========================

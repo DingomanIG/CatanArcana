@@ -960,6 +960,73 @@
     max-width: 320px;
 }
 
+/* === TURN ORDER OVERLAY === */
+.turn-order-panel {
+    min-width: 320px;
+    max-width: 400px;
+    align-items: stretch;
+}
+
+.turn-order-title {
+    color: #d4a845;
+    font-size: 24px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    margin-bottom: 16px;
+}
+
+.turn-order-list {
+    padding: 4px 0;
+    margin-bottom: 12px;
+}
+
+.turn-order-entry {
+    flex-direction: row;
+    align-items: center;
+    padding: 10px 14px;
+    margin-bottom: 6px;
+    border-radius: 8px;
+    background-color: rgba(53, 46, 40, 0.6);
+    border-width: 1px;
+    border-color: #4a3f35;
+}
+
+.turn-order-entry--first {
+    background-color: rgba(212, 168, 69, 0.15);
+    border-color: #d4a845;
+    border-width: 2px;
+}
+
+.turn-order-entry__rank {
+    color: #d4a845;
+    font-size: 20px;
+    -unity-font-style: bold;
+    width: 36px;
+    -unity-text-align: middle-center;
+}
+
+.turn-order-entry__name {
+    color: #e8dcc8;
+    font-size: 16px;
+    -unity-font-style: bold;
+    flex-grow: 1;
+    margin-left: 8px;
+}
+
+.turn-order-entry__tag {
+    color: #d4a845;
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background-color: rgba(212, 168, 69, 0.2);
+}
+
+.turn-order-btn {
+    height: 44px;
+    font-size: 16px;
+    margin-top: 4px;
+}
+
 /* === RESULT OVERLAY === */
 .result-panel {
     min-width: 420px;

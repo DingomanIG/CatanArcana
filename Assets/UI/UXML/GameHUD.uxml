@@ -234,6 +234,14 @@
                 <ui:Button name="btn-close-options" text="닫기" class="overlay-close-btn"/>
             </ui:VisualElement>
         </ui:VisualElement>
+        <!-- 턴 순서 알림 -->
+        <ui:VisualElement name="turn-order-overlay" class="overlay overlay--hidden">
+            <ui:VisualElement class="overlay-panel turn-order-panel">
+                <ui:Label text="턴 순서" class="turn-order-title"/>
+                <ui:VisualElement name="turn-order-list" class="turn-order-list"/>
+                <ui:Button name="btn-close-turn-order" text="게임 시작!" class="action-btn action-btn--primary turn-order-btn"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
         <!-- 결과 화면 -->
         <ui:VisualElement name="result-overlay" class="overlay overlay--hidden">
             <ui:VisualElement class="overlay-panel result-panel">

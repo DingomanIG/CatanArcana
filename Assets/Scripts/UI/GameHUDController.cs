@@ -110,6 +110,11 @@ public class GameHUDController : MonoBehaviour
     VisualElement toastContainer;
     const float TOAST_DURATION = 3f;
 
+    // Turn Order Overlay
+    VisualElement turnOrderOverlay;
+    VisualElement turnOrderList;
+    Button btnCloseTurnOrder;
+
     // Result Overlay
     VisualElement resultOverlay;
     Label resultTitle;
@@ -283,6 +288,11 @@ public class GameHUDController : MonoBehaviour
         stealOverlay = root.Q<VisualElement>("steal-overlay");
         stealPlayerList = root.Q<VisualElement>("steal-player-list");
 
+        // Turn Order Overlay
+        turnOrderOverlay = root.Q<VisualElement>("turn-order-overlay");
+        turnOrderList = root.Q<VisualElement>("turn-order-list");
+        btnCloseTurnOrder = root.Q<Button>("btn-close-turn-order");
+
         resultOverlay = root.Q<VisualElement>("result-overlay");
         resultTitle = root.Q<Label>("result-title");
         resultWinner = root.Q<Label>("result-winner");
@@ -375,6 +385,7 @@ public class GameHUDController : MonoBehaviour
         btnCloseRules.clicked += OnCloseRulesClicked;
         btnCloseDevCard.clicked += OnCloseDevCardClicked;
         btnCancelResourceSelect.clicked += OnCancelResourceSelect;
+        btnCloseTurnOrder.clicked += () => turnOrderOverlay.AddToClassList("overlay--hidden");
         btnResultMenu.clicked += OnResultMenuClicked;
         btnResultRematch.clicked += OnResultRematchClicked;
 
@@ -503,6 +514,9 @@ public class GameHUDController : MonoBehaviour
     {
         UpdateTopBar();
         UpdateActionButtons();
+
+        if (newPhase == GamePhase.InitialPlacement)
+            ShowTurnOrderOverlay();
 
         if (newPhase == GamePhase.RollDice)
             HideDice();
@@ -1357,6 +1371,49 @@ public class GameHUDController : MonoBehaviour
         toast.AddToClassList("toast--fade-out");
         yield return new WaitForSeconds(0.5f);
         toast.RemoveFromHierarchy();
+    }
+
+    // ========================
+    // TURN ORDER
+    // ========================
+
+    void ShowTurnOrderOverlay()
+    {
+        if (turnOrderOverlay == null || turnOrderList == null || GM == null) return;
+
+        turnOrderList.Clear();
+
+        int first = GM.FirstPlayerIndex;
+        int count = GM.PlayerCount;
+
+        for (int i = 0; i < count; i++)
+        {
+            int playerIndex = (first + i) % count;
+
+            var entry = new VisualElement();
+            entry.AddToClassList("turn-order-entry");
+            if (i == 0) entry.AddToClassList("turn-order-entry--first");
+
+            var rank = new Label($"{i + 1}");
+            rank.AddToClassList("turn-order-entry__rank");
+
+            var nameLabel = new Label(GM.GetPlayerName(playerIndex));
+            nameLabel.AddToClassList("turn-order-entry__name");
+
+            entry.Add(rank);
+            entry.Add(nameLabel);
+
+            if (i == 0)
+            {
+                var tag = new Label("선플레이어");
+                tag.AddToClassList("turn-order-entry__tag");
+                entry.Add(tag);
+            }
+
+            turnOrderList.Add(entry);
+        }
+
+        turnOrderOverlay.RemoveFromClassList("overlay--hidden");
     }
 
     // ========================
