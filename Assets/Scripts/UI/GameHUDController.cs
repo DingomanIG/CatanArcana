@@ -16,12 +16,11 @@ public class GameHUDController : MonoBehaviour
     Label currentPlayerLabel;
     Label phaseIndicatorLabel;
 
-    // Player Panel
-    VisualElement playerList;
+    // Opponent Bar
+    VisualElement opponentBar;
 
-    // Bonus Status
-    Label longestRoadLabel;
-    Label largestArmyLabel;
+    // My VP (top bar)
+    Label myVpLabel;
 
     // Action Buttons
     Button btnStartGame;
@@ -131,7 +130,29 @@ public class GameHUDController : MonoBehaviour
     VisualElement[,] die2Dots;
 
     // State
-    readonly Dictionary<int, VisualElement> playerEntries = new();
+    readonly Dictionary<int, OpponentCardUI> opponentCards = new();
+
+    static readonly Color[] PlayerColors =
+    {
+        new(0.77f, 0.36f, 0.24f), // Red
+        new(0.29f, 0.48f, 0.77f), // Blue
+        new(0.83f, 0.66f, 0.27f), // Gold
+        new(0.35f, 0.62f, 0.29f), // Green
+    };
+
+    class OpponentCardUI
+    {
+        public VisualElement card;
+        public Label vpLabel;
+        public Label resCountLabel;
+        public Label devCountLabel;
+        public Label roadValueLabel;
+        public Label roadTextLabel;
+        public Label knightValueLabel;
+        public Label knightTextLabel;
+        public VisualElement statusBar;
+        public Label statusText;
+    }
     Coroutine diceHideCoroutine;
     const float DICE_DISPLAY_DURATION = 3f;
 
@@ -220,10 +241,8 @@ public class GameHUDController : MonoBehaviour
         currentPlayerLabel = root.Q<Label>("current-player");
         phaseIndicatorLabel = root.Q<Label>("phase-indicator");
 
-        playerList = root.Q<VisualElement>("player-list");
-
-        longestRoadLabel = root.Q<Label>("longest-road-label");
-        largestArmyLabel = root.Q<Label>("largest-army-label");
+        opponentBar = root.Q<VisualElement>("opponent-bar");
+        myVpLabel = root.Q<Label>("my-vp");
 
         btnStartGame = root.Q<Button>("btn-start-game");
         btnRollDice = root.Q<Button>("btn-roll-dice");
@@ -342,6 +361,8 @@ public class GameHUDController : MonoBehaviour
             GM.OnRobberSteal += HandleRobberSteal;
             GM.OnBankTrade += HandleBankTrade;
             GM.OnPlayerTrade += HandlePlayerTrade;
+            GM.OnBuildingPlaced += HandleBuildingPlaced;
+            GM.OnRoadPlaced += HandleRoadPlaced;
         }
     }
 
@@ -363,6 +384,8 @@ public class GameHUDController : MonoBehaviour
             GM.OnRobberSteal -= HandleRobberSteal;
             GM.OnBankTrade -= HandleBankTrade;
             GM.OnPlayerTrade -= HandlePlayerTrade;
+            GM.OnBuildingPlaced -= HandleBuildingPlaced;
+            GM.OnRoadPlaced -= HandleRoadPlaced;
         }
     }
 
@@ -507,13 +530,14 @@ public class GameHUDController : MonoBehaviour
     {
         UpdateTopBar();
         UpdateActionButtons();
-        UpdatePlayerHighlight();
+        UpdateOpponentHighlight();
     }
 
     void HandlePhaseChanged(GamePhase newPhase)
     {
         UpdateTopBar();
         UpdateActionButtons();
+        UpdateOpponentHighlight();
 
         if (newPhase == GamePhase.InitialPlacement)
             ShowTurnOrderOverlay();
@@ -541,7 +565,7 @@ public class GameHUDController : MonoBehaviour
 
     void HandlePlayerListChanged()
     {
-        RebuildPlayerList();
+        RebuildOpponentBar();
         UpdateActionButtons();
     }
 
@@ -549,17 +573,21 @@ public class GameHUDController : MonoBehaviour
     {
         if (playerIndex == GM.LocalPlayerIndex)
             UpdateResource(type, newCount);
+        UpdateOpponentCard(playerIndex);
     }
 
     void HandleVPChanged(int playerIndex, int vp)
     {
-        UpdatePlayerVP(playerIndex, vp);
+        UpdateOpponentCard(playerIndex);
+        if (playerIndex == GM.LocalPlayerIndex && myVpLabel != null)
+            myVpLabel.text = $"{vp} VP";
     }
 
     void HandleDevCardPurchased(int playerIndex, DevCardType cardType)
     {
         if (playerIndex == GM.LocalPlayerIndex)
             Debug.Log($"[HUD] 발전카드 구매: {cardType}");
+        UpdateOpponentCard(playerIndex);
     }
 
     void HandleDevCardUsed(int playerIndex, DevCardType cardType)
@@ -569,11 +597,12 @@ public class GameHUDController : MonoBehaviour
             string who = GM.GetPlayerName(playerIndex);
             ShowToast("knight", $"{who}이(가) 기사 카드를 사용했습니다!");
         }
+        UpdateOpponentCard(playerIndex);
     }
 
     void HandleLongestRoadChanged(int playerIndex, bool gained)
     {
-        UpdateBonusStatus();
+        UpdateAllOpponentCards();
         if (gained)
         {
             string who = GM.GetPlayerName(playerIndex);
@@ -583,7 +612,7 @@ public class GameHUDController : MonoBehaviour
 
     void HandleLargestArmyChanged(int playerIndex, bool gained)
     {
-        UpdateBonusStatus();
+        UpdateAllOpponentCards();
         if (gained)
         {
             string who = GM.GetPlayerName(playerIndex);
@@ -628,10 +657,10 @@ public class GameHUDController : MonoBehaviour
     {
         UpdateTopBar();
         UpdateActionButtons();
-        RebuildPlayerList();
+        RebuildOpponentBar();
         HideDice();
         UpdateResourceDisplay(0, 0, 0, 0, 0);
-        UpdateBonusStatus();
+        if (myVpLabel != null) myVpLabel.text = "0 VP";
     }
 
     void UpdateTopBar()
@@ -686,37 +715,6 @@ public class GameHUDController : MonoBehaviour
         element.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
     }
 
-    // ========================
-    // BONUS STATUS
-    // ========================
-
-    void UpdateBonusStatus()
-    {
-        if (GM == null) return;
-
-        int roadHolder = GM.GetLongestRoadHolder();
-        if (roadHolder >= 0)
-        {
-            longestRoadLabel.text = $"최장교역로: {GM.GetPlayerName(roadHolder)} ({GM.GetLongestRoadLength(roadHolder)})";
-            longestRoadLabel.RemoveFromClassList("bonus-label--hidden");
-        }
-        else
-        {
-            longestRoadLabel.AddToClassList("bonus-label--hidden");
-        }
-
-        int armyHolder = GM.GetLargestArmyHolder();
-        if (armyHolder >= 0)
-        {
-            var state = GM.GetPlayerState(armyHolder);
-            largestArmyLabel.text = $"최대기사단: {GM.GetPlayerName(armyHolder)} ({state.KnightsPlayed})";
-            largestArmyLabel.RemoveFromClassList("bonus-label--hidden");
-        }
-        else
-        {
-            largestArmyLabel.AddToClassList("bonus-label--hidden");
-        }
-    }
 
     // ========================
     // DEV CARD HAND
@@ -1194,56 +1192,160 @@ public class GameHUDController : MonoBehaviour
     }
 
     // ========================
-    // PLAYER LIST
+    // OPPONENT BAR
     // ========================
 
-    void RebuildPlayerList()
+    void RebuildOpponentBar()
     {
-        playerList.Clear();
-        playerEntries.Clear();
-
+        opponentBar.Clear();
+        opponentCards.Clear();
         if (GM == null) return;
 
         for (int i = 0; i < GM.PlayerCount; i++)
         {
-            var entry = CreatePlayerEntry(i);
-            playerList.Add(entry);
-            playerEntries[i] = entry;
+            if (i == GM.LocalPlayerIndex) continue;
+            var ui = CreateOpponentCard(i);
+            opponentBar.Add(ui.card);
+            opponentCards[i] = ui;
         }
 
-        UpdatePlayerHighlight();
+        UpdateAllOpponentCards();
+        UpdateOpponentHighlight();
     }
 
-    VisualElement CreatePlayerEntry(int playerIndex)
+    OpponentCardUI CreateOpponentCard(int playerIndex)
     {
-        var entry = new VisualElement();
-        entry.AddToClassList("player-entry");
+        var ui = new OpponentCardUI();
+
+        ui.card = new VisualElement();
+        ui.card.AddToClassList("opponent-card");
+
+        // Header
+        var header = new VisualElement();
+        header.AddToClassList("opponent-card__header");
+        header.style.backgroundColor = PlayerColors[playerIndex % PlayerColors.Length];
 
         var nameLabel = new Label(GM.GetPlayerName(playerIndex));
-        nameLabel.AddToClassList("player-entry__name");
+        nameLabel.AddToClassList("opponent-card__name");
 
-        var vpLabel = new Label("0 VP");
-        vpLabel.AddToClassList("player-entry__vp");
-        vpLabel.name = $"player-vp-{playerIndex}";
+        ui.vpLabel = new Label("0 VP");
+        ui.vpLabel.AddToClassList("opponent-card__vp");
 
-        entry.Add(nameLabel);
-        entry.Add(vpLabel);
-        return entry;
+        header.Add(nameLabel);
+        header.Add(ui.vpLabel);
+        ui.card.Add(header);
+
+        // Stats
+        var stats = new VisualElement();
+        stats.AddToClassList("opponent-card__stats");
+
+        (var resStat, ui.resCountLabel, _) = CreateStatElement("0", "자원\n카드");
+        (var devStat, ui.devCountLabel, _) = CreateStatElement("0", "개발\n카드");
+        (var roadStat, ui.roadValueLabel, ui.roadTextLabel) = CreateStatElement("0", "도로");
+        (var knightStat, ui.knightValueLabel, ui.knightTextLabel) = CreateStatElement("0", "기사");
+
+        stats.Add(resStat);
+        stats.Add(devStat);
+        stats.Add(roadStat);
+        stats.Add(knightStat);
+        ui.card.Add(stats);
+
+        // Status bar
+        ui.statusBar = new VisualElement();
+        ui.statusBar.AddToClassList("opponent-card__status");
+        ui.statusBar.style.display = DisplayStyle.None;
+
+        ui.statusText = new Label();
+        ui.statusText.AddToClassList("opponent-card__status-text");
+        ui.statusBar.Add(ui.statusText);
+        ui.card.Add(ui.statusBar);
+
+        return ui;
     }
 
-    void UpdatePlayerHighlight()
+    static (VisualElement container, Label valueLabel, Label textLabel) CreateStatElement(string value, string label)
+    {
+        var stat = new VisualElement();
+        stat.AddToClassList("opponent-card__stat");
+
+        var val = new Label(value);
+        val.AddToClassList("opponent-card__stat-value");
+
+        var txt = new Label(label);
+        txt.AddToClassList("opponent-card__stat-label");
+
+        stat.Add(val);
+        stat.Add(txt);
+        return (stat, val, txt);
+    }
+
+    void UpdateAllOpponentCards()
+    {
+        foreach (var kvp in opponentCards)
+            UpdateOpponentCard(kvp.Key);
+    }
+
+    void UpdateOpponentCard(int playerIndex)
+    {
+        if (!opponentCards.TryGetValue(playerIndex, out var ui) || GM == null) return;
+
+        var state = GM.GetPlayerState(playerIndex);
+        if (state == null) return;
+
+        var colorNormal = new Color(0.91f, 0.86f, 0.78f);
+        var colorRed = new Color(0.77f, 0.36f, 0.24f);
+        var colorGold = new Color(0.83f, 0.66f, 0.27f);
+
+        ui.vpLabel.text = $"{state.VictoryPoints} VP";
+
+        int resCount = state.TotalResourceCount;
+        ui.resCountLabel.text = resCount.ToString();
+        ui.resCountLabel.style.color = resCount >= 7 ? colorRed : colorNormal;
+
+        ui.devCountLabel.text = state.DevCards.Count.ToString();
+
+        int roadLen = GM.GetLongestRoadLength(playerIndex);
+        ui.roadValueLabel.text = roadLen.ToString();
+        ui.roadTextLabel.text = state.HasLongestRoad ? "최장\n도로" : "도로";
+        ui.roadValueLabel.style.color = state.HasLongestRoad ? colorGold : colorNormal;
+
+        ui.knightValueLabel.text = state.KnightsPlayed.ToString();
+        ui.knightTextLabel.text = state.HasLargestArmy ? "최강\n기사" : "기사";
+        ui.knightValueLabel.style.color = state.HasLargestArmy ? colorGold : colorNormal;
+    }
+
+    void UpdateOpponentHighlight()
     {
         if (GM == null) return;
-
         int current = GM.CurrentPlayerIndex;
-        foreach (var kvp in playerEntries)
+
+        foreach (var kvp in opponentCards)
         {
-            if (kvp.Key == current)
-                kvp.Value.AddToClassList("player-entry--active");
+            bool isActive = kvp.Key == current;
+
+            if (isActive)
+                kvp.Value.card.AddToClassList("opponent-card--active");
             else
-                kvp.Value.RemoveFromClassList("player-entry--active");
+                kvp.Value.card.RemoveFromClassList("opponent-card--active");
+
+            kvp.Value.statusBar.style.display = isActive ? DisplayStyle.Flex : DisplayStyle.None;
+            if (isActive)
+                kvp.Value.statusText.text = GetStatusText(GM.CurrentPhase);
         }
     }
+
+    static string GetStatusText(GamePhase phase) => phase switch
+    {
+        GamePhase.InitialPlacement => "배치중 ...",
+        GamePhase.RollDice => "주사위 ...",
+        GamePhase.Action => "행동중 ...",
+        GamePhase.MoveRobber => "도적 이동 ...",
+        GamePhase.StealResource => "약탈중 ...",
+        _ => ""
+    };
+
+    void HandleBuildingPlaced(int playerIndex, int vertexId, BuildingType type) => UpdateOpponentCard(playerIndex);
+    void HandleRoadPlaced(int playerIndex, int edgeId) => UpdateOpponentCard(playerIndex);
 
     // ========================
     // PUBLIC API
@@ -1272,17 +1374,6 @@ public class GameHUDController : MonoBehaviour
             _ => null
         };
         if (target != null) target.text = count.ToString();
-    }
-
-    /// <summary>플레이어 승리점 업데이트</summary>
-    public void UpdatePlayerVP(int playerIndex, int vp)
-    {
-        if (playerEntries.TryGetValue(playerIndex, out var entry))
-        {
-            var vpLabel = entry.Q<Label>($"player-vp-{playerIndex}");
-            if (vpLabel != null)
-                vpLabel.text = $"{vp} VP";
-        }
     }
 
     // ========================

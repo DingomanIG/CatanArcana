@@ -27,7 +27,7 @@
 /* === TOAST NOTIFICATIONS === */
 .toast-container {
     position: absolute;
-    top: 56px;
+    top: 155px;
     left: 50%;
     translate: -50% 0;
     align-items: center;
@@ -1126,4 +1126,96 @@
 .result-btn {
     height: 44px;
     font-size: 15px;
+}
+
+/* === OPPONENT BAR (TOP) === */
+.opponent-bar {
+    flex-direction: row;
+    justify-content: center;
+    padding: 6px 16px;
+    background-color: rgba(26, 22, 18, 0.82);
+    border-bottom-width: 1px;
+    border-bottom-color: #4a3f35;
+}
+
+.opponent-card {
+    width: 230px;
+    margin: 0 6px;
+    border-radius: 6px;
+    background-color: #1e1a16;
+    border-width: 1px;
+    border-color: #3a3430;
+    overflow: hidden;
+}
+
+.opponent-card--active {
+    border-color: #5a9e4b;
+    border-width: 2px;
+}
+
+.opponent-card__header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 10px;
+    height: 26px;
+}
+
+.opponent-card__name {
+    color: #ffffff;
+    font-size: 12px;
+    -unity-font-style: bold;
+}
+
+.opponent-card__vp {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 11px;
+}
+
+.opponent-card__stats {
+    flex-direction: row;
+    padding: 4px 2px 6px 2px;
+}
+
+.opponent-card__stat {
+    flex: 1;
+    align-items: center;
+    padding: 2px 0;
+}
+
+.opponent-card__stat-value {
+    color: #e8dcc8;
+    font-size: 22px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.opponent-card__stat-label {
+    color: #a89880;
+    font-size: 9px;
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+.opponent-card__status {
+    padding: 3px 8px;
+    background-color: rgba(212, 168, 69, 0.25);
+    border-top-width: 1px;
+    border-top-color: rgba(212, 168, 69, 0.3);
+}
+
+.opponent-card__status-text {
+    color: #d4a845;
+    font-size: 11px;
+    -unity-font-style: bold;
+}
+
+/* === MY VP (TOP BAR) === */
+.top-bar__my-vp {
+    color: #d4a845;
+    font-size: 16px;
+    -unity-font-style: bold;
+    background-color: rgba(212, 168, 69, 0.15);
+    padding: 4px 12px;
+    border-radius: 4px;
 }

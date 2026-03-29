@@ -4,10 +4,13 @@
         <ui:VisualElement name="top-bar" class="top-bar">
             <ui:Label name="turn-number" text="턴: 0" class="top-bar__label"/>
             <ui:Label name="current-player" text="현재 플레이어: -" class="top-bar__label top-bar__player"/>
+            <ui:Label name="my-vp" text="0 VP" class="top-bar__label top-bar__my-vp"/>
             <ui:Label name="phase-indicator" text="대기 중" class="top-bar__label top-bar__phase"/>
         </ui:VisualElement>
         <!-- 이벤트 알림 (토스트) -->
         <ui:VisualElement name="toast-container" class="toast-container" picking-mode="Ignore"/>
+        <!-- 상대 플레이어 HUD -->
+        <ui:VisualElement name="opponent-bar" class="opponent-bar"/>
 
         <ui:VisualElement name="middle-area" class="middle-area">
             <!-- 왼쪽 유틸리티 바 (옵션/규칙/음량) -->
@@ -15,14 +18,6 @@
                 <ui:Button name="btn-options" text="⚙" tooltip="옵션" class="utility-btn"/>
                 <ui:Button name="btn-rules" text="?" tooltip="규칙" class="utility-btn utility-btn--info"/>
                 <ui:Button name="btn-volume" text="♪" tooltip="음량" class="utility-btn"/>
-            </ui:VisualElement>
-            <ui:VisualElement name="player-panel" class="player-panel">
-                <ui:Label text="플레이어" class="panel-title"/>
-                <ui:VisualElement name="player-list" class="player-list"/>
-                <ui:VisualElement name="bonus-status" class="bonus-status">
-                    <ui:Label name="longest-road-label" text="" class="bonus-label"/>
-                    <ui:Label name="largest-army-label" text="" class="bonus-label"/>
-                </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="dice-display" class="dice-display dice-display--hidden">
                 <ui:VisualElement name="dice-container" class="dice-container">
