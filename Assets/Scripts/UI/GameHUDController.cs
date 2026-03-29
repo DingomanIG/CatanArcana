@@ -1197,6 +1197,7 @@ public class GameHUDController : MonoBehaviour
 
     void RebuildOpponentBar()
     {
+        if (opponentBar == null) return;
         opponentBar.Clear();
         opponentCards.Clear();
         if (GM == null) return;
@@ -1239,10 +1240,16 @@ public class GameHUDController : MonoBehaviour
         var stats = new VisualElement();
         stats.AddToClassList("opponent-card__stats");
 
-        (var resStat, ui.resCountLabel, _) = CreateStatElement("0", "자원\n카드");
-        (var devStat, ui.devCountLabel, _) = CreateStatElement("0", "개발\n카드");
-        (var roadStat, ui.roadValueLabel, ui.roadTextLabel) = CreateStatElement("0", "도로");
-        (var knightStat, ui.knightValueLabel, ui.knightTextLabel) = CreateStatElement("0", "기사");
+        var (resStat, resVal, _resLbl) = CreateStatElement("0", "자원\n카드");
+        ui.resCountLabel = resVal;
+        var (devStat, devVal, _devLbl) = CreateStatElement("0", "개발\n카드");
+        ui.devCountLabel = devVal;
+        var (roadStat, roadVal, roadLbl) = CreateStatElement("0", "도로");
+        ui.roadValueLabel = roadVal;
+        ui.roadTextLabel = roadLbl;
+        var (knightStat, knightVal, knightLbl) = CreateStatElement("0", "기사");
+        ui.knightValueLabel = knightVal;
+        ui.knightTextLabel = knightLbl;
 
         stats.Add(resStat);
         stats.Add(devStat);
