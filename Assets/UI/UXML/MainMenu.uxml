@@ -18,6 +18,13 @@
 
             <ui:VisualElement style="height: 12px;"/>
 
+            <!-- 로컬 플레이 -->
+            <ui:Button name="btn-local-play" text="로컬 플레이 (AI 대전)" class="btn btn--gold menu-btn"/>
+
+            <ui:VisualElement style="height: 8px;"/>
+            <ui:Label text="── 온라인 ──" class="label-muted" style="align-self: center;"/>
+            <ui:VisualElement style="height: 8px;"/>
+
             <!-- 방 만들기 -->
             <ui:Button name="btn-create-room" text="방 만들기" class="btn btn--primary menu-btn"/>
 

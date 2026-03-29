@@ -5,7 +5,7 @@ using Unity.Services.Lobbies.Models;
 
 /// <summary>
 /// 메인 메뉴 UI 컨트롤러
-/// 방 생성, 코드 참가, 방 목록 브라우징
+/// 로컬 플레이, 방 생성, 코드 참가, 방 목록 브라우징
 /// </summary>
 public class MainMenuController : MonoBehaviour
 {
@@ -14,6 +14,7 @@ public class MainMenuController : MonoBehaviour
     // UI Elements
     TextField inputPlayerName;
     TextField inputJoinCode;
+    Button btnLocalPlay;
     Button btnCreateRoom;
     Button btnJoinRoom;
     Button btnBrowseRooms;
@@ -23,12 +24,15 @@ public class MainMenuController : MonoBehaviour
     VisualElement roomListPanel;
     ScrollView roomListScroll;
 
+    bool networkReady;
+
     void OnEnable()
     {
         var root = uiDocument.rootVisualElement;
 
         inputPlayerName = root.Q<TextField>("input-player-name");
         inputJoinCode = root.Q<TextField>("input-join-code");
+        btnLocalPlay = root.Q<Button>("btn-local-play");
         btnCreateRoom = root.Q<Button>("btn-create-room");
         btnJoinRoom = root.Q<Button>("btn-join-room");
         btnBrowseRooms = root.Q<Button>("btn-browse-rooms");
@@ -38,42 +42,79 @@ public class MainMenuController : MonoBehaviour
         roomListPanel = root.Q<VisualElement>("room-list-panel");
         roomListScroll = root.Q<ScrollView>("room-list-scroll");
 
+        btnLocalPlay.clicked += OnLocalPlay;
         btnCreateRoom.clicked += OnCreateRoom;
         btnJoinRoom.clicked += OnJoinRoom;
         btnBrowseRooms.clicked += OnBrowseRooms;
         btnRefreshRooms.clicked += OnRefreshRooms;
         btnCloseRooms.clicked += OnCloseRooms;
 
-        // placeholder 텍스트 효과
         inputJoinCode.value = "";
+
+        // 저장된 플레이어 이름 복원
+        string savedName = PlayerPrefs.GetString("PlayerName", "");
+        if (!string.IsNullOrEmpty(savedName))
+            inputPlayerName.value = savedName;
     }
 
     void Start()
     {
+        // 온라인 버튼 비활성화 (네트워크 준비 전)
+        SetNetworkButtonsEnabled(false);
         SetStatus("서비스 연결 중...");
         WaitForServices();
     }
 
     async void WaitForServices()
     {
-        // GameNetworkManager가 초기화될 때까지 대기
-        while (GameNetworkManager.Instance == null || !GameNetworkManager.Instance.IsInitialized)
+        if (GameNetworkManager.Instance == null)
+        {
+            SetStatus("로컬 플레이만 가능");
+            return;
+        }
+
+        int timeout = 30;
+        while (!GameNetworkManager.Instance.IsInitialized && timeout > 0)
         {
             await System.Threading.Tasks.Task.Delay(200);
+            timeout--;
         }
-        SetStatus("준비 완료!");
-        await System.Threading.Tasks.Task.Delay(1000);
-        SetStatus("");
+
+        if (GameNetworkManager.Instance.IsInitialized)
+        {
+            networkReady = true;
+            SetNetworkButtonsEnabled(true);
+            SetStatus("준비 완료!");
+            await System.Threading.Tasks.Task.Delay(1000);
+            SetStatus("");
+        }
+        else
+        {
+            SetStatus("온라인 서비스 연결 실패 - 로컬 플레이만 가능");
+        }
     }
 
     // ========================
     // BUTTON HANDLERS
     // ========================
 
+    void OnLocalPlay()
+    {
+        SavePlayerName(GetPlayerName());
+
+        var flow = SceneFlowManager.Instance;
+        flow.PlayerName = GetPlayerName();
+        flow.IsLocalPlay = true;
+        flow.LocalPlayerCount = 4;
+        flow.GoToGame();
+    }
+
     async void OnCreateRoom()
     {
+        if (!networkReady) return;
+
         string playerName = GetPlayerName();
-        SetButtonsEnabled(false);
+        SetNetworkButtonsEnabled(false);
         SetStatus("방 생성 중...");
 
         var lobby = await LobbyManager.Instance.CreateLobby(playerName);
@@ -82,20 +123,22 @@ public class MainMenuController : MonoBehaviour
             SetStatus($"방 생성 완료! Code: {lobby.LobbyCode}");
             SavePlayerName(playerName);
 
-            // 로비 씬으로 전환
             SceneFlowManager.Instance.PlayerName = playerName;
             SceneFlowManager.Instance.IsHosting = true;
+            SceneFlowManager.Instance.IsLocalPlay = false;
             SceneFlowManager.Instance.GoToLobby();
         }
         else
         {
             SetStatus("방 생성 실패", true);
-            SetButtonsEnabled(true);
+            SetNetworkButtonsEnabled(true);
         }
     }
 
     async void OnJoinRoom()
     {
+        if (!networkReady) return;
+
         string code = inputJoinCode.value.Trim().ToUpper();
         if (string.IsNullOrEmpty(code))
         {
@@ -104,7 +147,7 @@ public class MainMenuController : MonoBehaviour
         }
 
         string playerName = GetPlayerName();
-        SetButtonsEnabled(false);
+        SetNetworkButtonsEnabled(false);
         SetStatus("접속 중...");
 
         bool success = await LobbyManager.Instance.JoinLobbyByCode(code, playerName);
@@ -115,17 +158,19 @@ public class MainMenuController : MonoBehaviour
 
             SceneFlowManager.Instance.PlayerName = playerName;
             SceneFlowManager.Instance.IsHosting = false;
+            SceneFlowManager.Instance.IsLocalPlay = false;
             SceneFlowManager.Instance.GoToLobby();
         }
         else
         {
             SetStatus("접속 실패 - 코드를 확인하세요", true);
-            SetButtonsEnabled(true);
+            SetNetworkButtonsEnabled(true);
         }
     }
 
     async void OnBrowseRooms()
     {
+        if (!networkReady) return;
         roomListPanel.RemoveFromClassList("room-list-panel--hidden");
         SetStatus("방 목록 조회 중...");
 
@@ -136,6 +181,7 @@ public class MainMenuController : MonoBehaviour
 
     async void OnRefreshRooms()
     {
+        if (!networkReady) return;
         SetStatus("새로고침 중...");
         var lobbies = await LobbyManager.Instance.GetLobbyList();
         PopulateRoomList(lobbies);
@@ -196,7 +242,7 @@ public class MainMenuController : MonoBehaviour
     async void JoinFromList(string lobbyCode)
     {
         string playerName = GetPlayerName();
-        SetButtonsEnabled(false);
+        SetNetworkButtonsEnabled(false);
         SetStatus("접속 중...");
 
         bool success = await LobbyManager.Instance.JoinLobbyByCode(lobbyCode, playerName);
@@ -205,12 +251,13 @@ public class MainMenuController : MonoBehaviour
             SavePlayerName(playerName);
             SceneFlowManager.Instance.PlayerName = playerName;
             SceneFlowManager.Instance.IsHosting = false;
+            SceneFlowManager.Instance.IsLocalPlay = false;
             SceneFlowManager.Instance.GoToLobby();
         }
         else
         {
             SetStatus("접속 실패", true);
-            SetButtonsEnabled(true);
+            SetNetworkButtonsEnabled(true);
         }
     }
 
@@ -239,7 +286,7 @@ public class MainMenuController : MonoBehaviour
             statusMessage.AddToClassList("status-message--error");
     }
 
-    void SetButtonsEnabled(bool enabled)
+    void SetNetworkButtonsEnabled(bool enabled)
     {
         btnCreateRoom.SetEnabled(enabled);
         btnJoinRoom.SetEnabled(enabled);

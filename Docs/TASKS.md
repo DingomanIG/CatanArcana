@@ -8,6 +8,7 @@
 - [x] 카메라 세팅 (2.5D 오소그래픽, 45° + 팬/줌)
 - [x] 바다 타일 + 씬 구성
 - [x] 씬 분리 (MainMenu, Lobby, Game) + SceneFlowManager
+- [x] 씬 플로우 연결 (MainMenu → Lobby → Game, 로컬 플레이 지원)
 
 ## 네트워크
 - [x] Unity Authentication 연동
@@ -48,7 +49,7 @@
 - [x] 유틸리티 바 (옵션/규칙/음량 버튼, 화면 왼쪽)
 - [x] 음량 설정 오버레이 (BGM/SFX 슬라이더)
 - [x] 옵션 오버레이 (규칙보기/기권/메인메뉴)
-- [ ] NetworkTestUI → GameHUD 전환 (씬 설정)
+- [x] NetworkTestUI → GameHUD 전환 (씬 설정, 로컬 플레이 + 온라인 분기)
 - [ ] 한글 폰트 적용 (Noto Sans KR 등)
 
 ## 건설 시스템
