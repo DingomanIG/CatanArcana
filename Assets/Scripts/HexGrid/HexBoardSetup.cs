@@ -67,8 +67,8 @@ public static class HexBoardSetup
             }
         }
 
-        // 항구 배치
-        SetupPorts(grid, random);
+        // 항구 배치는 바다 타일 추가 후 별도 호출 (SetupPorts)
+        // RebuildTopology가 vertex를 새로 생성하므로 포트 할당이 소멸됨
     }
 
     /// <summary>커스텀 자원/숫자 배분으로 보드 설정</summary>
@@ -111,8 +111,10 @@ public static class HexBoardSetup
     }
 
     /// <summary>해안 변에 항구 배치 (표준 9개)</summary>
-    static void SetupPorts(HexGrid grid, System.Random random)
+    public static void SetupPorts(HexGrid grid, System.Random random = null)
     {
+        random ??= new System.Random();
+
         // 해안 변 찾기: 육지 타일 1개만 인접한 변
         var coastalEdges = new List<HexEdge>();
         foreach (var edge in grid.Edges)

@@ -44,6 +44,7 @@ public class HexGridView : MonoBehaviour
         grid.GenerateHexagonal(boardRadius);
         HexBoardSetup.SetupStandardBoard(grid);
         AddSeaRings();
+        HexBoardSetup.SetupPorts(grid);
 
         BuildVisuals();
     }
@@ -265,10 +266,14 @@ public class HexGridView : MonoBehaviour
             var coords = HexCoord.Ring(HexCoord.Zero, ring);
             foreach (var coord in coords)
             {
-                var tile = grid.AddTile(coord);
-                tile.Resource = ResourceType.Sea;
+                if (!grid.Tiles.ContainsKey(coord))
+                {
+                    var tile = new HexTile(coord) { Resource = ResourceType.Sea };
+                    grid.Tiles[coord] = tile;
+                }
             }
         }
+        grid.RebuildTopology();
     }
 
     /// <summary>히트된 게임 오브젝트에서 타일 좌표 조회</summary>
@@ -317,6 +322,7 @@ public class HexGridView : MonoBehaviour
             HexBoardSetup.SetupStandardBoard(grid);
         }
         AddSeaRings();
+        HexBoardSetup.SetupPorts(grid);
         BuildVisuals();
     }
 }
