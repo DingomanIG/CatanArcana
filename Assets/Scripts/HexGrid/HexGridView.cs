@@ -234,7 +234,7 @@ public class HexGridView : MonoBehaviour
             // 항구 라벨
             var label = new GameObject("PortLabel");
             label.transform.SetParent(marker.transform);
-            label.transform.localPosition = new Vector3(0f, 0.6f, 0f);
+            label.transform.localPosition = new Vector3(0f, 0.6f, -1.8f);
             label.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
 
             var tm = label.AddComponent<TextMesh>();
