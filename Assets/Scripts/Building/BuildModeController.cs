@@ -52,6 +52,41 @@ public class BuildModeController : MonoBehaviour
             buildingSystem = new BuildingSystem(gridView.Grid);
             Debug.Log("[BuildMode] 건설 시스템 초기화 완료");
         }
+
+        // 모든 배치(인간+AI)에 비주얼 생성
+        var gm = GameServices.GameManager;
+        if (gm != null)
+        {
+            gm.OnBuildingPlaced += OnBuildingPlacedEvent;
+            gm.OnRoadPlaced += OnRoadPlacedEvent;
+        }
+    }
+
+    void OnDestroy()
+    {
+        var gm = GameServices.GameManager;
+        if (gm != null)
+        {
+            gm.OnBuildingPlaced -= OnBuildingPlacedEvent;
+            gm.OnRoadPlaced -= OnRoadPlacedEvent;
+        }
+    }
+
+    void OnBuildingPlacedEvent(int playerIndex, int vertexId, BuildingType type)
+    {
+        if (gridView == null || buildingVisuals == null) return;
+        var vertex = gridView.Grid.Vertices[vertexId];
+        if (type == BuildingType.Settlement)
+            buildingVisuals.CreateSettlement(vertex, playerIndex);
+        else if (type == BuildingType.City)
+            buildingVisuals.CreateCity(vertex, playerIndex);
+    }
+
+    void OnRoadPlacedEvent(int playerIndex, int edgeId)
+    {
+        if (gridView == null || buildingVisuals == null) return;
+        var edge = gridView.Grid.Edges[edgeId];
+        buildingVisuals.CreateRoad(edge, playerIndex);
     }
 
     static void SetPickingIgnore(VisualElement root, string name)
@@ -191,11 +226,9 @@ public class BuildModeController : MonoBehaviour
                 if (vertexId < 0) return;
 
                 var modeBefore = currentMode;
-                int playerBefore = activePlayerIndex;
                 if (gm != null && gm.TryBuildSettlement(vertexId))
                 {
-                    var vertex = gridView.Grid.Vertices[vertexId];
-                    buildingVisuals.CreateSettlement(vertex, playerBefore);
+                    // 비주얼은 OnBuildingPlaced 이벤트에서 생성
                     if (currentMode == modeBefore)
                         CancelBuildMode();
                 }
@@ -208,11 +241,9 @@ public class BuildModeController : MonoBehaviour
                 if (edgeId < 0) return;
 
                 var modeBefore = currentMode;
-                int playerBefore = activePlayerIndex;
                 if (gm != null && gm.TryBuildRoad(edgeId))
                 {
-                    var edge = gridView.Grid.Edges[edgeId];
-                    buildingVisuals.CreateRoad(edge, playerBefore);
+                    // 비주얼은 OnRoadPlaced 이벤트에서 생성
                     if (currentMode == modeBefore)
                         CancelBuildMode();
                 }
@@ -225,11 +256,9 @@ public class BuildModeController : MonoBehaviour
                 if (vertexId < 0) return;
 
                 var modeBefore = currentMode;
-                int playerBefore = activePlayerIndex;
                 if (gm != null && gm.TryBuildCity(vertexId))
                 {
-                    var vertex = gridView.Grid.Vertices[vertexId];
-                    buildingVisuals.CreateCity(vertex, playerBefore);
+                    // 비주얼은 OnBuildingPlaced 이벤트에서 생성
                     if (currentMode == modeBefore)
                         CancelBuildMode();
                 }

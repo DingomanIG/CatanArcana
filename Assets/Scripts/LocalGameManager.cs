@@ -93,6 +93,17 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     void Awake()
     {
         GameServices.GameManager = this;
+
+        // SceneFlowManager에서 로컬 플레이 설정 적용
+        if (SceneFlowManager.Instance != null && SceneFlowManager.Instance.IsLocalPlay)
+        {
+            playerCount = SceneFlowManager.Instance.LocalPlayerCount;
+            humanPlayerIndex = 0;
+
+            // AIController가 없으면 자동 추가
+            if (GetComponent<AIController>() == null)
+                gameObject.AddComponent<AIController>();
+        }
     }
 
     void Start()
@@ -178,12 +189,15 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
     void StartInitialSettlementMode()
     {
+        // AI 턴에서는 BuildModeController 생략 (AI가 직접 TryBuildSettlement 호출)
+        if (humanPlayerIndex >= 0 && currentPlayerIndex != humanPlayerIndex) return;
         BuildModeController.Instance?.SetInitialPlacement(true);
         BuildModeController.Instance?.EnterBuildMode(BuildMode.PlacingSettlement);
     }
 
     void StartInitialRoadMode()
     {
+        if (humanPlayerIndex >= 0 && currentPlayerIndex != humanPlayerIndex) return;
         BuildModeController.Instance?.SetInitialPlacement(true);
         BuildModeController.Instance?.EnterBuildMode(BuildMode.PlacingRoad);
     }
