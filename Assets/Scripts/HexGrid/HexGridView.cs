@@ -121,12 +121,12 @@ public class HexGridView : MonoBehaviour
         var marker = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         marker.name = "Robber";
         marker.transform.SetParent(parent.transform);
-        marker.transform.localPosition = new Vector3(0f, 0.15f, 0f);
-        marker.transform.localScale = new Vector3(hexSize * 0.2f, 0.15f, hexSize * 0.2f);
+        marker.transform.localPosition = new Vector3(0f, 0.5f, 0f);
+        marker.transform.localScale = new Vector3(hexSize * 0.25f, 0.3f, hexSize * 0.25f);
 
         var mr = marker.GetComponent<MeshRenderer>();
         mr.material = new Material(defaultMaterial);
-        mr.material.color = Color.black;
+        mr.material.color = new Color(0.15f, 0.15f, 0.15f);
     }
 
     void CreateVertexVisuals()
