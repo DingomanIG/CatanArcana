@@ -20,6 +20,9 @@ public class HexVertex
     /// <summary>건물 타입 (None/Settlement/City)</summary>
     public BuildingType Building { get; set; } = BuildingType.None;
 
+    /// <summary>항구 타입 (None = 항구 없음)</summary>
+    public PortType Port { get; set; } = PortType.None;
+
     public HexVertex(int id, Vector3 position)
     {
         Id = id;

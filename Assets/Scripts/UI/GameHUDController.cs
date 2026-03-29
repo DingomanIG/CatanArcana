@@ -45,18 +45,35 @@ public class GameHUDController : MonoBehaviour
     Label resWheatCount;
     Label resOreCount;
 
+    // Utility Bar (Left)
+    Button btnOptions;
+    Button btnVolume;
+
     // Overlays
     VisualElement buildOverlay;
     VisualElement tradeOverlay;
     VisualElement rulesOverlay;
     VisualElement devCardOverlay;
     VisualElement resourceSelectOverlay;
+    VisualElement volumeOverlay;
+    VisualElement optionsOverlay;
     Button btnCloseBuild;
     Button btnCloseTrade;
     Button btnRules;
     Button btnCloseRules;
     Button btnCloseDevCard;
     Button btnCancelResourceSelect;
+    Button btnCloseVolume;
+    Button btnCloseOptions;
+    Button btnOptionRules;
+    Button btnOptionSurrender;
+    Button btnOptionMainMenu;
+
+    // Volume
+    Slider sliderBgm;
+    Slider sliderSfx;
+    Label bgmValueLabel;
+    Label sfxValueLabel;
 
     // Build Buttons
     Button btnBuildRoad;
@@ -72,9 +89,34 @@ public class GameHUDController : MonoBehaviour
     Button btnSelectWheat;
     Button btnSelectOre;
 
+    // Trade UI
+    Button btnTradeTabBank;
+    Button btnTradeTabPlayer;
+    VisualElement bankTradeSection;
+    VisualElement playerTradeSection;
+    VisualElement tradeGiveGrid;
+    VisualElement tradeReceiveGrid;
+    VisualElement tradeOfferGrid;
+    VisualElement tradeRequestGrid;
+    VisualElement tradePlayerGrid;
+    Button btnExecuteBankTrade;
+    Button btnExecutePlayerTrade;
+
     // Steal Overlay
     VisualElement stealOverlay;
     VisualElement stealPlayerList;
+
+    // Toast Notifications
+    VisualElement toastContainer;
+    const float TOAST_DURATION = 3f;
+
+    // Result Overlay
+    VisualElement resultOverlay;
+    Label resultTitle;
+    Label resultWinner;
+    VisualElement resultRanking;
+    Button btnResultMenu;
+    Button btnResultRematch;
 
     // Dev Card Hand
     ScrollView devCardHand;
@@ -92,6 +134,15 @@ public class GameHUDController : MonoBehaviour
     enum ResourceSelectMode { None, YearOfPlenty1, YearOfPlenty2, Monopoly }
     ResourceSelectMode resourceSelectMode = ResourceSelectMode.None;
     ResourceType yearOfPlentyFirstChoice;
+
+    // 은행 거래 선택 상태
+    ResourceType? bankGiveSelected;
+    ResourceType? bankReceiveSelected;
+
+    // 플레이어 거래 상태
+    readonly Dictionary<ResourceType, int> playerOfferAmounts = new();
+    readonly Dictionary<ResourceType, int> playerRequestAmounts = new();
+    int playerTradeTarget = -1;
 
     // Dice face patterns: which dots (row,col) are visible for each value 1-6
     static readonly bool[][,] DiceDotPatterns = new bool[][,]
@@ -158,6 +209,8 @@ public class GameHUDController : MonoBehaviour
     {
         var root = uiDocument.rootVisualElement;
 
+        toastContainer = root.Q<VisualElement>("toast-container");
+
         turnNumberLabel = root.Q<Label>("turn-number");
         currentPlayerLabel = root.Q<Label>("current-player");
         phaseIndicatorLabel = root.Q<Label>("phase-indicator");
@@ -215,8 +268,46 @@ public class GameHUDController : MonoBehaviour
 
         devCardHand = root.Q<ScrollView>("devcard-hand");
 
+        btnTradeTabBank = root.Q<Button>("btn-trade-tab-bank");
+        btnTradeTabPlayer = root.Q<Button>("btn-trade-tab-player");
+        bankTradeSection = root.Q<VisualElement>("bank-trade-section");
+        playerTradeSection = root.Q<VisualElement>("player-trade-section");
+        tradeGiveGrid = root.Q<VisualElement>("trade-give-grid");
+        tradeReceiveGrid = root.Q<VisualElement>("trade-receive-grid");
+        tradeOfferGrid = root.Q<VisualElement>("trade-offer-grid");
+        tradeRequestGrid = root.Q<VisualElement>("trade-request-grid");
+        tradePlayerGrid = root.Q<VisualElement>("trade-player-grid");
+        btnExecuteBankTrade = root.Q<Button>("btn-execute-bank-trade");
+        btnExecutePlayerTrade = root.Q<Button>("btn-execute-player-trade");
+
         stealOverlay = root.Q<VisualElement>("steal-overlay");
         stealPlayerList = root.Q<VisualElement>("steal-player-list");
+
+        resultOverlay = root.Q<VisualElement>("result-overlay");
+        resultTitle = root.Q<Label>("result-title");
+        resultWinner = root.Q<Label>("result-winner");
+        resultRanking = root.Q<VisualElement>("result-ranking");
+        btnResultMenu = root.Q<Button>("btn-result-menu");
+        btnResultRematch = root.Q<Button>("btn-result-rematch");
+
+        // Utility Bar
+        btnOptions = root.Q<Button>("btn-options");
+        btnVolume = root.Q<Button>("btn-volume");
+
+        // Volume Overlay
+        volumeOverlay = root.Q<VisualElement>("volume-overlay");
+        sliderBgm = root.Q<Slider>("slider-bgm");
+        sliderSfx = root.Q<Slider>("slider-sfx");
+        bgmValueLabel = root.Q<Label>("bgm-value");
+        sfxValueLabel = root.Q<Label>("sfx-value");
+        btnCloseVolume = root.Q<Button>("btn-close-volume");
+
+        // Options Overlay
+        optionsOverlay = root.Q<VisualElement>("options-overlay");
+        btnCloseOptions = root.Q<Button>("btn-close-options");
+        btnOptionRules = root.Q<Button>("btn-option-rules");
+        btnOptionSurrender = root.Q<Button>("btn-option-surrender");
+        btnOptionMainMenu = root.Q<Button>("btn-option-mainmenu");
     }
 
     // ========================
@@ -239,6 +330,8 @@ public class GameHUDController : MonoBehaviour
             GM.OnLargestArmyChanged += HandleLargestArmyChanged;
             GM.OnRobberMoved += HandleRobberMoved;
             GM.OnRobberSteal += HandleRobberSteal;
+            GM.OnBankTrade += HandleBankTrade;
+            GM.OnPlayerTrade += HandlePlayerTrade;
         }
     }
 
@@ -258,6 +351,8 @@ public class GameHUDController : MonoBehaviour
             GM.OnLargestArmyChanged -= HandleLargestArmyChanged;
             GM.OnRobberMoved -= HandleRobberMoved;
             GM.OnRobberSteal -= HandleRobberSteal;
+            GM.OnBankTrade -= HandleBankTrade;
+            GM.OnPlayerTrade -= HandlePlayerTrade;
         }
     }
 
@@ -280,6 +375,8 @@ public class GameHUDController : MonoBehaviour
         btnCloseRules.clicked += OnCloseRulesClicked;
         btnCloseDevCard.clicked += OnCloseDevCardClicked;
         btnCancelResourceSelect.clicked += OnCancelResourceSelect;
+        btnResultMenu.clicked += OnResultMenuClicked;
+        btnResultRematch.clicked += OnResultRematchClicked;
 
         btnBuildRoad.clicked += () =>
         {
@@ -302,12 +399,42 @@ public class GameHUDController : MonoBehaviour
             buildOverlay.AddToClassList("overlay--hidden");
         };
 
+        // 거래 탭 및 실행
+        btnTradeTabBank.clicked += () => SwitchTradeTab(true);
+        btnTradeTabPlayer.clicked += () => SwitchTradeTab(false);
+        btnExecuteBankTrade.clicked += OnExecuteBankTrade;
+        btnExecutePlayerTrade.clicked += OnExecutePlayerTrade;
+
         // 자원 선택 버튼
         btnSelectWood.clicked += () => OnResourceSelected(ResourceType.Wood);
         btnSelectBrick.clicked += () => OnResourceSelected(ResourceType.Brick);
         btnSelectWool.clicked += () => OnResourceSelected(ResourceType.Wool);
         btnSelectWheat.clicked += () => OnResourceSelected(ResourceType.Wheat);
         btnSelectOre.clicked += () => OnResourceSelected(ResourceType.Ore);
+
+        // 유틸리티 바
+        btnOptions.clicked += OnOptionsClicked;
+        btnVolume.clicked += OnVolumeClicked;
+        btnCloseVolume.clicked += () => volumeOverlay.AddToClassList("overlay--hidden");
+        btnCloseOptions.clicked += () => optionsOverlay.AddToClassList("overlay--hidden");
+        btnOptionRules.clicked += () =>
+        {
+            optionsOverlay.AddToClassList("overlay--hidden");
+            rulesOverlay.RemoveFromClassList("overlay--hidden");
+        };
+        btnOptionSurrender.clicked += OnSurrenderClicked;
+        btnOptionMainMenu.clicked += OnOptionMainMenuClicked;
+
+        // 음량 슬라이더
+        sliderBgm.RegisterValueChangedCallback(evt =>
+        {
+            bgmValueLabel.text = Mathf.RoundToInt(evt.newValue).ToString();
+            AudioListener.volume = evt.newValue / 100f;
+        });
+        sliderSfx.RegisterValueChangedCallback(evt =>
+        {
+            sfxValueLabel.text = Mathf.RoundToInt(evt.newValue).ToString();
+        });
     }
 
     void OnStartGameClicked() => GM?.StartGame();
@@ -315,7 +442,12 @@ public class GameHUDController : MonoBehaviour
     void OnEndTurnClicked() => GM?.EndTurn();
 
     void OnBuildClicked() => buildOverlay.RemoveFromClassList("overlay--hidden");
-    void OnTradeClicked() => tradeOverlay.RemoveFromClassList("overlay--hidden");
+
+    void OnTradeClicked()
+    {
+        SwitchTradeTab(true);
+        tradeOverlay.RemoveFromClassList("overlay--hidden");
+    }
 
     void OnBuyDevCardClicked()
     {
@@ -333,6 +465,22 @@ public class GameHUDController : MonoBehaviour
     void OnRulesClicked() => rulesOverlay.RemoveFromClassList("overlay--hidden");
     void OnCloseRulesClicked() => rulesOverlay.AddToClassList("overlay--hidden");
     void OnCloseDevCardClicked() => devCardOverlay.AddToClassList("overlay--hidden");
+    void OnOptionsClicked() => optionsOverlay.RemoveFromClassList("overlay--hidden");
+    void OnVolumeClicked() => volumeOverlay.RemoveFromClassList("overlay--hidden");
+
+    void OnSurrenderClicked()
+    {
+        optionsOverlay.AddToClassList("overlay--hidden");
+        // TODO: 기권 로직 구현
+        ShowToast("robber", "기권했습니다.");
+    }
+
+    void OnOptionMainMenuClicked()
+    {
+        optionsOverlay.AddToClassList("overlay--hidden");
+        if (SceneFlowManager.Instance != null)
+            SceneFlowManager.Instance.GoToMainMenu();
+    }
 
     void OnCancelResourceSelect()
     {
@@ -363,12 +511,18 @@ public class GameHUDController : MonoBehaviour
             ShowStealOverlay();
         else
             stealOverlay?.AddToClassList("overlay--hidden");
+
+        if (newPhase == GamePhase.GameOver)
+            ShowResultScreen();
     }
 
     void HandleDiceRolled(int die1, int die2, int total)
     {
         ShowDice(die1, die2, total);
         UpdateActionButtons();
+
+        if (total == 7)
+            ShowToast("robber", "도적 출현! 자원 7장 이상 보유자는 절반 폐기");
     }
 
     void HandlePlayerListChanged()
@@ -396,18 +550,31 @@ public class GameHUDController : MonoBehaviour
 
     void HandleDevCardUsed(int playerIndex, DevCardType cardType)
     {
-        if (playerIndex == GM.LocalPlayerIndex)
-            Debug.Log($"[HUD] 발전카드 사용: {cardType}");
+        if (cardType == DevCardType.Knight)
+        {
+            string who = GM.GetPlayerName(playerIndex);
+            ShowToast("knight", $"{who}이(가) 기사 카드를 사용했습니다!");
+        }
     }
 
     void HandleLongestRoadChanged(int playerIndex, bool gained)
     {
         UpdateBonusStatus();
+        if (gained)
+        {
+            string who = GM.GetPlayerName(playerIndex);
+            ShowToast("longest-road", $"{who}이(가) 최장교역로를 획득! (+2점)");
+        }
     }
 
     void HandleLargestArmyChanged(int playerIndex, bool gained)
     {
         UpdateBonusStatus();
+        if (gained)
+        {
+            string who = GM.GetPlayerName(playerIndex);
+            ShowToast("largest-army", $"{who}이(가) 최대기사단을 획득! (+2점)");
+        }
     }
 
     void HandleRobberMoved(HexCoord newCoord)
@@ -419,7 +586,24 @@ public class GameHUDController : MonoBehaviour
 
     void HandleRobberSteal(int thief, int victim, ResourceType resource)
     {
-        Debug.Log($"[HUD] {GM.GetPlayerName(thief)}이 {GM.GetPlayerName(victim)}에게서 {resource} 약탈!");
+        string thiefName = GM.GetPlayerName(thief);
+        string victimName = GM.GetPlayerName(victim);
+        ShowToast("robber", $"{thiefName}이(가) {victimName}에게서 자원을 약탈!");
+    }
+
+    void HandleBankTrade(int player, ResourceType gave, ResourceType received, int rate)
+    {
+        string who = GM.GetPlayerName(player);
+        ShowToast("trade", $"{who}: {GetResourceName(gave)}×{rate} → {GetResourceName(received)}×1");
+        tradeOverlay.AddToClassList("overlay--hidden");
+    }
+
+    void HandlePlayerTrade(int player1, int player2)
+    {
+        string name1 = GM.GetPlayerName(player1);
+        string name2 = GM.GetPlayerName(player2);
+        ShowToast("trade", $"{name1} ↔ {name2} 거래 성사!");
+        tradeOverlay.AddToClassList("overlay--hidden");
     }
 
     // ========================
@@ -678,6 +862,254 @@ public class GameHUDController : MonoBehaviour
     }
 
     // ========================
+    // TRADE
+    // ========================
+
+    static readonly ResourceType[] AllResources =
+    {
+        ResourceType.Wood, ResourceType.Brick, ResourceType.Wool,
+        ResourceType.Wheat, ResourceType.Ore
+    };
+
+    void SwitchTradeTab(bool bankTab)
+    {
+        if (bankTab)
+        {
+            btnTradeTabBank.AddToClassList("trade-tab--active");
+            btnTradeTabPlayer.RemoveFromClassList("trade-tab--active");
+            bankTradeSection.RemoveFromClassList("trade-section--hidden");
+            playerTradeSection.AddToClassList("trade-section--hidden");
+            RefreshBankTradeUI();
+        }
+        else
+        {
+            btnTradeTabBank.RemoveFromClassList("trade-tab--active");
+            btnTradeTabPlayer.AddToClassList("trade-tab--active");
+            bankTradeSection.AddToClassList("trade-section--hidden");
+            playerTradeSection.RemoveFromClassList("trade-section--hidden");
+            RefreshPlayerTradeUI();
+        }
+    }
+
+    // --- 은행 거래 ---
+
+    void RefreshBankTradeUI()
+    {
+        bankGiveSelected = null;
+        bankReceiveSelected = null;
+        BuildBankGiveButtons();
+        BuildBankReceiveButtons();
+        UpdateBankTradeExecuteButton();
+    }
+
+    void BuildBankGiveButtons()
+    {
+        tradeGiveGrid.Clear();
+        if (GM == null) return;
+
+        var state = GM.GetPlayerState(GM.LocalPlayerIndex);
+
+        foreach (var res in AllResources)
+        {
+            int rate = GM.GetTradeRate(res);
+            int owned = state.Resources[res];
+
+            var btn = new Button();
+            btn.text = $"{GetResourceName(res)}\n×{rate} ({owned})";
+            btn.AddToClassList("trade-res-btn");
+            btn.SetEnabled(owned >= rate);
+
+            if (bankGiveSelected == res)
+                btn.AddToClassList("trade-res-btn--selected");
+
+            var captured = res;
+            btn.clicked += () =>
+            {
+                bankGiveSelected = captured;
+                BuildBankGiveButtons();
+                BuildBankReceiveButtons();
+                UpdateBankTradeExecuteButton();
+            };
+
+            tradeGiveGrid.Add(btn);
+        }
+    }
+
+    void BuildBankReceiveButtons()
+    {
+        tradeReceiveGrid.Clear();
+
+        foreach (var res in AllResources)
+        {
+            var btn = new Button();
+            btn.text = GetResourceName(res);
+            btn.AddToClassList("trade-res-btn");
+            btn.SetEnabled(bankGiveSelected.HasValue && bankGiveSelected != res);
+
+            if (bankReceiveSelected == res)
+                btn.AddToClassList("trade-res-btn--selected");
+
+            var captured = res;
+            btn.clicked += () =>
+            {
+                bankReceiveSelected = captured;
+                BuildBankReceiveButtons();
+                UpdateBankTradeExecuteButton();
+            };
+
+            tradeReceiveGrid.Add(btn);
+        }
+    }
+
+    void UpdateBankTradeExecuteButton()
+    {
+        btnExecuteBankTrade.SetEnabled(bankGiveSelected.HasValue && bankReceiveSelected.HasValue);
+    }
+
+    void OnExecuteBankTrade()
+    {
+        if (!bankGiveSelected.HasValue || !bankReceiveSelected.HasValue) return;
+        GM?.TryBankTrade(bankGiveSelected.Value, bankReceiveSelected.Value);
+    }
+
+    // --- 플레이어 거래 ---
+
+    void RefreshPlayerTradeUI()
+    {
+        playerOfferAmounts.Clear();
+        playerRequestAmounts.Clear();
+        playerTradeTarget = -1;
+
+        foreach (var res in AllResources)
+        {
+            playerOfferAmounts[res] = 0;
+            playerRequestAmounts[res] = 0;
+        }
+
+        BuildAmountGrid(tradeOfferGrid, playerOfferAmounts, true);
+        BuildAmountGrid(tradeRequestGrid, playerRequestAmounts, false);
+        BuildPlayerSelectionButtons();
+        UpdatePlayerTradeExecuteButton();
+    }
+
+    void BuildAmountGrid(VisualElement grid, Dictionary<ResourceType, int> amounts, bool isOffer)
+    {
+        grid.Clear();
+        if (GM == null) return;
+
+        var myState = GM.GetPlayerState(GM.LocalPlayerIndex);
+
+        foreach (var res in AllResources)
+        {
+            var row = new VisualElement();
+            row.AddToClassList("trade-amount-row");
+
+            var icon = new VisualElement();
+            icon.AddToClassList("trade-amount-row__icon");
+            icon.AddToClassList($"resource-icon--{res.ToString().ToLower()}");
+
+            var nameLabel = new Label(GetResourceName(res));
+            nameLabel.AddToClassList("trade-amount-row__name");
+
+            var countLabel = new Label(amounts[res].ToString());
+            countLabel.AddToClassList("trade-amount-row__count");
+
+            var btnMinus = new Button { text = "-" };
+            btnMinus.AddToClassList("trade-amount-btn");
+            btnMinus.SetEnabled(amounts[res] > 0);
+
+            int maxAmount = isOffer ? myState.Resources[res] : 99;
+            var btnPlus = new Button { text = "+" };
+            btnPlus.AddToClassList("trade-amount-btn");
+            btnPlus.SetEnabled(amounts[res] < maxAmount);
+
+            var capturedRes = res;
+            btnMinus.clicked += () =>
+            {
+                if (amounts[capturedRes] > 0)
+                {
+                    amounts[capturedRes]--;
+                    BuildAmountGrid(grid, amounts, isOffer);
+                    UpdatePlayerTradeExecuteButton();
+                }
+            };
+            btnPlus.clicked += () =>
+            {
+                int max = isOffer ? myState.Resources[capturedRes] : 99;
+                if (amounts[capturedRes] < max)
+                {
+                    amounts[capturedRes]++;
+                    BuildAmountGrid(grid, amounts, isOffer);
+                    UpdatePlayerTradeExecuteButton();
+                }
+            };
+
+            row.Add(icon);
+            row.Add(nameLabel);
+            row.Add(btnMinus);
+            row.Add(countLabel);
+            row.Add(btnPlus);
+            grid.Add(row);
+        }
+    }
+
+    void BuildPlayerSelectionButtons()
+    {
+        tradePlayerGrid.Clear();
+        if (GM == null) return;
+
+        for (int i = 0; i < GM.PlayerCount; i++)
+        {
+            if (i == GM.LocalPlayerIndex) continue;
+
+            var btn = new Button();
+            btn.text = GM.GetPlayerName(i);
+            btn.AddToClassList("trade-player-btn");
+
+            if (playerTradeTarget == i)
+                btn.AddToClassList("trade-player-btn--selected");
+
+            int captured = i;
+            btn.clicked += () =>
+            {
+                playerTradeTarget = captured;
+                BuildPlayerSelectionButtons();
+                UpdatePlayerTradeExecuteButton();
+            };
+
+            tradePlayerGrid.Add(btn);
+        }
+    }
+
+    void UpdatePlayerTradeExecuteButton()
+    {
+        bool hasOffer = false;
+        bool hasRequest = false;
+        foreach (var kv in playerOfferAmounts) if (kv.Value > 0) { hasOffer = true; break; }
+        foreach (var kv in playerRequestAmounts) if (kv.Value > 0) { hasRequest = true; break; }
+
+        btnExecutePlayerTrade.SetEnabled(hasOffer && hasRequest && playerTradeTarget >= 0);
+    }
+
+    void OnExecutePlayerTrade()
+    {
+        if (playerTradeTarget < 0) return;
+
+        var offer = new Dictionary<ResourceType, int>();
+        var request = new Dictionary<ResourceType, int>();
+
+        foreach (var kv in playerOfferAmounts)
+            if (kv.Value > 0) offer[kv.Key] = kv.Value;
+        foreach (var kv in playerRequestAmounts)
+            if (kv.Value > 0) request[kv.Key] = kv.Value;
+
+        if (offer.Count == 0 || request.Count == 0) return;
+
+        if (!GM.TryPlayerTrade(playerTradeTarget, offer, request))
+            ShowToast("trade", "거래 실패: 상대방의 자원이 부족합니다");
+    }
+
+    // ========================
     // DICE
     // ========================
 
@@ -855,6 +1287,16 @@ public class GameHUDController : MonoBehaviour
         _ => phase.ToString()
     };
 
+    static string GetResourceName(ResourceType type) => type switch
+    {
+        ResourceType.Wood => "목재",
+        ResourceType.Brick => "벽돌",
+        ResourceType.Wool => "양모",
+        ResourceType.Wheat => "밀",
+        ResourceType.Ore => "광석",
+        _ => type.ToString()
+    };
+
     static string GetDevCardName(DevCardType type) => type switch
     {
         DevCardType.Knight => "기사",
@@ -874,4 +1316,139 @@ public class GameHUDController : MonoBehaviour
         DevCardType.Monopoly => "선택한 자원을 전부 약탈",
         _ => ""
     };
+
+    // ========================
+    // TOAST NOTIFICATIONS
+    // ========================
+
+    static readonly Dictionary<string, string> ToastIcons = new()
+    {
+        { "robber",       "!" },
+        { "knight",       "K" },
+        { "longest-road", "R" },
+        { "largest-army", "A" },
+        { "trade",        "T" },
+    };
+
+    void ShowToast(string type, string message)
+    {
+        if (toastContainer == null) return;
+
+        var toast = new VisualElement();
+        toast.AddToClassList("toast");
+        toast.AddToClassList($"toast--{type}");
+
+        var icon = new Label(ToastIcons.GetValueOrDefault(type, "!"));
+        icon.AddToClassList("toast__icon");
+
+        var text = new Label(message);
+        text.AddToClassList("toast__text");
+
+        toast.Add(icon);
+        toast.Add(text);
+        toastContainer.Add(toast);
+
+        StartCoroutine(FadeOutToast(toast));
+    }
+
+    IEnumerator FadeOutToast(VisualElement toast)
+    {
+        yield return new WaitForSeconds(TOAST_DURATION);
+        toast.AddToClassList("toast--fade-out");
+        yield return new WaitForSeconds(0.5f);
+        toast.RemoveFromHierarchy();
+    }
+
+    // ========================
+    // RESULT SCREEN
+    // ========================
+
+    void ShowResultScreen()
+    {
+        if (GM == null) return;
+
+        // 플레이어 VP 수집 + 정렬
+        var rankings = new List<(int index, string name, PlayerState state)>();
+        for (int i = 0; i < GM.PlayerCount; i++)
+        {
+            var state = GM.GetPlayerState(i);
+            if (state != null)
+                rankings.Add((i, GM.GetPlayerName(i), state));
+        }
+        rankings.Sort((a, b) => b.state.VictoryPoints.CompareTo(a.state.VictoryPoints));
+
+        // 우승자
+        if (rankings.Count > 0)
+        {
+            var winner = rankings[0];
+            resultWinner.text = $"{winner.name} 승리! ({winner.state.VictoryPoints}점)";
+        }
+
+        // 랭킹 빌드
+        resultRanking.Clear();
+        int rank = 1;
+        foreach (var (index, name, state) in rankings)
+        {
+            var row = new VisualElement();
+            row.AddToClassList("result-row");
+            if (rank == 1)
+                row.AddToClassList("result-row--winner");
+
+            var rankLabel = new Label(rank == 1 ? "👑" : $"{rank}");
+            rankLabel.AddToClassList("result-row__rank");
+
+            var nameLabel = new Label(name);
+            nameLabel.AddToClassList("result-row__name");
+
+            var vpLabel = new Label($"{state.VictoryPoints}점");
+            vpLabel.AddToClassList("result-row__vp");
+
+            var detail = BuildVPDetail(state);
+            var detailLabel = new Label(detail);
+            detailLabel.AddToClassList("result-row__detail");
+
+            row.Add(rankLabel);
+            row.Add(nameLabel);
+            row.Add(vpLabel);
+            row.Add(detailLabel);
+            resultRanking.Add(row);
+            rank++;
+        }
+
+        resultOverlay.RemoveFromClassList("overlay--hidden");
+    }
+
+    static string BuildVPDetail(PlayerState state)
+    {
+        var parts = new List<string>();
+        int settlements = 0, cities = 0;
+        foreach (var v in state.OwnedVertices)
+        {
+            if (v.Building == BuildingType.Settlement) settlements++;
+            else if (v.Building == BuildingType.City) cities++;
+        }
+        if (settlements > 0) parts.Add($"마을{settlements}");
+        if (cities > 0) parts.Add($"도시{cities}");
+        if (state.HasLongestRoad) parts.Add("최장로");
+        if (state.HasLargestArmy) parts.Add("최대군");
+
+        int vpCards = 0;
+        foreach (var c in state.DevCards)
+            if (c.Type == DevCardType.VictoryPoint) vpCards++;
+        if (vpCards > 0) parts.Add($"VP카드{vpCards}");
+
+        return string.Join(" / ", parts);
+    }
+
+    void OnResultMenuClicked()
+    {
+        if (SceneFlowManager.Instance != null)
+            SceneFlowManager.Instance.GoToMainMenu();
+    }
+
+    void OnResultRematchClicked()
+    {
+        resultOverlay.AddToClassList("overlay--hidden");
+        GM?.StartGame();
+    }
 }

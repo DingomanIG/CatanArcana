@@ -63,12 +63,26 @@ public interface IGameManager
     bool TryUseYearOfPlenty(ResourceType res1, ResourceType res2);
     bool TryUseMonopoly(ResourceType targetResource);
 
+    // 거래
+    bool TryBankTrade(ResourceType give, ResourceType receive);
+    bool TryPlayerTrade(int otherPlayer, Dictionary<ResourceType, int> offer, Dictionary<ResourceType, int> request);
+    int GetTradeRate(ResourceType resource);
+
+    // 거래 이벤트
+    event Action<int, ResourceType, ResourceType, int> OnBankTrade; // (player, gave, received, rate)
+    event Action<int, int> OnPlayerTrade; // (player1, player2)
+
     // 조회
     PlayerState GetPlayerState(int playerIndex);
     HexGrid GetGrid();
     int GetLongestRoadLength(int playerIndex);
     int GetLongestRoadHolder();
     int GetLargestArmyHolder();
+
+    // AI 쿼리
+    List<int> GetValidSettlementVertices(int playerIndex, bool isInitial);
+    List<int> GetValidRoadEdges(int playerIndex, bool isInitial);
+    List<int> GetValidCityVertices(int playerIndex);
 }
 
 /// <summary>글로벌 게임 매니저 참조</summary>

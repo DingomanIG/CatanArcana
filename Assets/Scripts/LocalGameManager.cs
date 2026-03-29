@@ -15,6 +15,9 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     [Header("참조")]
     [SerializeField] HexGridView hexGridView;
 
+    // AI 모드 (-1 = 핫시트/전원 인간)
+    int humanPlayerIndex = -1;
+
     // 상태
     int turnNumber;
     int currentPlayerIndex;
@@ -52,7 +55,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
     public int TurnNumber => turnNumber;
     public int CurrentPlayerIndex => currentPlayerIndex;
-    public int LocalPlayerIndex => currentPlayerIndex;
+    public int LocalPlayerIndex => humanPlayerIndex >= 0 ? humanPlayerIndex : currentPlayerIndex;
     public int PlayerCount => playerCount;
     public GamePhase CurrentPhase => currentPhase;
     public bool IsHost => true;
@@ -80,6 +83,8 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     public event Action<int, bool> OnLongestRoadChanged;
     public event Action<int, bool> OnLargestArmyChanged;
     public event Action<int, int, ResourceType> OnRobberSteal;
+    public event Action<int, ResourceType, ResourceType, int> OnBankTrade;
+    public event Action<int, int> OnPlayerTrade;
 
     // ========================
     // LIFECYCLE
@@ -159,7 +164,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         Debug.Log($"[Local] 턴 {turnNumber} - {GetPlayerName(currentPlayerIndex)}");
     }
 
-    public bool IsMyTurn() => true;
+    public bool IsMyTurn() => humanPlayerIndex < 0 || currentPlayerIndex == humanPlayerIndex;
 
     public string GetPlayerName(int index)
     {
@@ -843,6 +848,107 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     }
 
     // ========================
+    // 거래
+    // ========================
+
+    public int GetTradeRate(ResourceType resource)
+    {
+        var player = players[currentPlayerIndex];
+        bool has2to1 = false;
+        bool has3to1 = false;
+
+        foreach (var vertex in player.OwnedVertices)
+        {
+            if (vertex.Port == PortType.None) continue;
+
+            if (vertex.Port == PortType.Generic)
+            {
+                has3to1 = true;
+            }
+            else if (PortMatchesResource(vertex.Port, resource))
+            {
+                has2to1 = true;
+            }
+        }
+
+        if (has2to1) return 2;
+        if (has3to1) return 3;
+        return 4;
+    }
+
+    public bool TryBankTrade(ResourceType give, ResourceType receive)
+    {
+        if (currentPhase != GamePhase.Action) return false;
+        if (give == receive) return false;
+
+        var player = players[currentPlayerIndex];
+        int rate = GetTradeRate(give);
+
+        if (player.Resources[give] < rate)
+        {
+            Debug.Log($"[Local] 은행 거래 실패: {give} {rate}개 필요 (보유: {player.Resources[give]})");
+            return false;
+        }
+
+        player.Resources[give] -= rate;
+        player.AddResource(receive, 1);
+
+        NotifyAllResources(currentPlayerIndex);
+        OnBankTrade?.Invoke(currentPlayerIndex, give, receive, rate);
+
+        Debug.Log($"[Local] {GetPlayerName(currentPlayerIndex)}: 은행 거래 {give}×{rate} → {receive}×1");
+        return true;
+    }
+
+    public bool TryPlayerTrade(int otherPlayer, Dictionary<ResourceType, int> offer, Dictionary<ResourceType, int> request)
+    {
+        if (currentPhase != GamePhase.Action) return false;
+        if (otherPlayer < 0 || otherPlayer >= playerCount || otherPlayer == currentPlayerIndex) return false;
+
+        var me = players[currentPlayerIndex];
+        var them = players[otherPlayer];
+
+        // 양쪽 자원 충분한지 확인
+        foreach (var kv in offer)
+        {
+            if (me.Resources[kv.Key] < kv.Value) return false;
+        }
+        foreach (var kv in request)
+        {
+            if (them.Resources[kv.Key] < kv.Value) return false;
+        }
+
+        // 교환 실행
+        foreach (var kv in offer)
+        {
+            me.Resources[kv.Key] -= kv.Value;
+            them.AddResource(kv.Key, kv.Value);
+        }
+        foreach (var kv in request)
+        {
+            them.Resources[kv.Key] -= kv.Value;
+            me.AddResource(kv.Key, kv.Value);
+        }
+
+        NotifyAllResources(currentPlayerIndex);
+        NotifyAllResources(otherPlayer);
+        OnPlayerTrade?.Invoke(currentPlayerIndex, otherPlayer);
+
+        Debug.Log($"[Local] {GetPlayerName(currentPlayerIndex)} ↔ {GetPlayerName(otherPlayer)} 거래 성사!");
+        return true;
+    }
+
+    static bool PortMatchesResource(PortType port, ResourceType resource) => port switch
+    {
+        PortType.Wood => resource == ResourceType.Wood,
+        PortType.Brick => resource == ResourceType.Brick,
+        PortType.Wool => resource == ResourceType.Wool,
+        PortType.Wheat => resource == ResourceType.Wheat,
+        PortType.Ore => resource == ResourceType.Ore,
+        _ => false
+    };
+
+    // ========================
     // 조회
     // ========================
 
@@ -879,5 +985,36 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         var player = players[playerIndex];
         foreach (var kv in player.Resources)
             OnResourceChanged?.Invoke(playerIndex, kv.Key, kv.Value);
+    }
+
+    // ========================
+    // AI 지원
+    // ========================
+
+    /// <summary>AI 모드 설정 (humanIndex = 인간 플레이어 인덱스)</summary>
+    public void SetHumanPlayerIndex(int humanIndex) => humanPlayerIndex = humanIndex;
+
+    public List<int> GetValidSettlementVertices(int playerIndex, bool isInitial)
+    {
+        var vertices = buildingSystem.GetValidSettlementPositions(playerIndex, isInitial);
+        var ids = new List<int>(vertices.Count);
+        foreach (var v in vertices) ids.Add(v.Id);
+        return ids;
+    }
+
+    public List<int> GetValidRoadEdges(int playerIndex, bool isInitial)
+    {
+        var edges = buildingSystem.GetValidRoadPositions(playerIndex, isInitial);
+        var ids = new List<int>(edges.Count);
+        foreach (var e in edges) ids.Add(e.Id);
+        return ids;
+    }
+
+    public List<int> GetValidCityVertices(int playerIndex)
+    {
+        var vertices = buildingSystem.GetValidCityUpgrades(playerIndex);
+        var ids = new List<int>(vertices.Count);
+        foreach (var v in vertices) ids.Add(v.Id);
+        return ids;
     }
 }

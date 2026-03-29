@@ -59,6 +59,7 @@ public class HexGridView : MonoBehaviour
 
         if (showVertices) CreateVertexVisuals();
         if (showEdges) CreateEdgeVisuals();
+        CreatePortVisuals();
 
         Debug.Log($"[HexGridView] 보드 생성 완료: 타일 {grid.Tiles.Count}, 교차점 {grid.Vertices.Count}, 변 {grid.Edges.Count}");
     }
@@ -168,6 +169,70 @@ public class HexGridView : MonoBehaviour
             var mr = go.GetComponent<MeshRenderer>();
             mr.material = new Material(defaultMaterial);
             mr.material.color = new Color(0.4f, 0.35f, 0.25f, 0.5f);
+        }
+    }
+
+    static readonly Dictionary<PortType, Color> PORT_COLORS = new()
+    {
+        { PortType.Generic, new Color(1f, 1f, 1f, 0.9f) },    // 3:1 - 흰색
+        { PortType.Wood,    new Color(0.18f, 0.55f, 0.18f) },  // 목재 - 초록
+        { PortType.Brick,   new Color(0.78f, 0.38f, 0.18f) },  // 벽돌 - 주황
+        { PortType.Wool,    new Color(0.60f, 0.85f, 0.40f) },  // 양모 - 연두
+        { PortType.Wheat,   new Color(0.95f, 0.85f, 0.20f) },  // 밀 - 노랑
+        { PortType.Ore,     new Color(0.55f, 0.55f, 0.60f) },  // 광석 - 회색
+    };
+
+    static readonly Dictionary<PortType, string> PORT_LABELS = new()
+    {
+        { PortType.Generic, "3:1" },
+        { PortType.Wood,    "2:1" },
+        { PortType.Brick,   "2:1" },
+        { PortType.Wool,    "2:1" },
+        { PortType.Wheat,   "2:1" },
+        { PortType.Ore,     "2:1" },
+    };
+
+    void CreatePortVisuals()
+    {
+        var portParent = new GameObject("Ports");
+        portParent.transform.SetParent(transform);
+
+        // 항구 변 찾기 (양 끝 vertex가 같은 항구)
+        var processedEdges = new HashSet<int>();
+        foreach (var edge in grid.Edges)
+        {
+            if (processedEdges.Contains(edge.Id)) continue;
+            if (edge.VertexA.Port == PortType.None) continue;
+            if (edge.VertexA.Port != edge.VertexB.Port) continue;
+
+            processedEdges.Add(edge.Id);
+            var portType = edge.VertexA.Port;
+            var midPoint = edge.MidPoint;
+
+            // 항구 마커 (작은 큐브)
+            var marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            marker.name = $"Port_{portType}_{edge.Id}";
+            marker.transform.SetParent(portParent.transform);
+            marker.transform.position = midPoint + Vector3.up * 0.05f;
+            marker.transform.localScale = new Vector3(hexSize * 0.25f, 0.08f, hexSize * 0.25f);
+
+            var mr = marker.GetComponent<MeshRenderer>();
+            mr.material = new Material(defaultMaterial);
+            mr.material.color = PORT_COLORS.GetValueOrDefault(portType, Color.white);
+
+            // 항구 라벨
+            var label = new GameObject("PortLabel");
+            label.transform.SetParent(marker.transform);
+            label.transform.localPosition = new Vector3(0f, 0.6f, 0f);
+            label.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+
+            var tm = label.AddComponent<TextMesh>();
+            tm.text = PORT_LABELS.GetValueOrDefault(portType, "?");
+            tm.characterSize = hexSize * 0.12f;
+            tm.anchor = TextAnchor.MiddleCenter;
+            tm.alignment = TextAlignment.Center;
+            tm.fontSize = 36;
+            tm.color = portType == PortType.Generic ? Color.black : Color.white;
         }
     }
 

@@ -6,7 +6,16 @@
             <ui:Label name="current-player" text="현재 플레이어: -" class="top-bar__label top-bar__player"/>
             <ui:Label name="phase-indicator" text="대기 중" class="top-bar__label top-bar__phase"/>
         </ui:VisualElement>
+        <!-- 이벤트 알림 (토스트) -->
+        <ui:VisualElement name="toast-container" class="toast-container" picking-mode="Ignore"/>
+
         <ui:VisualElement name="middle-area" class="middle-area">
+            <!-- 왼쪽 유틸리티 바 (옵션/규칙/음량) -->
+            <ui:VisualElement name="utility-bar" class="utility-bar">
+                <ui:Button name="btn-options" text="⚙" tooltip="옵션" class="utility-btn"/>
+                <ui:Button name="btn-rules" text="?" tooltip="규칙" class="utility-btn utility-btn--info"/>
+                <ui:Button name="btn-volume" text="♪" tooltip="음량" class="utility-btn"/>
+            </ui:VisualElement>
             <ui:VisualElement name="player-panel" class="player-panel">
                 <ui:Label text="플레이어" class="panel-title"/>
                 <ui:VisualElement name="player-list" class="player-list"/>
@@ -33,8 +42,6 @@
                 <ui:Button name="btn-trade" text="거래" class="action-btn"/>
                 <ui:Button name="btn-buy-devcard" text="발전카드 구매" class="action-btn"/>
                 <ui:Button name="btn-devcard-hand" text="카드 보기" class="action-btn"/>
-                <ui:VisualElement class="action-separator"/>
-                <ui:Button name="btn-rules" text="? 규칙" class="action-btn action-btn--info"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="resource-panel" class="resource-panel">
@@ -95,7 +102,31 @@
         <ui:VisualElement name="trade-overlay" class="overlay overlay--hidden">
             <ui:VisualElement class="overlay-panel trade-panel">
                 <ui:Label text="거래" class="overlay-title"/>
-                <ui:Label text="거래 시스템 준비 중..." class="placeholder-text"/>
+                <!-- 탭 -->
+                <ui:VisualElement class="trade-tabs">
+                    <ui:Button name="btn-trade-tab-bank" text="은행 거래" class="trade-tab trade-tab--active"/>
+                    <ui:Button name="btn-trade-tab-player" text="플레이어 거래" class="trade-tab"/>
+                </ui:VisualElement>
+                <!-- 은행 거래 -->
+                <ui:VisualElement name="bank-trade-section" class="trade-section">
+                    <ui:Label text="줄 자원" class="trade-subtitle"/>
+                    <ui:VisualElement name="trade-give-grid" class="trade-resource-grid"/>
+                    <ui:Label text="→" class="trade-arrow"/>
+                    <ui:Label text="받을 자원" class="trade-subtitle"/>
+                    <ui:VisualElement name="trade-receive-grid" class="trade-resource-grid"/>
+                    <ui:Button name="btn-execute-bank-trade" text="거래 실행" class="trade-execute-btn"/>
+                </ui:VisualElement>
+                <!-- 플레이어 거래 -->
+                <ui:VisualElement name="player-trade-section" class="trade-section trade-section--hidden">
+                    <ui:Label text="내가 줄 자원" class="trade-subtitle"/>
+                    <ui:VisualElement name="trade-offer-grid" class="trade-amount-grid"/>
+                    <ui:Label text="↕" class="trade-arrow"/>
+                    <ui:Label text="받을 자원" class="trade-subtitle"/>
+                    <ui:VisualElement name="trade-request-grid" class="trade-amount-grid"/>
+                    <ui:Label text="상대 선택" class="trade-subtitle"/>
+                    <ui:VisualElement name="trade-player-grid" class="trade-player-grid"/>
+                    <ui:Button name="btn-execute-player-trade" text="거래 제안" class="trade-execute-btn"/>
+                </ui:VisualElement>
                 <ui:Button name="btn-close-trade" text="닫기" class="overlay-close-btn"/>
             </ui:VisualElement>
         </ui:VisualElement>
@@ -174,6 +205,48 @@
                     <ui:Label text="6과 8이 가장 자주 나옵니다 (7 제외). 이 숫자 근처에 건물을 배치하세요!" class="rules-text rules-text--tip"/>
                 </ui:ScrollView>
                 <ui:Button name="btn-close-rules" text="닫기" class="overlay-close-btn"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <!-- 음량 설정 -->
+        <ui:VisualElement name="volume-overlay" class="overlay overlay--hidden">
+            <ui:VisualElement class="overlay-panel volume-panel">
+                <ui:Label text="음량 설정" class="overlay-title"/>
+                <ui:VisualElement class="volume-row">
+                    <ui:Label text="BGM" class="volume-label"/>
+                    <ui:Slider name="slider-bgm" low-value="0" high-value="100" value="80" class="volume-slider"/>
+                    <ui:Label name="bgm-value" text="80" class="volume-value"/>
+                </ui:VisualElement>
+                <ui:VisualElement class="volume-row">
+                    <ui:Label text="SFX" class="volume-label"/>
+                    <ui:Slider name="slider-sfx" low-value="0" high-value="100" value="80" class="volume-slider"/>
+                    <ui:Label name="sfx-value" text="80" class="volume-value"/>
+                </ui:VisualElement>
+                <ui:Button name="btn-close-volume" text="닫기" class="overlay-close-btn"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <!-- 옵션 -->
+        <ui:VisualElement name="options-overlay" class="overlay overlay--hidden">
+            <ui:VisualElement class="overlay-panel options-panel">
+                <ui:Label text="옵션" class="overlay-title"/>
+                <ui:Button name="btn-option-rules" text="게임 규칙 보기" class="action-btn"/>
+                <ui:Button name="btn-option-surrender" text="기권" class="action-btn action-btn--warning"/>
+                <ui:Button name="btn-option-mainmenu" text="메인 메뉴로" class="action-btn action-btn--warning"/>
+                <ui:Button name="btn-close-options" text="닫기" class="overlay-close-btn"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <!-- 결과 화면 -->
+        <ui:VisualElement name="result-overlay" class="overlay overlay--hidden">
+            <ui:VisualElement class="overlay-panel result-panel">
+                <ui:Label name="result-title" text="게임 종료!" class="result-title"/>
+                <ui:Label name="result-winner" text="" class="result-winner"/>
+                <ui:VisualElement class="divider-gold"/>
+                <ui:Label text="최종 순위" class="result-section-title"/>
+                <ui:VisualElement name="result-ranking" class="result-ranking"/>
+                <ui:VisualElement class="divider-gold"/>
+                <ui:VisualElement class="result-buttons">
+                    <ui:Button name="btn-result-menu" text="메인 메뉴로" class="action-btn action-btn--primary result-btn"/>
+                    <ui:Button name="btn-result-rematch" text="다시 하기" class="action-btn result-btn"/>
+                </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
