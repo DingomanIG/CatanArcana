@@ -42,6 +42,7 @@ public class GameHUDController : MonoBehaviour
     VisualElement buildHeader;
 
     // Status Labels
+    Label labelInitialPlacement;
     Label labelMoveRobber;
 
     // Dice Display
@@ -269,6 +270,7 @@ public class GameHUDController : MonoBehaviour
         statVpLabel = root.Q<Label>("stat-vp");
 
         btnStartGame = root.Q<Button>("btn-start-game");
+        labelInitialPlacement = root.Q<Label>("label-initial-placement");
         btnRollDice = root.Q<Button>("btn-roll-dice");
         labelMoveRobber = root.Q<Label>("label-move-robber");
         btnEndTurn = root.Q<Button>("btn-end-turn");
@@ -750,6 +752,16 @@ public class GameHUDController : MonoBehaviour
         SetVisible(actionPanel, true);
 
         SetVisible(btnStartGame, phase == GamePhase.WaitingForPlayers && GM.IsHost);
+
+        // 초기 배치 안내
+        bool initialPhase = isMyTurn && phase == GamePhase.InitialPlacement;
+        SetVisible(labelInitialPlacement, initialPhase);
+        if (initialPhase)
+        {
+            labelInitialPlacement.text = GM.CurrentBuildMode == BuildMode.PlacingRoad
+                ? "도로를 배치하세요" : "마을을 배치하세요";
+        }
+
         SetVisible(btnRollDice, isMyTurn && phase == GamePhase.RollDice);
         SetVisible(labelMoveRobber, isMyTurn && (phase == GamePhase.MoveRobber || phase == GamePhase.StealResource));
         SetVisible(btnEndTurn, isMyTurn && phase == GamePhase.Action);
@@ -769,6 +781,7 @@ public class GameHUDController : MonoBehaviour
     {
         // 액션 패널은 항상 표시, 상태 버튼만 숨김
         SetVisible(btnStartGame, false);
+        SetVisible(labelInitialPlacement, false);
         SetVisible(btnRollDice, false);
         SetVisible(labelMoveRobber, false);
         SetVisible(btnEndTurn, false);
