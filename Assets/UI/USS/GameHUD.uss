@@ -197,6 +197,13 @@
     background-color: rgb(74, 122, 62);
 }
 
+.action-btn--alert {
+    background-color: rgb(180, 145, 40);
+    border-color: rgb(219, 184, 77);
+    color: rgb(255, 255, 255);
+    -unity-text-align: middle-center;
+}
+
 .action-btn--warning {
     background-color: rgb(139, 58, 37);
     border-color: rgb(196, 92, 62);

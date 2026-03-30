@@ -41,6 +41,9 @@ public class GameHUDController : MonoBehaviour
     // Build Section Header
     VisualElement buildHeader;
 
+    // Status Labels
+    Label labelMoveRobber;
+
     // Dice Display
     VisualElement diceDisplay;
     VisualElement die1Face;
@@ -267,6 +270,7 @@ public class GameHUDController : MonoBehaviour
 
         btnStartGame = root.Q<Button>("btn-start-game");
         btnRollDice = root.Q<Button>("btn-roll-dice");
+        labelMoveRobber = root.Q<Label>("label-move-robber");
         btnEndTurn = root.Q<Button>("btn-end-turn");
         btnTrade = root.Q<Button>("btn-trade");
         btnBuyDevCard = root.Q<Button>("btn-buy-devcard");
@@ -747,6 +751,7 @@ public class GameHUDController : MonoBehaviour
 
         SetVisible(btnStartGame, phase == GamePhase.WaitingForPlayers && GM.IsHost);
         SetVisible(btnRollDice, isMyTurn && phase == GamePhase.RollDice);
+        SetVisible(labelMoveRobber, isMyTurn && (phase == GamePhase.MoveRobber || phase == GamePhase.StealResource));
         SetVisible(btnEndTurn, isMyTurn && phase == GamePhase.Action);
 
         bool actionPhase = isMyTurn && phase == GamePhase.Action;
@@ -765,6 +770,7 @@ public class GameHUDController : MonoBehaviour
         // 액션 패널은 항상 표시, 상태 버튼만 숨김
         SetVisible(btnStartGame, false);
         SetVisible(btnRollDice, false);
+        SetVisible(labelMoveRobber, false);
         SetVisible(btnEndTurn, false);
         btnBuildRoad.SetEnabled(false);
         btnBuildSettlement.SetEnabled(false);

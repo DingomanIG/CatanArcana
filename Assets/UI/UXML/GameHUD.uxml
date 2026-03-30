@@ -62,6 +62,7 @@
                 <ui:Button name="btn-devcard-hand" text="카드 보기" class="action-btn"/>
                 <ui:Button name="btn-start-game" text="게임 시작" class="action-btn action-btn--primary"/>
                 <ui:Button name="btn-roll-dice" text="주사위 굴리기" class="action-btn action-btn--primary"/>
+                <ui:Label name="label-move-robber" text="도적 이동 — 타일을 클릭하세요" class="action-btn action-btn--alert"/>
                 <ui:Button name="btn-end-turn" text="턴 종료" class="action-btn action-btn--warning"/>
             </ui:VisualElement>
         </ui:VisualElement>
