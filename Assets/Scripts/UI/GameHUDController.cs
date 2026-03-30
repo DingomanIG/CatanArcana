@@ -687,10 +687,26 @@ public class GameHUDController : MonoBehaviour
         var state = GM.GetPlayerState(GM.LocalPlayerIndex);
         if (state == null) return;
 
-        if (buildRoadCount != null) buildRoadCount.text = state.RoadsRemaining.ToString();
-        if (buildSettlementCount != null) buildSettlementCount.text = state.SettlementsRemaining.ToString();
-        if (buildCityCount != null) buildCityCount.text = state.CitiesRemaining.ToString();
-        if (buildDevCardCount != null) buildDevCardCount.text = GM.DevCardDeckRemaining.ToString();
+        if (buildRoadCount != null)
+            buildRoadCount.text = Mathf.Min(AffordableCount(state, BuildingCosts.Road), state.RoadsRemaining).ToString();
+        if (buildSettlementCount != null)
+            buildSettlementCount.text = Mathf.Min(AffordableCount(state, BuildingCosts.Settlement), state.SettlementsRemaining).ToString();
+        if (buildCityCount != null)
+            buildCityCount.text = Mathf.Min(AffordableCount(state, BuildingCosts.City), state.CitiesRemaining).ToString();
+        if (buildDevCardCount != null)
+            buildDevCardCount.text = Mathf.Min(AffordableCount(state, BuildingCosts.DevelopmentCard), GM.DevCardDeckRemaining).ToString();
+    }
+
+    /// <summary>현재 자원으로 건설 가능한 횟수 계산</summary>
+    static int AffordableCount(PlayerState state, Dictionary<ResourceType, int> cost)
+    {
+        int min = int.MaxValue;
+        foreach (var kv in cost)
+        {
+            int have = state.Resources.ContainsKey(kv.Key) ? state.Resources[kv.Key] : 0;
+            min = Mathf.Min(min, have / kv.Value);
+        }
+        return min == int.MaxValue ? 0 : min;
     }
 
     void UpdateTopBar()
