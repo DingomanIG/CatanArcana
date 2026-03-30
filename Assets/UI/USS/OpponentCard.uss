@@ -1,0 +1,27 @@
+/* OpponentCard - Typography Only */
+
+.opponent-card__name {
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+}
+
+.opponent-card__vp {
+    color: rgb(245, 245, 245);
+    -unity-font-style: bold;
+}
+
+.opponent-card__stat-value {
+    color: rgb(255, 255, 255);
+    font-size: 16px;
+    -unity-font-style: bold;
+}
+
+.opponent-card__stat-label {
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+}
+
+.opponent-card__status-text {
+    font-size: 16px;
+    -unity-font-style: bold;
+}

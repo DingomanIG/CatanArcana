@@ -188,6 +188,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   uiDocument: {fileID: 291753454}
+  opponentCardTemplate: {fileID: 9197481963319205126, guid: 076b0780c81fff14bb4b4b159a0b438c, type: 3}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0

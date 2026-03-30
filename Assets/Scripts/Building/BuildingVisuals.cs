@@ -11,7 +11,7 @@ public class BuildingVisuals : MonoBehaviour
         new Color(0.9f, 0.2f, 0.2f),   // Red
         new Color(0.2f, 0.5f, 0.9f),   // Blue
         new Color(0.9f, 0.6f, 0.1f),   // Orange
-        new Color(0.9f, 0.9f, 0.9f),   // White
+        new Color(0.6f, 0.2f, 0.8f),   // Purple
     };
 
     static readonly Color HIGHLIGHT_VALID = new Color(0.3f, 1f, 0.3f, 0.5f);

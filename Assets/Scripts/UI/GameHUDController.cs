@@ -10,6 +10,7 @@ using UnityEngine.UIElements;
 public class GameHUDController : MonoBehaviour
 {
     [SerializeField] UIDocument uiDocument;
+    [SerializeField] VisualTreeAsset opponentCardTemplate;
 
     // Top Bar
     Label turnNumberLabel;
@@ -19,8 +20,13 @@ public class GameHUDController : MonoBehaviour
     // Opponent Bar
     VisualElement opponentBar;
 
-    // My VP (top bar)
-    Label myVpLabel;
+    // Action Panel (container)
+    VisualElement actionPanel;
+
+    // Player Stats (bottom bar)
+    Label statRoadLabel;
+    Label statKnightLabel;
+    Label statVpLabel;
 
     // Action Buttons
     Button btnStartGame;
@@ -137,7 +143,7 @@ public class GameHUDController : MonoBehaviour
         new(0.77f, 0.36f, 0.24f), // Red
         new(0.29f, 0.48f, 0.77f), // Blue
         new(0.83f, 0.66f, 0.27f), // Gold
-        new(0.35f, 0.62f, 0.29f), // Green
+        new(0.6f, 0.2f, 0.8f),   // Purple
     };
 
     class OpponentCardUI
@@ -242,7 +248,12 @@ public class GameHUDController : MonoBehaviour
         phaseIndicatorLabel = root.Q<Label>("phase-indicator");
 
         opponentBar = root.Q<VisualElement>("opponent-bar");
-        myVpLabel = root.Q<Label>("my-vp");
+
+        actionPanel = root.Q<VisualElement>("action-panel");
+
+        statRoadLabel = root.Q<Label>("stat-road");
+        statKnightLabel = root.Q<Label>("stat-knight");
+        statVpLabel = root.Q<Label>("stat-vp");
 
         btnStartGame = root.Q<Button>("btn-start-game");
         btnRollDice = root.Q<Button>("btn-roll-dice");
@@ -579,8 +590,8 @@ public class GameHUDController : MonoBehaviour
     void HandleVPChanged(int playerIndex, int vp)
     {
         UpdateOpponentCard(playerIndex);
-        if (playerIndex == GM.LocalPlayerIndex && myVpLabel != null)
-            myVpLabel.text = $"{vp} VP";
+        if (playerIndex == GM.LocalPlayerIndex)
+            UpdatePlayerStats();
     }
 
     void HandleDevCardPurchased(int playerIndex, DevCardType cardType)
@@ -598,11 +609,13 @@ public class GameHUDController : MonoBehaviour
             ShowToast("knight", $"{who}이(가) 기사 카드를 사용했습니다!");
         }
         UpdateOpponentCard(playerIndex);
+        if (playerIndex == GM.LocalPlayerIndex) UpdatePlayerStats();
     }
 
     void HandleLongestRoadChanged(int playerIndex, bool gained)
     {
         UpdateAllOpponentCards();
+        UpdatePlayerStats();
         if (gained)
         {
             string who = GM.GetPlayerName(playerIndex);
@@ -613,6 +626,7 @@ public class GameHUDController : MonoBehaviour
     void HandleLargestArmyChanged(int playerIndex, bool gained)
     {
         UpdateAllOpponentCards();
+        UpdatePlayerStats();
         if (gained)
         {
             string who = GM.GetPlayerName(playerIndex);
@@ -660,7 +674,19 @@ public class GameHUDController : MonoBehaviour
         RebuildOpponentBar();
         HideDice();
         UpdateResourceDisplay(0, 0, 0, 0, 0);
-        if (myVpLabel != null) myVpLabel.text = "0 VP";
+        UpdatePlayerStats();
+    }
+
+    void UpdatePlayerStats()
+    {
+        if (GM == null) return;
+        var state = GM.GetPlayerState(GM.LocalPlayerIndex);
+        if (state == null) return;
+
+        int roadLen = GM.GetLongestRoadLength(GM.LocalPlayerIndex);
+        statRoadLabel.text = roadLen.ToString();
+        statKnightLabel.text = state.KnightsPlayed.ToString();
+        statVpLabel.text = state.VictoryPoints.ToString();
     }
 
     void UpdateTopBar()
@@ -683,6 +709,13 @@ public class GameHUDController : MonoBehaviour
         var phase = GM.CurrentPhase;
         bool isMyTurn = GM.IsMyTurn();
 
+        // 상대턴이면 행동 패널 전체 숨기기
+        bool showPanel = (phase == GamePhase.WaitingForPlayers && GM.IsHost)
+                      || (isMyTurn && (phase == GamePhase.RollDice || phase == GamePhase.Action));
+        SetVisible(actionPanel, showPanel);
+
+        if (!showPanel) return;
+
         SetVisible(btnStartGame, phase == GamePhase.WaitingForPlayers && GM.IsHost);
         SetVisible(btnRollDice, phase == GamePhase.RollDice);
         SetVisible(btnEndTurn, phase == GamePhase.Action);
@@ -701,13 +734,7 @@ public class GameHUDController : MonoBehaviour
 
     void HideAllButtons()
     {
-        SetVisible(btnStartGame, false);
-        SetVisible(btnRollDice, false);
-        SetVisible(btnEndTurn, false);
-        SetVisible(btnBuild, false);
-        SetVisible(btnTrade, false);
-        SetVisible(btnBuyDevCard, false);
-        SetVisible(btnDevCardHand, false);
+        SetVisible(actionPanel, false);
     }
 
     static void SetVisible(VisualElement element, bool visible)
@@ -1218,72 +1245,25 @@ public class GameHUDController : MonoBehaviour
     {
         var ui = new OpponentCardUI();
 
-        ui.card = new VisualElement();
-        ui.card.AddToClassList("opponent-card");
+        var instance = opponentCardTemplate.Instantiate();
+        ui.card = instance.Q<VisualElement>("opponent-card");
 
         // Header
-        var header = new VisualElement();
-        header.AddToClassList("opponent-card__header");
+        var header = ui.card.Q<VisualElement>("opponent-header");
         header.style.backgroundColor = PlayerColors[playerIndex % PlayerColors.Length];
+        ui.card.Q<Label>("opponent-name").text = GM.GetPlayerName(playerIndex);
 
-        var nameLabel = new Label(GM.GetPlayerName(playerIndex));
-        nameLabel.AddToClassList("opponent-card__name");
-
-        ui.vpLabel = new Label("0 VP");
-        ui.vpLabel.AddToClassList("opponent-card__vp");
-
-        header.Add(nameLabel);
-        header.Add(ui.vpLabel);
-        ui.card.Add(header);
-
-        // Stats
-        var stats = new VisualElement();
-        stats.AddToClassList("opponent-card__stats");
-
-        var (resStat, resVal, _resLbl) = CreateStatElement("0", "자원\n카드");
-        ui.resCountLabel = resVal;
-        var (devStat, devVal, _devLbl) = CreateStatElement("0", "개발\n카드");
-        ui.devCountLabel = devVal;
-        var (roadStat, roadVal, roadLbl) = CreateStatElement("0", "도로");
-        ui.roadValueLabel = roadVal;
-        ui.roadTextLabel = roadLbl;
-        var (knightStat, knightVal, knightLbl) = CreateStatElement("0", "기사");
-        ui.knightValueLabel = knightVal;
-        ui.knightTextLabel = knightLbl;
-
-        stats.Add(resStat);
-        stats.Add(devStat);
-        stats.Add(roadStat);
-        stats.Add(knightStat);
-        ui.card.Add(stats);
-
-        // Status bar
-        ui.statusBar = new VisualElement();
-        ui.statusBar.AddToClassList("opponent-card__status");
-        ui.statusBar.style.display = DisplayStyle.None;
-
-        ui.statusText = new Label();
-        ui.statusText.AddToClassList("opponent-card__status-text");
-        ui.statusBar.Add(ui.statusText);
-        ui.card.Add(ui.statusBar);
+        ui.vpLabel = ui.card.Q<Label>("opponent-vp");
+        ui.resCountLabel = ui.card.Q<Label>("opponent-res-value");
+        ui.devCountLabel = ui.card.Q<Label>("opponent-dev-value");
+        ui.roadValueLabel = ui.card.Q<Label>("opponent-road-value");
+        ui.roadTextLabel = ui.card.Q<Label>("opponent-road-label");
+        ui.knightValueLabel = ui.card.Q<Label>("opponent-knight-value");
+        ui.knightTextLabel = ui.card.Q<Label>("opponent-knight-label");
+        ui.statusBar = ui.card.Q<VisualElement>("opponent-status");
+        ui.statusText = ui.card.Q<Label>("opponent-status-text");
 
         return ui;
-    }
-
-    static (VisualElement container, Label valueLabel, Label textLabel) CreateStatElement(string value, string label)
-    {
-        var stat = new VisualElement();
-        stat.AddToClassList("opponent-card__stat");
-
-        var val = new Label(value);
-        val.AddToClassList("opponent-card__stat-value");
-
-        var txt = new Label(label);
-        txt.AddToClassList("opponent-card__stat-label");
-
-        stat.Add(val);
-        stat.Add(txt);
-        return (stat, val, txt);
     }
 
     void UpdateAllOpponentCards()
@@ -1351,8 +1331,17 @@ public class GameHUDController : MonoBehaviour
         _ => ""
     };
 
-    void HandleBuildingPlaced(int playerIndex, int vertexId, BuildingType type) => UpdateOpponentCard(playerIndex);
-    void HandleRoadPlaced(int playerIndex, int edgeId) => UpdateOpponentCard(playerIndex);
+    void HandleBuildingPlaced(int playerIndex, int vertexId, BuildingType type)
+    {
+        UpdateOpponentCard(playerIndex);
+        if (playerIndex == GM.LocalPlayerIndex) UpdatePlayerStats();
+    }
+
+    void HandleRoadPlaced(int playerIndex, int edgeId)
+    {
+        UpdateOpponentCard(playerIndex);
+        if (playerIndex == GM.LocalPlayerIndex) UpdatePlayerStats();
+    }
 
     // ========================
     // PUBLIC API

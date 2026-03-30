@@ -1,25 +1,21 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/UI/USS/GameHUD.uss?fileID=7433441132597879392&amp;guid=0dc54499dfa709241bb884205f9af73f&amp;type=3#GameHUD"/>
+    <Style src="project://database/Assets/UI/USS/OpponentCard.uss?fileID=7433441132597879392&amp;guid=c42b9ae7ca572804cad00a914cfde702&amp;type=3#OpponentCard"/>
     <ui:VisualElement name="hud-root" class="hud-root">
         <ui:VisualElement name="top-bar" class="top-bar">
             <ui:Label name="turn-number" text="턴: 0" class="top-bar__label"/>
             <ui:Label name="current-player" text="현재 플레이어: -" class="top-bar__label top-bar__player"/>
-            <ui:Label name="my-vp" text="0 VP" class="top-bar__label top-bar__my-vp"/>
             <ui:Label name="phase-indicator" text="대기 중" class="top-bar__label top-bar__phase"/>
         </ui:VisualElement>
-        <!-- 이벤트 알림 (토스트) -->
-        <ui:VisualElement name="toast-container" class="toast-container" picking-mode="Ignore"/>
-        <!-- 상대 플레이어 HUD -->
-        <ui:VisualElement name="opponent-bar" class="opponent-bar"/>
-
-        <ui:VisualElement name="middle-area" class="middle-area">
-            <!-- 왼쪽 유틸리티 바 (옵션/규칙/음량) -->
-            <ui:VisualElement name="utility-bar" class="utility-bar">
+        <ui:VisualElement name="toast-container" picking-mode="Ignore" class="toast-container" style="top: auto; left: 50%; flex-direction: column-reverse; bottom: 10%;"/>
+        <ui:VisualElement name="opponent-bar" class="opponent-bar" style="flex-direction: row; padding-top: 10px; padding-right: 10px; padding-bottom: 10px; padding-left: 10px;"/>
+        <ui:VisualElement name="middle-area" class="middle-area" style="flex-direction: row; justify-content: space-between; align-self: auto; align-content: auto; align-items: flex-end;">
+            <ui:VisualElement name="utility-bar" class="utility-bar" style="flex-direction: column-reverse;">
                 <ui:Button name="btn-options" text="⚙" tooltip="옵션" class="utility-btn"/>
                 <ui:Button name="btn-rules" text="?" tooltip="규칙" class="utility-btn utility-btn--info"/>
                 <ui:Button name="btn-volume" text="♪" tooltip="음량" class="utility-btn"/>
             </ui:VisualElement>
-            <ui:VisualElement name="dice-display" class="dice-display dice-display--hidden">
+            <ui:VisualElement name="dice-display" class="dice-display dice-display--hidden" style="top: auto; left: auto; bottom: -81px; right: 123px;">
                 <ui:VisualElement name="dice-container" class="dice-container">
                     <ui:VisualElement name="die-1" class="die-face"/>
                     <ui:Label text="+" class="dice-plus"/>
@@ -27,16 +23,16 @@
                 </ui:VisualElement>
                 <ui:Label name="dice-result" text="7" class="dice-display__result"/>
             </ui:VisualElement>
-            <ui:VisualElement name="action-panel" class="action-panel">
+            <ui:VisualElement name="action-panel" class="action-panel" style="height: auto; width: 228px; background-color: rgb(35, 31, 28); justify-content: flex-end; flex-grow: 0; flex-shrink: 0; flex-direction: column; padding-top: 8px; padding-right: 8px; padding-bottom: 8px; padding-left: 8px; margin-left: auto; margin-right: 12px; margin-bottom: 12px;">
                 <ui:Label text="행동" class="panel-title"/>
-                <ui:Button name="btn-start-game" text="게임 시작" class="action-btn action-btn--primary"/>
-                <ui:Button name="btn-roll-dice" text="주사위 굴리기" class="action-btn action-btn--primary"/>
-                <ui:Button name="btn-end-turn" text="턴 종료" class="action-btn action-btn--warning"/>
-                <ui:VisualElement class="action-separator"/>
                 <ui:Button name="btn-build" text="건설" class="action-btn"/>
                 <ui:Button name="btn-trade" text="거래" class="action-btn"/>
                 <ui:Button name="btn-buy-devcard" text="발전카드 구매" class="action-btn"/>
                 <ui:Button name="btn-devcard-hand" text="카드 보기" class="action-btn"/>
+                <ui:VisualElement class="action-separator"/>
+                <ui:Button name="btn-start-game" text="게임 시작" class="action-btn action-btn--primary"/>
+                <ui:Button name="btn-roll-dice" text="주사위 굴리기" class="action-btn action-btn--primary"/>
+                <ui:Button name="btn-end-turn" text="턴 종료" class="action-btn action-btn--warning"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="resource-panel" class="resource-panel">
@@ -64,6 +60,19 @@
                 <ui:VisualElement class="resource-icon resource-icon--ore"/>
                 <ui:Label text="광석" class="resource-name"/>
                 <ui:Label name="res-ore-count" text="0" class="resource-count"/>
+            </ui:VisualElement>
+            <ui:VisualElement class="resource-divider"/>
+            <ui:VisualElement class="resource-item">
+                <ui:Label text="도로" class="resource-name"/>
+                <ui:Label name="stat-road" text="0" class="resource-count"/>
+            </ui:VisualElement>
+            <ui:VisualElement class="resource-item">
+                <ui:Label text="기사" class="resource-name"/>
+                <ui:Label name="stat-knight" text="0" class="resource-count"/>
+            </ui:VisualElement>
+            <ui:VisualElement class="resource-item resource-item--vp">
+                <ui:Label text="VP" class="resource-name resource-name--vp"/>
+                <ui:Label name="stat-vp" text="0" class="resource-count resource-count--vp"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="build-overlay" class="overlay overlay--hidden">
@@ -97,12 +106,10 @@
         <ui:VisualElement name="trade-overlay" class="overlay overlay--hidden">
             <ui:VisualElement class="overlay-panel trade-panel">
                 <ui:Label text="거래" class="overlay-title"/>
-                <!-- 탭 -->
                 <ui:VisualElement class="trade-tabs">
                     <ui:Button name="btn-trade-tab-bank" text="은행 거래" class="trade-tab trade-tab--active"/>
                     <ui:Button name="btn-trade-tab-player" text="플레이어 거래" class="trade-tab"/>
                 </ui:VisualElement>
-                <!-- 은행 거래 -->
                 <ui:VisualElement name="bank-trade-section" class="trade-section">
                     <ui:Label text="줄 자원" class="trade-subtitle"/>
                     <ui:VisualElement name="trade-give-grid" class="trade-resource-grid"/>
@@ -111,7 +118,6 @@
                     <ui:VisualElement name="trade-receive-grid" class="trade-resource-grid"/>
                     <ui:Button name="btn-execute-bank-trade" text="거래 실행" class="trade-execute-btn"/>
                 </ui:VisualElement>
-                <!-- 플레이어 거래 -->
                 <ui:VisualElement name="player-trade-section" class="trade-section trade-section--hidden">
                     <ui:Label text="내가 줄 자원" class="trade-subtitle"/>
                     <ui:VisualElement name="trade-offer-grid" class="trade-amount-grid"/>
@@ -202,7 +208,6 @@
                 <ui:Button name="btn-close-rules" text="닫기" class="overlay-close-btn"/>
             </ui:VisualElement>
         </ui:VisualElement>
-        <!-- 음량 설정 -->
         <ui:VisualElement name="volume-overlay" class="overlay overlay--hidden">
             <ui:VisualElement class="overlay-panel volume-panel">
                 <ui:Label text="음량 설정" class="overlay-title"/>
@@ -219,7 +224,6 @@
                 <ui:Button name="btn-close-volume" text="닫기" class="overlay-close-btn"/>
             </ui:VisualElement>
         </ui:VisualElement>
-        <!-- 옵션 -->
         <ui:VisualElement name="options-overlay" class="overlay overlay--hidden">
             <ui:VisualElement class="overlay-panel options-panel">
                 <ui:Label text="옵션" class="overlay-title"/>
@@ -229,7 +233,6 @@
                 <ui:Button name="btn-close-options" text="닫기" class="overlay-close-btn"/>
             </ui:VisualElement>
         </ui:VisualElement>
-        <!-- 턴 순서 알림 -->
         <ui:VisualElement name="turn-order-overlay" class="overlay overlay--hidden">
             <ui:VisualElement class="overlay-panel turn-order-panel">
                 <ui:Label text="턴 순서" class="turn-order-title"/>
@@ -237,7 +240,6 @@
                 <ui:Button name="btn-close-turn-order" text="게임 시작!" class="action-btn action-btn--primary turn-order-btn"/>
             </ui:VisualElement>
         </ui:VisualElement>
-        <!-- 결과 화면 -->
         <ui:VisualElement name="result-overlay" class="overlay overlay--hidden">
             <ui:VisualElement class="overlay-panel result-panel">
                 <ui:Label name="result-title" text="게임 종료!" class="result-title"/>
