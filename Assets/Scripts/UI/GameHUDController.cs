@@ -667,6 +667,10 @@ public class GameHUDController : MonoBehaviour
 
     void RefreshAllUI()
     {
+        // 주사위 패널은 첫 굴림 전까지 숨김
+        if (diceDisplay != null)
+            SetVisible(diceDisplay, false);
+
         UpdateTopBar();
         UpdateActionButtons();
         RebuildOpponentBar();
@@ -757,7 +761,17 @@ public class GameHUDController : MonoBehaviour
 
     void HideAllButtons()
     {
-        SetVisible(actionPanel, false);
+        // 액션 패널은 항상 표시, 내부 버튼만 숨김
+        SetVisible(btnStartGame, false);
+        SetVisible(btnRollDice, false);
+        SetVisible(btnEndTurn, false);
+        SetVisible(buildHeader, false);
+        SetVisible(btnBuildRoad, false);
+        SetVisible(btnBuildSettlement, false);
+        SetVisible(btnBuildCity, false);
+        SetVisible(btnBuyDevCard, false);
+        SetVisible(btnTrade, false);
+        SetVisible(btnDevCardHand, false);
     }
 
     static void SetVisible(VisualElement element, bool visible)
@@ -1177,6 +1191,10 @@ public class GameHUDController : MonoBehaviour
 
     void ShowDice(int die1, int die2, int total)
     {
+        // 첫 굴림 시 주사위 패널 표시 (이후 계속 보임)
+        if (diceDisplay != null)
+            SetVisible(diceDisplay, true);
+
         SetDieFace(die1Dots, die1);
         SetDieFace(die2Dots, die2);
         diceResultLabel.text = total.ToString();
