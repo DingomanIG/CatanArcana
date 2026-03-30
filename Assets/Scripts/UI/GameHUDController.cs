@@ -45,6 +45,8 @@ public class GameHUDController : MonoBehaviour
     VisualElement die2Face;
     Label diceResultLabel;
     Label dicePlayerName;
+    VisualElement numberToken;
+    VisualElement tokenDots;
 
     // Resource Counts
     Label resWoodCount;
@@ -272,6 +274,8 @@ public class GameHUDController : MonoBehaviour
         die2Face = root.Q<VisualElement>("die-2");
         diceResultLabel = root.Q<Label>("dice-result");
         dicePlayerName = root.Q<Label>("dice-player-name");
+        numberToken = root.Q<VisualElement>("number-token");
+        tokenDots = root.Q<VisualElement>("token-dots");
 
         die1Dots = BuildDieDots(die1Face);
         die2Dots = BuildDieDots(die2Face);
@@ -1151,6 +1155,7 @@ public class GameHUDController : MonoBehaviour
         SetDieFace(die1Dots, die1);
         SetDieFace(die2Dots, die2);
         diceResultLabel.text = total.ToString();
+        UpdateNumberToken(total);
 
         // 현재 플레이어 이름과 색상 표시
         if (GM != null && dicePlayerName != null)
@@ -1196,6 +1201,79 @@ public class GameHUDController : MonoBehaviour
                 else
                     dots[row, col].AddToClassList("die-dot--hidden");
             }
+        }
+    }
+
+    /// <summary>숫자 토큰 스타일 업데이트 (카탄 확률 표시)</summary>
+    void UpdateNumberToken(int total)
+    {
+        if (numberToken == null || tokenDots == null) return;
+
+        Color bgColor, fontColor, dotColor;
+        int dotCount;
+
+        if (total == 7)
+        {
+            bgColor = Color.black;
+            fontColor = Color.white;
+            dotColor = Color.black;
+            dotCount = 0;
+        }
+        else if (total == 6 || total == 8)
+        {
+            bgColor = new Color(0.97f, 0.97f, 0.97f);
+            fontColor = new Color(0.8f, 0.1f, 0.1f);
+            dotColor = new Color(0.8f, 0.1f, 0.1f);
+            dotCount = 5;
+        }
+        else if (total == 5 || total == 9)
+        {
+            bgColor = new Color(0.97f, 0.97f, 0.97f);
+            fontColor = Color.black;
+            dotColor = Color.black;
+            dotCount = 4;
+        }
+        else if (total == 4 || total == 10)
+        {
+            bgColor = new Color(0.97f, 0.97f, 0.97f);
+            fontColor = Color.black;
+            dotColor = Color.black;
+            dotCount = 3;
+        }
+        else if (total == 3 || total == 11)
+        {
+            bgColor = new Color(0.97f, 0.97f, 0.97f);
+            fontColor = Color.black;
+            dotColor = Color.black;
+            dotCount = 2;
+        }
+        else
+        {
+            bgColor = new Color(0.97f, 0.97f, 0.97f);
+            fontColor = Color.black;
+            dotColor = Color.black;
+            dotCount = 1;
+        }
+
+        numberToken.style.backgroundColor = bgColor;
+        diceResultLabel.style.color = fontColor;
+
+        tokenDots.Clear();
+        tokenDots.style.display = dotCount > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+
+        for (int i = 0; i < dotCount; i++)
+        {
+            var dot = new VisualElement();
+            dot.style.width = 4;
+            dot.style.height = 4;
+            dot.style.backgroundColor = dotColor;
+            dot.style.borderTopLeftRadius = 2;
+            dot.style.borderTopRightRadius = 2;
+            dot.style.borderBottomLeftRadius = 2;
+            dot.style.borderBottomRightRadius = 2;
+            dot.style.marginLeft = 1;
+            dot.style.marginRight = 1;
+            tokenDots.Add(dot);
         }
     }
 
