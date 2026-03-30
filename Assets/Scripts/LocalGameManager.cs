@@ -64,6 +64,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     public bool IsHost => true;
     public BuildMode CurrentBuildMode => currentBuildMode;
     public DevCardUseState DevCardState => devCardUseState;
+    public int DevCardDeckRemaining => devCardDeck?.RemainingCount ?? 0;
 
     // ========================
     // 이벤트

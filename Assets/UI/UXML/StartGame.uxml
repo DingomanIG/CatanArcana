@@ -1,0 +1,51 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/USS/StartGame.uss?fileID=7433441132597879392&amp;guid=f4a8e97cd28c41c43b30ccf057721d6f&amp;type=3#StartGame"/>
+    <ui:VisualElement name="startgame" style="flex-grow: 1; flex-direction: row;">
+        <ui:VisualElement name="tab" style="flex-grow: 0; flex-direction: column; width: 120px; flex-shrink: 0; background-color: rgb(123, 50, 50);">
+            <ui:VisualElement name="logo" style="flex-grow: 0; height: 60px; flex-shrink: 0; justify-content: space-around;">
+                <ui:Label text="logo" style="-unity-text-align: middle-center; margin: 0; padding: 0;"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="tab-leaderboards" class="tab--default">
+                <ui:Label text="Image" class="tab__icon"/>
+                <ui:Label text="LeaderBoards" class="tab__name"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="tab-rooms" class="tab--default">
+                <ui:Label text="Image" class="tab__icon"/>
+                <ui:Label text="Rooms" class="tab__name"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="tab-play" class="tab--default tab--selected">
+                <ui:Label text="Image" class="tab__icon"/>
+                <ui:Label text="PLAY" class="tab__name"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="tab-store" class="tab--default">
+                <ui:Label text="Image" class="tab__icon"/>
+                <ui:Label text="Store" class="tab__name"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="tab-profile" class="tab--default">
+                <ui:Label text="Image" class="tab__icon"/>
+                <ui:Label text="Profile" class="tab__name"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="tab-page" style="flex-grow: 1; background-color: rgb(156, 135, 135);">
+            <ui:VisualElement name="page--play" style="flex-grow: 1; padding-right: 180px; padding-left: 180px; padding-top: 60px; padding-bottom: 60px;">
+                <ui:VisualElement name="play__tile" style="flex-grow: 0; height: 60px; margin-top: 4px; margin-right: 4px; margin-bottom: 4px; margin-left: 4px;"/>
+                <ui:VisualElement name="play__mode" style="flex-grow: 0; flex-direction: row; margin-top: 4px; margin-right: 4px; margin-bottom: 4px; margin-left: 4px; justify-content: space-evenly;">
+                    <ui:Button text="&#10;" name="btn-bots" class="btn btn--sellected">
+                        <ui:VisualElement name="" style="flex-grow: 0; background-color: rgb(197, 42, 42); width: 30px; height: 30px; flex-shrink: 0; -unity-text-align: upper-center; align-content: auto; align-self: center; margin-right: 20px;"/>
+                        <ui:Label text="Bots" style="padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; font-size: 20px; -unity-font-style: bold;"/>
+                    </ui:Button>
+                    <ui:Button text="&#10;" name="btn-bots" class="btn">
+                        <ui:VisualElement name="" style="flex-grow: 0; background-color: rgb(197, 42, 42); width: 30px; height: 30px; flex-shrink: 0; -unity-text-align: upper-center; align-content: auto; align-self: center; margin-right: 20px;"/>
+                        <ui:Label text="Casual" style="padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; font-size: 20px; -unity-font-style: bold;"/>
+                    </ui:Button>
+                    <ui:Button text="&#10;" name="btn-bots" class="btn">
+                        <ui:VisualElement name="" style="flex-grow: 0; background-color: rgb(197, 42, 42); width: 30px; height: 30px; flex-shrink: 0; -unity-text-align: upper-center; align-content: auto; align-self: center; margin-right: 20px;"/>
+                        <ui:Label text="Ranked" style="padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; font-size: 20px; -unity-font-style: bold;"/>
+                    </ui:Button>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-grow: 1;"/>
+                <ui:Button text="Start Game" name="Button" style="background-color: rgb(255, 125, 18); -unity-font-style: bold; color: rgb(255, 255, 255); font-size: 20px; height: 80px;"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

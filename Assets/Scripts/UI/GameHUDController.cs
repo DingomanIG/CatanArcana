@@ -32,16 +32,19 @@ public class GameHUDController : MonoBehaviour
     Button btnStartGame;
     Button btnRollDice;
     Button btnEndTurn;
-    Button btnBuild;
     Button btnTrade;
     Button btnBuyDevCard;
     Button btnDevCardHand;
+
+    // Build Section Header
+    VisualElement buildHeader;
 
     // Dice Display
     VisualElement diceDisplay;
     VisualElement die1Face;
     VisualElement die2Face;
     Label diceResultLabel;
+    Label dicePlayerName;
 
     // Resource Counts
     Label resWoodCount;
@@ -55,14 +58,12 @@ public class GameHUDController : MonoBehaviour
     Button btnVolume;
 
     // Overlays
-    VisualElement buildOverlay;
     VisualElement tradeOverlay;
     VisualElement rulesOverlay;
     VisualElement devCardOverlay;
     VisualElement resourceSelectOverlay;
     VisualElement volumeOverlay;
     VisualElement optionsOverlay;
-    Button btnCloseBuild;
     Button btnCloseTrade;
     Button btnRules;
     Button btnCloseRules;
@@ -84,7 +85,12 @@ public class GameHUDController : MonoBehaviour
     Button btnBuildRoad;
     Button btnBuildSettlement;
     Button btnBuildCity;
-    Button btnBuildDevCard;
+
+    // Build Count Labels
+    Label buildRoadCount;
+    Label buildSettlementCount;
+    Label buildCityCount;
+    Label buildDevCardCount;
 
     // Resource Select
     Label resourceSelectTitle;
@@ -159,8 +165,6 @@ public class GameHUDController : MonoBehaviour
         public VisualElement statusBar;
         public Label statusText;
     }
-    Coroutine diceHideCoroutine;
-    const float DICE_DISPLAY_DURATION = 3f;
 
     // 자원 선택 상태
     enum ResourceSelectMode { None, YearOfPlenty1, YearOfPlenty2, Monopoly }
@@ -258,15 +262,16 @@ public class GameHUDController : MonoBehaviour
         btnStartGame = root.Q<Button>("btn-start-game");
         btnRollDice = root.Q<Button>("btn-roll-dice");
         btnEndTurn = root.Q<Button>("btn-end-turn");
-        btnBuild = root.Q<Button>("btn-build");
         btnTrade = root.Q<Button>("btn-trade");
         btnBuyDevCard = root.Q<Button>("btn-buy-devcard");
         btnDevCardHand = root.Q<Button>("btn-devcard-hand");
+        buildHeader = root.Q<VisualElement>("build-header");
 
         diceDisplay = root.Q<VisualElement>("dice-display");
         die1Face = root.Q<VisualElement>("die-1");
         die2Face = root.Q<VisualElement>("die-2");
         diceResultLabel = root.Q<Label>("dice-result");
+        dicePlayerName = root.Q<Label>("dice-player-name");
 
         die1Dots = BuildDieDots(die1Face);
         die2Dots = BuildDieDots(die2Face);
@@ -277,12 +282,10 @@ public class GameHUDController : MonoBehaviour
         resWheatCount = root.Q<Label>("res-wheat-count");
         resOreCount = root.Q<Label>("res-ore-count");
 
-        buildOverlay = root.Q<VisualElement>("build-overlay");
         tradeOverlay = root.Q<VisualElement>("trade-overlay");
         rulesOverlay = root.Q<VisualElement>("rules-overlay");
         devCardOverlay = root.Q<VisualElement>("devcard-overlay");
         resourceSelectOverlay = root.Q<VisualElement>("resource-select-overlay");
-        btnCloseBuild = root.Q<Button>("btn-close-build");
         btnCloseTrade = root.Q<Button>("btn-close-trade");
         btnRules = root.Q<Button>("btn-rules");
         btnCloseRules = root.Q<Button>("btn-close-rules");
@@ -292,7 +295,11 @@ public class GameHUDController : MonoBehaviour
         btnBuildRoad = root.Q<Button>("btn-build-road");
         btnBuildSettlement = root.Q<Button>("btn-build-settlement");
         btnBuildCity = root.Q<Button>("btn-build-city");
-        btnBuildDevCard = root.Q<Button>("btn-build-devcard");
+
+        buildRoadCount = root.Q<Label>("build-road-count");
+        buildSettlementCount = root.Q<Label>("build-settlement-count");
+        buildCityCount = root.Q<Label>("build-city-count");
+        buildDevCardCount = root.Q<Label>("build-devcard-count");
 
         resourceSelectTitle = root.Q<Label>("resource-select-title");
         btnSelectWood = root.Q<Button>("btn-select-wood");
@@ -409,11 +416,9 @@ public class GameHUDController : MonoBehaviour
         btnStartGame.clicked += OnStartGameClicked;
         btnRollDice.clicked += OnRollDiceClicked;
         btnEndTurn.clicked += OnEndTurnClicked;
-        btnBuild.clicked += OnBuildClicked;
         btnTrade.clicked += OnTradeClicked;
         btnBuyDevCard.clicked += OnBuyDevCardClicked;
         btnDevCardHand.clicked += OnDevCardHandClicked;
-        btnCloseBuild.clicked += OnCloseBuildClicked;
         btnCloseTrade.clicked += OnCloseTradeClicked;
         btnRules.clicked += OnRulesClicked;
         btnCloseRules.clicked += OnCloseRulesClicked;
@@ -423,26 +428,9 @@ public class GameHUDController : MonoBehaviour
         btnResultMenu.clicked += OnResultMenuClicked;
         btnResultRematch.clicked += OnResultRematchClicked;
 
-        btnBuildRoad.clicked += () =>
-        {
-            buildOverlay.AddToClassList("overlay--hidden");
-            GM?.EnterBuildMode(BuildMode.PlacingRoad);
-        };
-        btnBuildSettlement.clicked += () =>
-        {
-            buildOverlay.AddToClassList("overlay--hidden");
-            GM?.EnterBuildMode(BuildMode.PlacingSettlement);
-        };
-        btnBuildCity.clicked += () =>
-        {
-            buildOverlay.AddToClassList("overlay--hidden");
-            GM?.EnterBuildMode(BuildMode.PlacingCity);
-        };
-        btnBuildDevCard.clicked += () =>
-        {
-            GM?.TryBuyDevCard();
-            buildOverlay.AddToClassList("overlay--hidden");
-        };
+        btnBuildRoad.clicked += () => GM?.EnterBuildMode(BuildMode.PlacingRoad);
+        btnBuildSettlement.clicked += () => GM?.EnterBuildMode(BuildMode.PlacingSettlement);
+        btnBuildCity.clicked += () => GM?.EnterBuildMode(BuildMode.PlacingCity);
 
         // 거래 탭 및 실행
         btnTradeTabBank.clicked += () => SwitchTradeTab(true);
@@ -486,8 +474,6 @@ public class GameHUDController : MonoBehaviour
     void OnRollDiceClicked() => GM?.RollDice();
     void OnEndTurnClicked() => GM?.EndTurn();
 
-    void OnBuildClicked() => buildOverlay.RemoveFromClassList("overlay--hidden");
-
     void OnTradeClicked()
     {
         SwitchTradeTab(true);
@@ -505,7 +491,6 @@ public class GameHUDController : MonoBehaviour
         devCardOverlay.RemoveFromClassList("overlay--hidden");
     }
 
-    void OnCloseBuildClicked() => buildOverlay.AddToClassList("overlay--hidden");
     void OnCloseTradeClicked() => tradeOverlay.AddToClassList("overlay--hidden");
     void OnRulesClicked() => rulesOverlay.RemoveFromClassList("overlay--hidden");
     void OnCloseRulesClicked() => rulesOverlay.AddToClassList("overlay--hidden");
@@ -553,9 +538,6 @@ public class GameHUDController : MonoBehaviour
         if (newPhase == GamePhase.InitialPlacement)
             ShowTurnOrderOverlay();
 
-        if (newPhase == GamePhase.RollDice)
-            HideDice();
-
         if (newPhase == GamePhase.StealResource)
             ShowStealOverlay();
         else
@@ -583,7 +565,10 @@ public class GameHUDController : MonoBehaviour
     void HandleResourceChanged(int playerIndex, ResourceType type, int newCount)
     {
         if (playerIndex == GM.LocalPlayerIndex)
+        {
             UpdateResource(type, newCount);
+            UpdateBuildCounts();
+        }
         UpdateOpponentCard(playerIndex);
     }
 
@@ -597,7 +582,10 @@ public class GameHUDController : MonoBehaviour
     void HandleDevCardPurchased(int playerIndex, DevCardType cardType)
     {
         if (playerIndex == GM.LocalPlayerIndex)
+        {
             Debug.Log($"[HUD] 발전카드 구매: {cardType}");
+            UpdateBuildCounts();
+        }
         UpdateOpponentCard(playerIndex);
     }
 
@@ -672,9 +660,9 @@ public class GameHUDController : MonoBehaviour
         UpdateTopBar();
         UpdateActionButtons();
         RebuildOpponentBar();
-        HideDice();
         UpdateResourceDisplay(0, 0, 0, 0, 0);
         UpdatePlayerStats();
+        UpdateBuildCounts();
     }
 
     void UpdatePlayerStats()
@@ -687,6 +675,18 @@ public class GameHUDController : MonoBehaviour
         statRoadLabel.text = roadLen.ToString();
         statKnightLabel.text = state.KnightsPlayed.ToString();
         statVpLabel.text = state.VictoryPoints.ToString();
+    }
+
+    void UpdateBuildCounts()
+    {
+        if (GM == null) return;
+        var state = GM.GetPlayerState(GM.LocalPlayerIndex);
+        if (state == null) return;
+
+        if (buildRoadCount != null) buildRoadCount.text = state.RoadsRemaining.ToString();
+        if (buildSettlementCount != null) buildSettlementCount.text = state.SettlementsRemaining.ToString();
+        if (buildCityCount != null) buildCityCount.text = state.CitiesRemaining.ToString();
+        if (buildDevCardCount != null) buildDevCardCount.text = GM.DevCardDeckRemaining.ToString();
     }
 
     void UpdateTopBar()
@@ -709,27 +709,21 @@ public class GameHUDController : MonoBehaviour
         var phase = GM.CurrentPhase;
         bool isMyTurn = GM.IsMyTurn();
 
-        // 상대턴이면 행동 패널 전체 숨기기
-        bool showPanel = (phase == GamePhase.WaitingForPlayers && GM.IsHost)
-                      || (isMyTurn && (phase == GamePhase.RollDice || phase == GamePhase.Action));
-        SetVisible(actionPanel, showPanel);
-
-        if (!showPanel) return;
+        // 행동 패널 항상 표시
+        SetVisible(actionPanel, true);
 
         SetVisible(btnStartGame, phase == GamePhase.WaitingForPlayers && GM.IsHost);
-        SetVisible(btnRollDice, phase == GamePhase.RollDice);
-        SetVisible(btnEndTurn, phase == GamePhase.Action);
+        SetVisible(btnRollDice, isMyTurn && phase == GamePhase.RollDice);
+        SetVisible(btnEndTurn, isMyTurn && phase == GamePhase.Action);
 
-        bool actionPhase = phase == GamePhase.Action;
-        SetVisible(btnBuild, actionPhase);
-        SetVisible(btnTrade, actionPhase);
+        bool actionPhase = isMyTurn && phase == GamePhase.Action;
+        SetVisible(buildHeader, actionPhase);
+        SetVisible(btnBuildRoad, actionPhase);
+        SetVisible(btnBuildSettlement, actionPhase);
+        SetVisible(btnBuildCity, actionPhase);
         SetVisible(btnBuyDevCard, actionPhase);
+        SetVisible(btnTrade, actionPhase);
         SetVisible(btnDevCardHand, actionPhase);
-
-        btnBuild.SetEnabled(actionPhase);
-        btnTrade.SetEnabled(actionPhase);
-        btnBuyDevCard.SetEnabled(actionPhase);
-        btnDevCardHand.SetEnabled(actionPhase);
     }
 
     void HideAllButtons()
@@ -1157,27 +1151,14 @@ public class GameHUDController : MonoBehaviour
         SetDieFace(die1Dots, die1);
         SetDieFace(die2Dots, die2);
         diceResultLabel.text = total.ToString();
-        diceDisplay.RemoveFromClassList("dice-display--hidden");
 
-        if (diceHideCoroutine != null)
-            StopCoroutine(diceHideCoroutine);
-        diceHideCoroutine = StartCoroutine(HideDiceAfterDelay());
-    }
-
-    void HideDice()
-    {
-        diceDisplay.AddToClassList("dice-display--hidden");
-        if (diceHideCoroutine != null)
+        // 현재 플레이어 이름과 색상 표시
+        if (GM != null && dicePlayerName != null)
         {
-            StopCoroutine(diceHideCoroutine);
-            diceHideCoroutine = null;
+            int current = GM.CurrentPlayerIndex;
+            dicePlayerName.text = GM.GetPlayerName(current);
+            dicePlayerName.style.backgroundColor = PlayerColors[current % PlayerColors.Length];
         }
-    }
-
-    IEnumerator HideDiceAfterDelay()
-    {
-        yield return new WaitForSeconds(DICE_DISPLAY_DURATION);
-        HideDice();
     }
 
     /// <summary>주사위 면에 3x3 도트 그리드 생성</summary>
@@ -1334,13 +1315,21 @@ public class GameHUDController : MonoBehaviour
     void HandleBuildingPlaced(int playerIndex, int vertexId, BuildingType type)
     {
         UpdateOpponentCard(playerIndex);
-        if (playerIndex == GM.LocalPlayerIndex) UpdatePlayerStats();
+        if (playerIndex == GM.LocalPlayerIndex)
+        {
+            UpdatePlayerStats();
+            UpdateBuildCounts();
+        }
     }
 
     void HandleRoadPlaced(int playerIndex, int edgeId)
     {
         UpdateOpponentCard(playerIndex);
-        if (playerIndex == GM.LocalPlayerIndex) UpdatePlayerStats();
+        if (playerIndex == GM.LocalPlayerIndex)
+        {
+            UpdatePlayerStats();
+            UpdateBuildCounts();
+        }
     }
 
     // ========================

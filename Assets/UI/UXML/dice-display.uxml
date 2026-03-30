@@ -1,0 +1,22 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/USS/GameHUD.uss?fileID=7433441132597879392&amp;guid=0dc54499dfa709241bb884205f9af73f&amp;type=3#GameHUD"/>
+    <ui:VisualElement name="dice-display" class="dice-display" style="align-items: stretch; -unity-text-align: upper-left; padding-top: 0; padding-left: 0; padding-right: 0; overflow: hidden;">
+        <ui:Label name="dice-player-name" text="-" style="color: rgb(255, 255, 255); -unity-font-style: bold; margin-bottom: 16px; margin-top: 0; flex-grow: 1; flex-shrink: 1; background-color: rgb(100, 90, 80); margin-right: 0; margin-left: 0; padding-bottom: 8px; padding-left: 8px; padding-top: 8px; padding-right: 8px; -unity-text-align: upper-center;"/>
+        <ui:VisualElement name="dice-container" class="dice-container">
+            <ui:VisualElement name="die-1" class="die-face"/>
+            <ui:Label text="+" class="dice-plus"/>
+            <ui:VisualElement name="die-2" class="die-face" style="padding-top: 8px; padding-right: 8px; padding-bottom: 8px; padding-left: 8px;"/>
+        </ui:VisualElement>
+        <ui:VisualElement style="flex-grow: 1; align-items: center;">
+            <ui:VisualElement style="flex-grow: 1; background-color: rgb(248, 248, 248); width: 80px; height: 80px; align-items: center; -unity-text-align: upper-left; border-top-left-radius: 40px; border-top-right-radius: 40px; border-bottom-right-radius: 40px; border-bottom-left-radius: 40px; border-top-width: 2px; border-right-width: 2px; border-bottom-width: 2px; border-left-width: 2px; border-left-color: rgba(0, 0, 0, 0.74); border-right-color: rgba(0, 0, 0, 0.74); border-top-color: rgba(0, 0, 0, 0.74); border-bottom-color: rgba(0, 0, 0, 0.74);">
+                <ui:Label name="dice-result" text="8" class="dice-display__result" style="-unity-text-align: middle-center; margin-bottom: 0; padding-bottom: 0; padding-right: 0; padding-left: 0; align-items: center; margin-left: 4px; color: rgb(0, 0, 0);"/>
+                <ui:VisualElement style="flex-grow: 1; flex-direction: row; justify-content: space-evenly;">
+                    <ui:VisualElement style="flex-grow: 0; background-color: rgb(0, 0, 0); width: 4px; height: 4px; flex-shrink: 0; border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; padding-left: 0; padding-right: 0; margin-left: 1px; margin-right: 0;"/>
+                    <ui:VisualElement style="flex-grow: 0; background-color: rgb(0, 0, 0); width: 4px; height: 4px; flex-shrink: 0; border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; padding-left: 0; padding-right: 0; margin-left: 1px; margin-right: 0;"/>
+                    <ui:VisualElement style="flex-grow: 0; background-color: rgb(0, 0, 0); width: 4px; height: 4px; flex-shrink: 0; border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; padding-left: 0; padding-right: 0; margin-left: 1px; margin-right: 0;"/>
+                    <ui:VisualElement style="flex-grow: 0; background-color: rgb(0, 0, 0); width: 4px; height: 4px; flex-shrink: 0; border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; padding-left: 0; padding-right: 0; margin-left: 1px; margin-right: 0;"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

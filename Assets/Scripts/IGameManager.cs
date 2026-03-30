@@ -16,6 +16,7 @@ public interface IGameManager
     bool IsHost { get; }
     BuildMode CurrentBuildMode { get; }
     DevCardUseState DevCardState { get; }
+    int DevCardDeckRemaining { get; }
 
     // 기존 이벤트
     event Action<int> OnTurnChanged;

@@ -1,4 +1,5 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Template name="dice-display" src="project://database/Assets/UI/UXML/dice-display.uxml?fileID=9197481963319205126&amp;guid=762bc48d0ab804b489c9df1571a9278b&amp;type=3#dice-display"/>
     <Style src="project://database/Assets/UI/USS/GameHUD.uss?fileID=7433441132597879392&amp;guid=0dc54499dfa709241bb884205f9af73f&amp;type=3#GameHUD"/>
     <Style src="project://database/Assets/UI/USS/OpponentCard.uss?fileID=7433441132597879392&amp;guid=c42b9ae7ca572804cad00a914cfde702&amp;type=3#OpponentCard"/>
     <ui:VisualElement name="hud-root" class="hud-root">
@@ -10,56 +11,85 @@
         <ui:VisualElement name="toast-container" picking-mode="Ignore" class="toast-container" style="top: auto; left: 50%; flex-direction: column-reverse; bottom: 10%;"/>
         <ui:VisualElement name="opponent-bar" class="opponent-bar" style="flex-direction: row; padding-top: 10px; padding-right: 10px; padding-bottom: 10px; padding-left: 10px;"/>
         <ui:VisualElement name="middle-area" class="middle-area" style="flex-direction: row; justify-content: space-between; align-self: auto; align-content: auto; align-items: flex-end;">
-            <ui:VisualElement name="utility-bar" class="utility-bar" style="flex-direction: column-reverse;">
+            <ui:VisualElement name="utility-bar" class="utility-bar" style="flex-direction: column-reverse; background-color: rgba(42, 36, 32, 0);">
                 <ui:Button name="btn-options" text="⚙" tooltip="옵션" class="utility-btn"/>
                 <ui:Button name="btn-rules" text="?" tooltip="규칙" class="utility-btn utility-btn--info"/>
                 <ui:Button name="btn-volume" text="♪" tooltip="음량" class="utility-btn"/>
             </ui:VisualElement>
-            <ui:VisualElement name="dice-display" class="dice-display dice-display--hidden" style="top: auto; left: auto; bottom: -81px; right: 123px;">
-                <ui:VisualElement name="dice-container" class="dice-container">
-                    <ui:VisualElement name="die-1" class="die-face"/>
-                    <ui:Label text="+" class="dice-plus"/>
-                    <ui:VisualElement name="die-2" class="die-face"/>
-                </ui:VisualElement>
-                <ui:Label name="dice-result" text="7" class="dice-display__result"/>
-            </ui:VisualElement>
-            <ui:VisualElement name="action-panel" class="action-panel" style="height: auto; width: 228px; background-color: rgb(35, 31, 28); justify-content: flex-end; flex-grow: 0; flex-shrink: 0; flex-direction: column; padding-top: 8px; padding-right: 8px; padding-bottom: 8px; padding-left: 8px; margin-left: auto; margin-right: 12px; margin-bottom: 12px;">
-                <ui:Label text="행동" class="panel-title"/>
-                <ui:Button name="btn-build" text="건설" class="action-btn"/>
-                <ui:Button name="btn-trade" text="거래" class="action-btn"/>
-                <ui:Button name="btn-buy-devcard" text="발전카드 구매" class="action-btn"/>
-                <ui:Button name="btn-devcard-hand" text="카드 보기" class="action-btn"/>
+            <ui:Instance template="dice-display" style="right: 285px; left: auto; translate: 0% 0%; margin-left: 12px; margin-top: 12px; margin-bottom: 12px; margin-right: 12px; flex-direction: column; position: absolute; bottom: 0;"/>
+            <ui:VisualElement name="action-panel" class="action-panel" style="height: auto; width: 270px; background-color: rgb(35, 31, 28); justify-content: flex-end; flex-grow: 0; flex-shrink: 0; flex-direction: column; padding-top: 8px; padding-right: 8px; padding-bottom: 8px; padding-left: 8px; margin-left: 12px; margin-right: 12px; margin-bottom: 12px; margin-top: 12px; right: 0; position: absolute; bottom: 0; border-left-width: 0; border-top-left-radius: 8px; border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-bottom-left-radius: 8px;">
+                <ui:Label text="건설" name="build-header" class="panel-title" style="border-bottom-width: 0; margin-top: 0; margin-bottom: 2px; font-size: 18px;"/>
+                <ui:Button name="btn-build-road" text="" class="action-btn" style="flex-direction: row; align-self: auto; align-items: stretch; justify-content: flex-start;">
+                    <ui:Label name="build-road-count" text="0" style="font-size: 16px; margin-top: 0; margin-right: 6px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                    <ui:Label text="도로 건설" style="font-size: 16px; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                    <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse;">
+                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(107, 142, 80); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
+                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(196, 105, 74); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
+                    </ui:VisualElement>
+                </ui:Button>
+                <ui:Button name="btn-build-settlement" text="" class="action-btn" style="flex-direction: row; align-self: auto; align-items: stretch; justify-content: flex-start;">
+                    <ui:Label name="build-settlement-count" text="0" style="font-size: 16px; margin-top: 0; margin-right: 6px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                    <ui:Label text="마을 건설" style="font-size: 16px; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                    <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse;">
+                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(107, 142, 80); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
+                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(196, 105, 74); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
+                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(168, 200, 121); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
+                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(219, 184, 77); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
+                    </ui:VisualElement>
+                </ui:Button>
+                <ui:Button name="btn-build-city" text="" class="action-btn" style="flex-direction: row; align-self: auto; align-items: stretch; justify-content: flex-start;">
+                    <ui:Label name="build-city-count" text="0" style="font-size: 16px; margin-top: 0; margin-right: 6px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                    <ui:Label text="도시 건설" style="font-size: 16px; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                    <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse;">
+                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(219, 184, 77); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
+                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(219, 184, 77); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
+                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(136, 153, 170); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
+                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(136, 153, 170); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
+                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(136, 153, 170); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
+                    </ui:VisualElement>
+                </ui:Button>
+                <ui:Button name="btn-buy-devcard" text="" class="action-btn" style="flex-direction: row; align-self: auto; align-items: stretch; justify-content: flex-start;">
+                    <ui:Label name="build-devcard-count" text="0" style="font-size: 16px; margin-top: 0; margin-right: 6px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                    <ui:Label text="발전카드 구매" style="font-size: 16px; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                    <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse;">
+                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(168, 200, 121); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
+                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(219, 184, 77); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
+                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(136, 153, 170); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
+                    </ui:VisualElement>
+                </ui:Button>
                 <ui:VisualElement class="action-separator"/>
+                <ui:Button name="btn-trade" text="거래" class="action-btn"/>
+                <ui:Button name="btn-devcard-hand" text="카드 보기" class="action-btn"/>
                 <ui:Button name="btn-start-game" text="게임 시작" class="action-btn action-btn--primary"/>
                 <ui:Button name="btn-roll-dice" text="주사위 굴리기" class="action-btn action-btn--primary"/>
                 <ui:Button name="btn-end-turn" text="턴 종료" class="action-btn action-btn--warning"/>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="resource-panel" class="resource-panel">
-            <ui:VisualElement name="res-wood" class="resource-item">
-                <ui:VisualElement class="resource-icon resource-icon--wood"/>
-                <ui:Label text="목재" class="resource-name"/>
-                <ui:Label name="res-wood-count" text="0" class="resource-count"/>
+        <ui:VisualElement name="resource-panel" class="resource-panel" style="height: 86px;">
+            <ui:VisualElement name="res-wood" class="resource-item02">
+                <ui:VisualElement class="resource-icon resource-icon--wood" style="align-items: center; -unity-text-align: middle-left; margin-right: 0;"/>
+                <ui:Label text="목재" class="resource-name" style="padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;"/>
+                <ui:Label name="res-wood-count" text="0" class="resource-count" style="padding-left: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0;"/>
             </ui:VisualElement>
-            <ui:VisualElement name="res-brick" class="resource-item">
-                <ui:VisualElement class="resource-icon resource-icon--brick"/>
-                <ui:Label text="벽돌" class="resource-name"/>
-                <ui:Label name="res-brick-count" text="0" class="resource-count"/>
+            <ui:VisualElement name="res-brick" class="resource-item02">
+                <ui:VisualElement class="resource-icon resource-icon--brick" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;"/>
+                <ui:Label text="벽돌" class="resource-name" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                <ui:Label name="res-brick-count" text="0" class="resource-count" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
             </ui:VisualElement>
-            <ui:VisualElement name="res-wool" class="resource-item">
-                <ui:VisualElement class="resource-icon resource-icon--wool"/>
-                <ui:Label text="양모" class="resource-name"/>
-                <ui:Label name="res-wool-count" text="0" class="resource-count"/>
+            <ui:VisualElement name="res-wool" class="resource-item02">
+                <ui:VisualElement class="resource-icon resource-icon--wool" style="margin-right: 0;"/>
+                <ui:Label text="양모" class="resource-name" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                <ui:Label name="res-wool-count" text="0" class="resource-count" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
             </ui:VisualElement>
-            <ui:VisualElement name="res-wheat" class="resource-item">
-                <ui:VisualElement class="resource-icon resource-icon--wheat"/>
-                <ui:Label text="밀" class="resource-name"/>
-                <ui:Label name="res-wheat-count" text="0" class="resource-count"/>
+            <ui:VisualElement name="res-wheat" class="resource-item02">
+                <ui:VisualElement class="resource-icon resource-icon--wheat" style="margin-right: 0;"/>
+                <ui:Label text="밀" class="resource-name" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                <ui:Label name="res-wheat-count" text="0" class="resource-count" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
             </ui:VisualElement>
-            <ui:VisualElement name="res-ore" class="resource-item">
-                <ui:VisualElement class="resource-icon resource-icon--ore"/>
-                <ui:Label text="광석" class="resource-name"/>
-                <ui:Label name="res-ore-count" text="0" class="resource-count"/>
+            <ui:VisualElement name="res-ore" class="resource-item02">
+                <ui:VisualElement class="resource-icon resource-icon--ore" style="margin-right: 0;"/>
+                <ui:Label text="광석" class="resource-name" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                <ui:Label name="res-ore-count" text="0" class="resource-count" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
             </ui:VisualElement>
             <ui:VisualElement class="resource-divider"/>
             <ui:VisualElement class="resource-item">
@@ -73,34 +103,6 @@
             <ui:VisualElement class="resource-item resource-item--vp">
                 <ui:Label text="VP" class="resource-name resource-name--vp"/>
                 <ui:Label name="stat-vp" text="0" class="resource-count resource-count--vp"/>
-            </ui:VisualElement>
-        </ui:VisualElement>
-        <ui:VisualElement name="build-overlay" class="overlay overlay--hidden">
-            <ui:VisualElement class="overlay-panel build-panel">
-                <ui:Label text="건설 메뉴" class="overlay-title"/>
-                <ui:VisualElement class="build-grid">
-                    <ui:VisualElement class="build-option">
-                        <ui:Label text="도로" class="build-option__name"/>
-                        <ui:Label text="목재 1 + 벽돌 1" class="build-option__cost"/>
-                        <ui:Button name="btn-build-road" text="건설" class="build-option__btn"/>
-                    </ui:VisualElement>
-                    <ui:VisualElement class="build-option">
-                        <ui:Label text="마을" class="build-option__name"/>
-                        <ui:Label text="목재 1 + 벽돌 1 + 양모 1 + 밀 1" class="build-option__cost"/>
-                        <ui:Button name="btn-build-settlement" text="건설" class="build-option__btn"/>
-                    </ui:VisualElement>
-                    <ui:VisualElement class="build-option">
-                        <ui:Label text="도시" class="build-option__name"/>
-                        <ui:Label text="밀 2 + 광석 3" class="build-option__cost"/>
-                        <ui:Button name="btn-build-city" text="건설" class="build-option__btn"/>
-                    </ui:VisualElement>
-                    <ui:VisualElement class="build-option">
-                        <ui:Label text="발전카드" class="build-option__name"/>
-                        <ui:Label text="양모 1 + 밀 1 + 광석 1" class="build-option__cost"/>
-                        <ui:Button name="btn-build-devcard" text="구매" class="build-option__btn"/>
-                    </ui:VisualElement>
-                </ui:VisualElement>
-                <ui:Button name="btn-close-build" text="닫기" class="overlay-close-btn"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="trade-overlay" class="overlay overlay--hidden">
@@ -157,7 +159,7 @@
                 <ui:VisualElement name="steal-player-list" class="steal-player-list"/>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="rules-overlay" class="overlay overlay--hidden">
+        <ui:VisualElement name="rules-overlay" class="overlay overlay--hidden" style="display: none;">
             <ui:VisualElement class="overlay-panel rules-panel">
                 <ui:Label text="카탄의 개척자들 - 게임 규칙" class="overlay-title"/>
                 <ui:ScrollView class="rules-scroll">
