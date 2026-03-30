@@ -24,6 +24,8 @@ public class GameHUDController : MonoBehaviour
     VisualElement actionPanel;
 
     // Player Stats (bottom bar)
+    Label statResTotalLabel;
+    Label statDevTotalLabel;
     Label statRoadLabel;
     Label statKnightLabel;
     Label statVpLabel;
@@ -257,6 +259,8 @@ public class GameHUDController : MonoBehaviour
 
         actionPanel = root.Q<VisualElement>("action-panel");
 
+        statResTotalLabel = root.Q<Label>("stat-res-total");
+        statDevTotalLabel = root.Q<Label>("stat-dev-total");
         statRoadLabel = root.Q<Label>("stat-road");
         statKnightLabel = root.Q<Label>("stat-knight");
         statVpLabel = root.Q<Label>("stat-vp");
@@ -572,6 +576,7 @@ public class GameHUDController : MonoBehaviour
         {
             UpdateResource(type, newCount);
             UpdateBuildCounts();
+            UpdatePlayerStats();
         }
         UpdateOpponentCard(playerIndex);
     }
@@ -589,6 +594,7 @@ public class GameHUDController : MonoBehaviour
         {
             Debug.Log($"[HUD] 발전카드 구매: {cardType}");
             UpdateBuildCounts();
+            UpdatePlayerStats();
         }
         UpdateOpponentCard(playerIndex);
     }
@@ -674,6 +680,9 @@ public class GameHUDController : MonoBehaviour
         if (GM == null) return;
         var state = GM.GetPlayerState(GM.LocalPlayerIndex);
         if (state == null) return;
+
+        if (statResTotalLabel != null) statResTotalLabel.text = state.TotalResourceCount.ToString();
+        if (statDevTotalLabel != null) statDevTotalLabel.text = state.DevCards.Count.ToString();
 
         int roadLen = GM.GetLongestRoadLength(GM.LocalPlayerIndex);
         statRoadLabel.text = roadLen.ToString();

@@ -93,6 +93,15 @@
             </ui:VisualElement>
             <ui:VisualElement class="resource-divider"/>
             <ui:VisualElement class="resource-item">
+                <ui:Label text="자원&#10;카드" class="resource-name"/>
+                <ui:Label name="stat-res-total" text="0" class="resource-count"/>
+            </ui:VisualElement>
+            <ui:VisualElement class="resource-item">
+                <ui:Label text="개발&#10;카드" class="resource-name"/>
+                <ui:Label name="stat-dev-total" text="0" class="resource-count"/>
+            </ui:VisualElement>
+            <ui:VisualElement class="resource-divider"/>
+            <ui:VisualElement class="resource-item">
                 <ui:Label text="도로" class="resource-name"/>
                 <ui:Label name="stat-road" text="0" class="resource-count"/>
             </ui:VisualElement>
