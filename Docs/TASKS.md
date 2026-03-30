@@ -51,7 +51,24 @@
 
 ---
 
-## Phase 2: 제작 시스템 (현재) 🔄
+## Phase 1_2: WebGL 빌드 & 자동 배포 (현재) ⬅️ NOW
+
+### CI/CD 파이프라인
+- [ ] P0: GitHub Actions 워크플로우 작성 (GameCI/unity-builder WebGL)
+- [ ] P0: Unity 라이선스 시크릿 설정 (UNITY_LICENSE, UNITY_EMAIL, UNITY_PASSWORD)
+- [ ] P0: WebGL Player Settings 확인 (압축, 메모리, URP 호환)
+- [ ] P0: gh-pages 브랜치 자동 배포 (peaceiris/actions-gh-pages)
+- [ ] P1: 빌드 트리거 설정 (main push 자동 + workflow_dispatch 수동)
+- [ ] P1: WebGL 템플릿 커스텀 (로딩 화면, 반응형 캔버스)
+- [ ] P1: 빌드 결과 URL 확인 (https://dingomanig.github.io/CatanArcana/)
+
+### 온라인 멀티 준비 (Phase 1_3 선행)
+- [ ] P2: NetworkGameManager 프록시 패턴 설계
+- [ ] P2: 모드 분기 구조 (로컬/온라인) 설계
+
+---
+
+## Phase 2: 제작 시스템 🔄
 
 ### 데이터 설계
 - [ ] P0: 아이템 등급 체계 정의 (원자재 / 가공품 / 완성품)
@@ -100,8 +117,8 @@
 
 - [ ] P2: AI 플레이어 간 거래 (제안/수락 로직)
 - [ ] P2: 한글 폰트 적용 (Noto Sans KR)
-- [ ] P2: TurnManager → IGameManager 구현 (네트워크 모드)
-- [ ] P2: 호스트 마이그레이션 / 재접속
+- [ ] P2: TurnManager → IGameManager 구현 (네트워크 모드) → Phase 1_3으로 이동
+- [ ] P2: 호스트 마이그레이션 / 재접속 → Phase 1_3으로 이동
 
 ---
 
