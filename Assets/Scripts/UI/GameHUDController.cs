@@ -750,28 +750,28 @@ public class GameHUDController : MonoBehaviour
         SetVisible(btnEndTurn, isMyTurn && phase == GamePhase.Action);
 
         bool actionPhase = isMyTurn && phase == GamePhase.Action;
-        SetVisible(buildHeader, actionPhase);
-        SetVisible(btnBuildRoad, actionPhase);
-        SetVisible(btnBuildSettlement, actionPhase);
-        SetVisible(btnBuildCity, actionPhase);
-        SetVisible(btnBuyDevCard, actionPhase);
-        SetVisible(btnTrade, actionPhase);
-        SetVisible(btnDevCardHand, actionPhase);
+
+        // 건설/거래/카드보기는 항상 표시, 내 턴 Action일 때만 활성화
+        btnBuildRoad.SetEnabled(actionPhase);
+        btnBuildSettlement.SetEnabled(actionPhase);
+        btnBuildCity.SetEnabled(actionPhase);
+        btnBuyDevCard.SetEnabled(actionPhase);
+        btnTrade.SetEnabled(actionPhase);
+        btnDevCardHand.SetEnabled(actionPhase);
     }
 
     void HideAllButtons()
     {
-        // 액션 패널은 항상 표시, 내부 버튼만 숨김
+        // 액션 패널은 항상 표시, 상태 버튼만 숨김
         SetVisible(btnStartGame, false);
         SetVisible(btnRollDice, false);
         SetVisible(btnEndTurn, false);
-        SetVisible(buildHeader, false);
-        SetVisible(btnBuildRoad, false);
-        SetVisible(btnBuildSettlement, false);
-        SetVisible(btnBuildCity, false);
-        SetVisible(btnBuyDevCard, false);
-        SetVisible(btnTrade, false);
-        SetVisible(btnDevCardHand, false);
+        btnBuildRoad.SetEnabled(false);
+        btnBuildSettlement.SetEnabled(false);
+        btnBuildCity.SetEnabled(false);
+        btnBuyDevCard.SetEnabled(false);
+        btnTrade.SetEnabled(false);
+        btnDevCardHand.SetEnabled(false);
     }
 
     static void SetVisible(VisualElement element, bool visible)
