@@ -562,7 +562,7 @@ public class GameHUDController : MonoBehaviour
         btnOptionSurrender.clicked += OnSurrenderClicked;
         btnOptionMainMenu.clicked += OnOptionMainMenuClicked;
 
-        // 음량 슬라이더 - BGMManager 연동
+        // 음량 슬라이더 - BGMManager / SFXManager 연동
         if (BGMManager.Instance != null)
             sliderBgm.value = BGMManager.Instance.volume * 100f;
         sliderBgm.RegisterValueChangedCallback(evt =>
@@ -571,9 +571,14 @@ public class GameHUDController : MonoBehaviour
             if (BGMManager.Instance != null)
                 BGMManager.Instance.SetVolume(evt.newValue / 100f);
         });
+
+        if (SFXManager.Instance != null)
+            sliderSfx.value = SFXManager.Instance.volume * 100f;
         sliderSfx.RegisterValueChangedCallback(evt =>
         {
             sfxValueLabel.text = Mathf.RoundToInt(evt.newValue).ToString();
+            if (SFXManager.Instance != null)
+                SFXManager.Instance.SetVolume(evt.newValue / 100f);
         });
     }
 
