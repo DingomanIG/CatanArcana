@@ -23,6 +23,10 @@ public class HexGridView : MonoBehaviour
     [SerializeField] GameObject numberTokenPrefab;
     [SerializeField] GameObject robberPrefab;
     [SerializeField] GameObject edgePrefab;
+    [SerializeField] GameObject vertexPrefab;
+    [SerializeField] GameObject portMarkerPrefab;
+    [SerializeField] GameObject dockPrefab;
+    [SerializeField] GameObject bridgePrefab;
 
     HexGrid grid;
     Dictionary<HexCoord, GameObject> tileViews = new();
@@ -235,15 +239,23 @@ public class HexGridView : MonoBehaviour
 
         foreach (var vertex in grid.Vertices)
         {
-            var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            GameObject go;
+            if (vertexPrefab != null)
+            {
+                go = Instantiate(vertexPrefab, vertexParent.transform);
+                go.transform.localScale = Vector3.one * hexSize * 0.12f;
+            }
+            else
+            {
+                go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                go.transform.localScale = Vector3.one * hexSize * 0.12f;
+                var mr = go.GetComponent<MeshRenderer>();
+                mr.material = new Material(defaultMaterial);
+                mr.material.color = new Color(0.3f, 0.3f, 0.3f, 0.5f);
+            }
             go.name = $"Vertex_{vertex.Id}";
             go.transform.SetParent(vertexParent.transform);
             go.transform.position = vertex.Position;
-            go.transform.localScale = Vector3.one * hexSize * 0.12f;
-
-            var mr = go.GetComponent<MeshRenderer>();
-            mr.material = new Material(defaultMaterial);
-            mr.material.color = new Color(0.3f, 0.3f, 0.3f, 0.5f);
         }
     }
 
@@ -325,30 +337,52 @@ public class HexGridView : MonoBehaviour
                 }
             }
 
-            // 항구 마커 (바다 타일 중심 - 자원 큐브)
-            var marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            // 항구 마커
+            GameObject marker;
+            if (portMarkerPrefab != null)
+            {
+                marker = Instantiate(portMarkerPrefab, portParent.transform);
+                marker.transform.position = seaCenter + Vector3.up * 0.05f;
+                marker.transform.localScale = Vector3.one;
+                var markerChild = marker.transform.Find("Marker");
+                if (markerChild != null)
+                {
+                    var cmr = markerChild.GetComponent<MeshRenderer>();
+                    cmr.material = new Material(cmr.sharedMaterial);
+                    cmr.material.color = portColor;
+                    markerChild.localScale = new Vector3(hexSize * 0.25f, 0.08f, hexSize * 0.25f);
+                }
+                var labelTm = marker.transform.Find("PortLabel")?.GetComponent<TextMesh>();
+                if (labelTm != null)
+                {
+                    labelTm.text = PORT_LABELS.GetValueOrDefault(portType, "?");
+                    labelTm.characterSize = hexSize * 0.06f;
+                    labelTm.color = portType == PortType.Generic ? Color.black : Color.white;
+                }
+            }
+            else
+            {
+                marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                marker.transform.SetParent(portParent.transform);
+                marker.transform.position = seaCenter + Vector3.up * 0.05f;
+                marker.transform.localScale = new Vector3(hexSize * 0.25f, 0.08f, hexSize * 0.25f);
+                var mr = marker.GetComponent<MeshRenderer>();
+                mr.material = new Material(defaultMaterial);
+                mr.material.color = portColor;
+
+                var label = new GameObject("PortLabel");
+                label.transform.SetParent(marker.transform);
+                label.transform.localPosition = new Vector3(0f, 0.6f, -1.8f);
+                label.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                var tm = label.AddComponent<TextMesh>();
+                tm.text = PORT_LABELS.GetValueOrDefault(portType, "?");
+                tm.characterSize = hexSize * 0.06f;
+                tm.anchor = TextAnchor.MiddleCenter;
+                tm.alignment = TextAlignment.Center;
+                tm.fontSize = 36;
+                tm.color = portType == PortType.Generic ? Color.black : Color.white;
+            }
             marker.name = $"Port_{portType}_{edge.Id}";
-            marker.transform.SetParent(portParent.transform);
-            marker.transform.position = seaCenter + Vector3.up * 0.05f;
-            marker.transform.localScale = new Vector3(hexSize * 0.25f, 0.08f, hexSize * 0.25f);
-
-            var mr = marker.GetComponent<MeshRenderer>();
-            mr.material = new Material(defaultMaterial);
-            mr.material.color = portColor;
-
-            // 항구 라벨
-            var label = new GameObject("PortLabel");
-            label.transform.SetParent(marker.transform);
-            label.transform.localPosition = new Vector3(0f, 0.6f, -1.8f);
-            label.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
-
-            var tm = label.AddComponent<TextMesh>();
-            tm.text = PORT_LABELS.GetValueOrDefault(portType, "?");
-            tm.characterSize = hexSize * 0.06f;
-            tm.anchor = TextAnchor.MiddleCenter;
-            tm.alignment = TextAlignment.Center;
-            tm.fontSize = 36;
-            tm.color = portType == PortType.Generic ? Color.black : Color.white;
 
             // 부두 마커 (항구 꼭짓점 2개)
             CreateDockMarker(portParent.transform, edge.VertexA.Position, seaCenter, portColor);
@@ -358,33 +392,48 @@ public class HexGridView : MonoBehaviour
 
     void CreateDockMarker(Transform parent, Vector3 vertexPos, Vector3 seaCenter, Color color)
     {
-        // 부두 기둥 (꼭짓점 위치)
-        var dock = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        // 부두 기둥
+        GameObject dock;
+        if (dockPrefab != null)
+        {
+            dock = Instantiate(dockPrefab, parent);
+            dock.transform.localScale = new Vector3(hexSize * 0.12f, 0.1f, hexSize * 0.12f);
+        }
+        else
+        {
+            dock = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            dock.transform.localScale = new Vector3(hexSize * 0.12f, 0.1f, hexSize * 0.12f);
+            var dockMr = dock.GetComponent<MeshRenderer>();
+            dockMr.material = new Material(defaultMaterial);
+            dockMr.material.color = new Color(0.45f, 0.30f, 0.15f);
+        }
         dock.name = "Dock";
         dock.transform.SetParent(parent);
         dock.transform.position = vertexPos + Vector3.up * 0.1f;
-        dock.transform.localScale = new Vector3(hexSize * 0.12f, 0.1f, hexSize * 0.12f);
 
-        var dockMr = dock.GetComponent<MeshRenderer>();
-        dockMr.material = new Material(defaultMaterial);
-        dockMr.material.color = new Color(0.45f, 0.30f, 0.15f); // 나무색
-
-        // 다리 (바다 중심 → 꼭짓점 연결)
-        var bridge = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        bridge.name = "Bridge";
-        bridge.transform.SetParent(parent);
-
+        // 다리
         var midPoint = (seaCenter + vertexPos) / 2f + Vector3.up * 0.05f;
         var dir = vertexPos - seaCenter;
         float length = dir.magnitude;
 
+        GameObject bridge;
+        if (bridgePrefab != null)
+        {
+            bridge = Instantiate(bridgePrefab, parent);
+            bridge.transform.localScale = new Vector3(hexSize * 0.06f, 0.04f, length);
+        }
+        else
+        {
+            bridge = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            bridge.transform.localScale = new Vector3(hexSize * 0.06f, 0.04f, length);
+            var bridgeMr = bridge.GetComponent<MeshRenderer>();
+            bridgeMr.material = new Material(defaultMaterial);
+            bridgeMr.material.color = new Color(0.55f, 0.38f, 0.20f);
+        }
+        bridge.name = "Bridge";
+        bridge.transform.SetParent(parent);
         bridge.transform.position = midPoint;
         bridge.transform.rotation = Quaternion.LookRotation(dir);
-        bridge.transform.localScale = new Vector3(hexSize * 0.06f, 0.04f, length);
-
-        var bridgeMr = bridge.GetComponent<MeshRenderer>();
-        bridgeMr.material = new Material(defaultMaterial);
-        bridgeMr.material.color = new Color(0.55f, 0.38f, 0.20f); // 밝은 나무색
     }
 
     void ClearVisuals()

@@ -19,6 +19,9 @@ public static class CatanPrefabGenerator
         GenerateHexTile(baseMat);
         GenerateNumberToken(baseMat);
         GenerateRobber(baseMat);
+        GeneratePortMarker(baseMat);
+        GenerateDock(baseMat);
+        GenerateBridge(baseMat);
         GenerateVertex(baseMat);
         GenerateEdge(baseMat);
         GenerateRoad(baseMat);
@@ -27,7 +30,7 @@ public static class CatanPrefabGenerator
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        Debug.Log("[Catan] 프리팹 8개 생성 완료! (Board: HexTile, NumberToken, Robber / Buildings: Vertex, Edge, Road, Settlement, City)");
+        Debug.Log("[Catan] 프리팹 11개 생성 완료! (Board: HexTile, NumberToken, Robber, PortMarker, Dock, Bridge / Buildings: Vertex, Edge, Road, Settlement, City)");
     }
 
     [MenuItem("Catan/프리팹 자동 연결")]
@@ -42,6 +45,10 @@ public static class CatanPrefabGenerator
             TryAssign(so, "numberTokenPrefab", BOARD + "/NumberToken.prefab");
             TryAssign(so, "robberPrefab", BOARD + "/Robber.prefab");
             TryAssign(so, "edgePrefab", BUILDINGS + "/Edge.prefab");
+            TryAssign(so, "vertexPrefab", BUILDINGS + "/Vertex.prefab");
+            TryAssign(so, "portMarkerPrefab", BOARD + "/PortMarker.prefab");
+            TryAssign(so, "dockPrefab", BOARD + "/Dock.prefab");
+            TryAssign(so, "bridgePrefab", BOARD + "/Bridge.prefab");
             so.ApplyModifiedProperties();
             EditorUtility.SetDirty(gridView);
             Debug.Log("[Catan] HexGridView 프리팹 연결 완료");
@@ -220,6 +227,59 @@ public static class CatanPrefabGenerator
             CreateColorMaterial(baseMat, BOARD + "/RobberMat.mat", new Color(0.15f, 0.15f, 0.15f));
 
         SavePrefab(go, BOARD + "/Robber.prefab");
+    }
+
+    static void GeneratePortMarker(Material baseMat)
+    {
+        var root = new GameObject("PortMarker");
+
+        // 마커 큐브
+        var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        cube.name = "Marker";
+        cube.transform.SetParent(root.transform);
+        cube.transform.localPosition = Vector3.zero;
+        cube.transform.localScale = new Vector3(0.25f, 0.08f, 0.25f);
+        DestroyCollider(cube);
+        cube.GetComponent<MeshRenderer>().sharedMaterial = baseMat;
+
+        // 라벨 텍스트
+        var labelGo = new GameObject("PortLabel");
+        labelGo.transform.SetParent(root.transform);
+        labelGo.transform.localPosition = new Vector3(0f, 0.6f, -1.8f);
+        labelGo.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+        var tm = labelGo.AddComponent<TextMesh>();
+        tm.text = "3:1";
+        tm.characterSize = 0.06f;
+        tm.anchor = TextAnchor.MiddleCenter;
+        tm.alignment = TextAlignment.Center;
+        tm.fontSize = 36;
+        tm.color = Color.black;
+
+        SavePrefab(root, BOARD + "/PortMarker.prefab");
+    }
+
+    static void GenerateDock(Material baseMat)
+    {
+        var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        go.name = "Dock";
+        go.transform.localScale = new Vector3(0.12f, 0.1f, 0.12f);
+        DestroyCollider(go);
+        go.GetComponent<MeshRenderer>().sharedMaterial =
+            CreateColorMaterial(baseMat, BOARD + "/DockMat.mat", new Color(0.45f, 0.30f, 0.15f));
+
+        SavePrefab(go, BOARD + "/Dock.prefab");
+    }
+
+    static void GenerateBridge(Material baseMat)
+    {
+        var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        go.name = "Bridge";
+        go.transform.localScale = new Vector3(0.06f, 0.04f, 1f);
+        DestroyCollider(go);
+        go.GetComponent<MeshRenderer>().sharedMaterial =
+            CreateColorMaterial(baseMat, BOARD + "/BridgeMat.mat", new Color(0.55f, 0.38f, 0.20f));
+
+        SavePrefab(go, BOARD + "/Bridge.prefab");
     }
 
     // ============================
