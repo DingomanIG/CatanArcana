@@ -1083,6 +1083,11 @@ public class GameHUDController : MonoBehaviour
             return;
         }
 
+        // 구분선 (VP 오른쪽)
+        var divider = new VisualElement();
+        divider.AddToClassList("resource-divider");
+        devCardQuickSlotBar.Add(divider);
+
         bool isMyTurn = GM.IsMyTurn();
         bool canUseCard = isMyTurn
             && !state.HasUsedDevCardThisTurn
@@ -1110,11 +1115,10 @@ public class GameHUDController : MonoBehaviour
             bool isVP = type == DevCardType.VictoryPoint;
             bool usable = canUseCard && !isVP;
 
-            // 사용 불가 이유 힌트
+            // 사용 불가 이유 힌트 (내 턴인데 못 쓸 때만)
             if (!isVP && isMyTurn && !canUseCard)
             {
-                string hint = state.HasUsedDevCardThisTurn ? "(이미 사용)" :
-                              GM.CurrentPhase == GamePhase.RollDice ? "(주사위 전 가능)" : "";
+                string hint = state.HasUsedDevCardThisTurn ? "사용완료" : "";
                 if (!string.IsNullOrEmpty(hint))
                 {
                     var hintLabel = new Label(hint);

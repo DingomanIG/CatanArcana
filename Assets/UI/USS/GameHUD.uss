@@ -289,28 +289,24 @@
 
 .devcard-quickslot-bar {
     flex-direction: row;
-    justify-content: center;
     align-items: center;
-    min-height: 0;
-    padding: 0 24px;
-    background-color: rgba(20, 17, 14, 0.85);
-    border-top-width: 1px;
-    border-top-color: rgb(60, 50, 42);
-    flex-wrap: wrap;
-    row-gap: 0;
+    flex-wrap: nowrap;
+    margin-left: 6px;
 }
 
 .devcard-slot-btn {
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
-    padding: 4px 12px;
-    margin: 5px 4px;
-    border-radius: 20px;
+    justify-content: center;
+    padding: 4px 10px;
+    margin: 0 3px;
+    border-radius: 6px;
     border-width: 1px;
     border-color: rgb(90, 75, 60);
     background-color: rgba(42, 35, 28, 0.95);
     color: rgb(220, 200, 170);
     font-size: 13px;
+    height: 54px;
     cursor: link;
     transition-property: background-color, border-color;
     transition-duration: 0.15s;
@@ -341,21 +337,28 @@
 }
 
 .devcard-slot-count {
-    font-size: 15px;
+    font-size: 18px;
     -unity-font-style: bold;
     color: rgb(255, 220, 120);
-    margin-right: 5px;
+    -unity-text-align: middle-center;
+    margin: 0;
+    padding: 0;
 }
 
 .devcard-slot-name {
-    font-size: 12px;
-    color: rgb(200, 185, 160);
+    font-size: 11px;
+    color: rgb(180, 165, 140);
+    -unity-text-align: middle-center;
+    margin: 0;
+    padding: 0;
 }
 
 .devcard-slot-hint {
-    font-size: 10px;
-    color: rgb(130, 115, 95);
-    margin-left: 4px;
+    font-size: 9px;
+    color: rgb(120, 105, 85);
+    -unity-text-align: middle-center;
+    margin: 0;
+    padding: 0;
 }
 
 .resource-panel {
