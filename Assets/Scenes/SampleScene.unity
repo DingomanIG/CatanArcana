@@ -617,6 +617,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 321854deb0bd7914d975938983faab0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BuildingVisuals
+  settlementPrefab: {fileID: 0}
+  cityPrefab: {fileID: 0}
+  roadPrefab: {fileID: 0}
+  vertexHighlightPrefab: {fileID: 0}
 --- !u!114 &629163897
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -741,8 +745,12 @@ MonoBehaviour:
   boardRadius: 2
   seaRings: 3
   tileGap: 0.05
-  showVertices: 1
+  showVertices: 0
   showEdges: 1
+  hexTilePrefab: {fileID: 6535816112187749997, guid: 0b39fecb1650d8d40830b3b1a78eee56, type: 3}
+  numberTokenPrefab: {fileID: 4096851806060512424, guid: c51b9dd5642751c47b1a1b8e966d947f, type: 3}
+  robberPrefab: {fileID: 1440127950347988787, guid: 1778b4897db43fe49ad8817b37314783, type: 3}
+  edgePrefab: {fileID: 6565996030956472546, guid: 6d4b5c24ae555c544b8e03101f41d3c7, type: 3}
 --- !u!1 &1923149813
 GameObject:
   m_ObjectHideFlags: 0

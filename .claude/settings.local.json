@@ -37,11 +37,30 @@
       "Bash(unity-cli:*)",
       "Bash(cmd //c \"dir c:\\\\Users\\\\bonek\\\\Documents\\\\AntigravityFolder\\\\ArcanaCatan\\\\ArcanaCatan\\\\Library /b\")",
       "Read(//c/Users/bonek/AppData/Local/Unity/Editor/**)",
-      "Read(//c/Users/bonek/AppData/Local/Unity/**)"
+      "Read(//c/Users/bonek/AppData/Local/Unity/**)",
+      "Bash(git status:*)",
+      "Bash(git -C \"/c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan\" cat-file -p c2b32fdb69bb0a256ad8ace1e3f66e75a32673ce)",
+      "Bash(git -C \"c:/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan\" diff HEAD -- Assets/Scripts/IGameManager.cs)",
+      "Bash(git -C \"c:/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan\" log --format=\"%H %ai %s\" -3)",
+      "Bash(git -C \"c:/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan\" show HEAD:Assets/Scripts/IGameManager.cs)",
+      "Bash(git -C \"c:/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan\" show \"HEAD:Assets/Scripts/IGameManager.cs\")",
+      "Bash(unzip:*)",
+      "Bash(powershell.exe -Command \"Expand-Archive -Path ''c:\\\\Users\\\\bonek\\\\Documents\\\\AntigravityFolder\\\\ArcanaCatan\\\\ArcanaCatan\\\\Assets\\\\UI\\\\Fonts\\\\noto-sans-kr.zip'' -DestinationPath ''c:\\\\Users\\\\bonek\\\\Documents\\\\AntigravityFolder\\\\ArcanaCatan\\\\ArcanaCatan\\\\Assets\\\\UI\\\\Fonts\\\\NotoSansKR'' -Force\")",
+      "Bash(powershell.exe -Command \"\\(Get-Content -Path ''c:\\\\Users\\\\bonek\\\\Documents\\\\AntigravityFolder\\\\ArcanaCatan\\\\ArcanaCatan\\\\Assets\\\\UI\\\\Fonts\\\\noto-sans-kr.zip'' -TotalCount 3 -Encoding Byte | ForEach-Object { [char]$_}\\) -join ''''\")",
+      "Bash(powershell.exe -NoProfile -Command \"Get-Content ''c:\\\\Users\\\\bonek\\\\Documents\\\\AntigravityFolder\\\\ArcanaCatan\\\\ArcanaCatan\\\\Assets\\\\UI\\\\Fonts\\\\noto-sans-kr.zip'' -TotalCount 1\")",
+      "Bash(powershell.exe -NoProfile -Command \"Remove-Item ''c:\\\\Users\\\\bonek\\\\Documents\\\\AntigravityFolder\\\\ArcanaCatan\\\\ArcanaCatan\\\\Assets\\\\UI\\\\Fonts\\\\noto-sans-kr.zip'' -Force -ErrorAction SilentlyContinue; Remove-Item ''c:\\\\Users\\\\bonek\\\\Documents\\\\AntigravityFolder\\\\ArcanaCatan\\\\ArcanaCatan\\\\Assets\\\\UI\\\\Fonts\\\\noto-sans-kr.zip.meta'' -Force -ErrorAction SilentlyContinue; Write-Host ''cleaned''\")",
+      "WebFetch(domain:www.catan.com)",
+      "WebFetch(domain:boardgamegeek.com)",
+      "WebFetch(domain:setupcatan.com)",
+      "WebFetch(domain:catan.fandom.com)",
+      "WebFetch(domain:catanboard.com)",
+      "Read(//c/Users/bonek/**)",
+      "Bash(git rm:*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\$BASE\\Art",
-      "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\Assets\\Scripts"
+      "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\Assets\\Scripts",
+      "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\$BGM_DIR"
     ]
   }
 }
