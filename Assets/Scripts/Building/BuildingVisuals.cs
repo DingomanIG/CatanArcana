@@ -158,6 +158,24 @@ public class BuildingVisuals : MonoBehaviour
         roadObjects[edge.Id] = go;
     }
 
+    /// <summary>모든 건물/도로 비주얼 제거 (리매치용)</summary>
+    public void ClearAllBuildings()
+    {
+        foreach (var go in settlementObjects.Values)
+        {
+            if (go != null) Destroy(go);
+        }
+        settlementObjects.Clear();
+
+        foreach (var go in roadObjects.Values)
+        {
+            if (go != null) Destroy(go);
+        }
+        roadObjects.Clear();
+
+        ClearHighlights();
+    }
+
     // ========================
     // 하이라이트
     // ========================

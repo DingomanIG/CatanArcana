@@ -85,6 +85,25 @@ public class HexGrid
         edgeLookup.Clear();
     }
 
+    /// <summary>보드 상태만 리셋 (건물/도로/도적 제거, 토폴로지 유지)</summary>
+    public void ResetBoardState()
+    {
+        foreach (var vertex in Vertices)
+        {
+            vertex.OwnerPlayerIndex = -1;
+            vertex.Building = BuildingType.None;
+        }
+        foreach (var edge in Edges)
+        {
+            edge.OwnerPlayerIndex = -1;
+            edge.HasRoad = false;
+        }
+        foreach (var tile in Tiles.Values)
+        {
+            tile.HasRobber = tile.Resource == ResourceType.None && tile.Resource != ResourceType.Sea;
+        }
+    }
+
     public HexTile GetTile(HexCoord coord)
     {
         return Tiles.TryGetValue(coord, out var tile) ? tile : null;

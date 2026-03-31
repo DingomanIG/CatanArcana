@@ -2313,6 +2313,10 @@ public class GameHUDController : MonoBehaviour
     void OnResultRematchClicked()
     {
         resultOverlay.AddToClassList("overlay--hidden");
+
+        // 이벤트 로그 클리어
+        eventLogScroll?.Clear();
+
         GM?.StartGame();
     }
 }

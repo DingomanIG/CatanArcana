@@ -518,6 +518,29 @@ public class HexGridView : MonoBehaviour
         }
     }
 
+    /// <summary>도적 비주얼을 사막(초기 위치)으로 리셋</summary>
+    public void ResetRobberVisual()
+    {
+        // 기존 도적 마커 모두 제거
+        foreach (var kv in tileViews)
+        {
+            var robber = kv.Value.transform.Find("Robber");
+            if (robber != null)
+                Destroy(robber.gameObject);
+        }
+
+        // 사막 타일에 도적 재배치
+        foreach (var tile in grid.Tiles.Values)
+        {
+            if (tile.Resource == ResourceType.None && tile.HasRobber)
+            {
+                if (tileViews.TryGetValue(tile.Coord, out var tileGo))
+                    CreateRobberMarker(tileGo);
+                break;
+            }
+        }
+    }
+
     /// <summary>보드 크기 변경 후 재생성</summary>
     public void RegenerateBoard(int newRadius)
     {

@@ -149,6 +149,36 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
     public void StartGame()
     {
+        // 보드 데이터 리셋 (건물/도로/도적 초기화)
+        grid.ResetBoardState();
+
+        // 건물 비주얼 제거
+        var buildingVisuals = FindObjectOfType<BuildingVisuals>();
+        buildingVisuals?.ClearAllBuildings();
+
+        // 도적 비주얼 리셋
+        hexGridView.ResetRobberVisual();
+
+        // 발전카드 덱 재생성
+        devCardDeck = new DevCardDeck();
+
+        // 플레이어 상태 재생성
+        for (int i = 0; i < playerCount; i++)
+            players[i] = new PlayerState(i);
+
+        // 보너스 보유자 리셋
+        longestRoadHolder = -1;
+        largestArmyHolder = -1;
+
+        // 발전카드/도적 상태 리셋
+        devCardUseState = DevCardUseState.None;
+        freeRoadsRemaining = 0;
+        robberStealCandidates.Clear();
+        returnToActionAfterSteal = false;
+        pendingIncomingTrade = null;
+        currentBuildMode = BuildMode.None;
+
+        // 턴 상태 리셋
         firstPlayerIndex = UnityEngine.Random.Range(0, playerCount);
         currentPlayerIndex = firstPlayerIndex;
         turnNumber = 0;
@@ -156,6 +186,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         initialStepInRound = 0;
         initialWaitingForRoad = false;
 
+        OnPlayerListChanged?.Invoke();
         SetPhase(GamePhase.InitialPlacement);
         OnTurnChanged?.Invoke(currentPlayerIndex);
         Debug.Log($"[Local] 초기 배치 시작! 선플레이어: {GetPlayerName(firstPlayerIndex)} - 마을을 배치하세요");
