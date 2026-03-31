@@ -99,7 +99,7 @@ public class HexGridView : MonoBehaviour
     void CreateNumberLabel(GameObject parent, HexTile tile)
     {
         bool isHot = tile.NumberToken == 6 || tile.NumberToken == 8;
-        float tokenRadius = hexSize * 0.28f;
+        float tokenRadius = hexSize * 0.45f;
 
         // 테두리 링 (약간 더 큰 납작 실린더, 먼저 깔기)
         var ring = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
