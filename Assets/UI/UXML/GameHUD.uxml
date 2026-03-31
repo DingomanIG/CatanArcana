@@ -217,7 +217,7 @@
         </ui:VisualElement>
         <ui:VisualElement name="rules-overlay" class="overlay overlay--hidden" style="display: none;">
             <ui:VisualElement class="overlay-panel rules-panel">
-                <ui:Label text="카탄의 개척자들 - 게임 규칙" class="overlay-title"/>
+                <ui:Label text="게임 규칙" class="overlay-title"/>
                 <ui:ScrollView class="rules-scroll">
                     <ui:Label text="게임 목표" class="rules-section-title"/>
                     <ui:Label text="자원을 모아 도로, 마을, 도시를 건설하여 10 승리점을 먼저 달성하면 승리!" class="rules-text"/>

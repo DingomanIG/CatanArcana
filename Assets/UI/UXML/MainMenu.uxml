@@ -8,8 +8,8 @@
         <!-- 메인 컨테이너 -->
         <ui:VisualElement name="menu-container" class="menu-container">
             <!-- 타이틀 -->
-            <ui:Label text="카탄의 개척자들" class="menu-title"/>
-            <ui:Label text="ArcanaCatan" class="menu-subtitle"/>
+            <ui:Label text="Arcana Board" class="menu-title"/>
+            <ui:Label text="보드게임 프로토타입" class="menu-subtitle"/>
             <ui:VisualElement class="divider" style="margin: 20px 0;"/>
 
             <!-- 이름 입력 -->
@@ -64,6 +64,6 @@
         </ui:VisualElement>
 
         <!-- 하단 버전 -->
-        <ui:Label text="ArcanaCatan v0.1 - Prototype" class="version-label"/>
+        <ui:Label text="v0.1 - Prototype" class="version-label"/>
     </ui:VisualElement>
 </ui:UXML>
