@@ -13,6 +13,17 @@ public static class CatanPrefabGenerator
     [MenuItem("Catan/프리팹 생성")]
     public static void GenerateAll()
     {
+        bool exists = AssetDatabase.LoadAssetAtPath<GameObject>(BOARD + "/HexTile.prefab") != null
+                   || AssetDatabase.LoadAssetAtPath<GameObject>(BUILDINGS + "/Settlement.prefab") != null;
+
+        if (exists && !EditorUtility.DisplayDialog(
+                "프리팹 생성",
+                "기존 프리팹이 덮어쓰기됩니다.\n수동 수정사항이 있다면 백업하세요.\n\n계속하시겠습니까?",
+                "생성", "취소"))
+        {
+            return;
+        }
+
         EnsureFolders();
         var baseMat = GetOrCreateBaseMaterial();
 
