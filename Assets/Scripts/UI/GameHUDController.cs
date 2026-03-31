@@ -118,10 +118,20 @@ public class GameHUDController : MonoBehaviour
     VisualElement tradeReceiveGrid;
     VisualElement tradeOfferGrid;
     VisualElement tradeRequestGrid;
-    VisualElement tradePlayerGrid;
     Button btnExecuteBankTrade;
-    Button btnExecutePlayerTrade;
     Label bankTradeSummaryLabel;
+
+    // Player Trade Proposal UI
+    VisualElement playerTermsPanel;
+    VisualElement playerResponsesPanel;
+    VisualElement tradeResponseList;
+    Button btnSendProposal;
+    Button btnCancelProposal;
+
+    // Proposal state
+    readonly Dictionary<int, bool?> proposalResponses = new(); // null=pending, true=수락, false=거절
+    Dictionary<ResourceType, int> pendingOffer;
+    Dictionary<ResourceType, int> pendingRequest;
 
     // Steal Overlay
     VisualElement stealOverlay;
@@ -197,7 +207,6 @@ public class GameHUDController : MonoBehaviour
     // 플레이어 거래 상태
     readonly Dictionary<ResourceType, int> playerOfferAmounts = new();
     readonly Dictionary<ResourceType, int> playerRequestAmounts = new();
-    int playerTradeTarget = -1;
 
     // Dice face patterns: which dots (row,col) are visible for each value 1-6
     static readonly bool[][,] DiceDotPatterns = new bool[][,]
@@ -360,10 +369,14 @@ public class GameHUDController : MonoBehaviour
         tradeReceiveGrid = root.Q<VisualElement>("trade-receive-grid");
         tradeOfferGrid = root.Q<VisualElement>("trade-offer-grid");
         tradeRequestGrid = root.Q<VisualElement>("trade-request-grid");
-        tradePlayerGrid = root.Q<VisualElement>("trade-player-grid");
         btnExecuteBankTrade = root.Q<Button>("btn-execute-bank-trade");
-        btnExecutePlayerTrade = root.Q<Button>("btn-execute-player-trade");
         bankTradeSummaryLabel = root.Q<Label>("bank-trade-summary");
+
+        playerTermsPanel = root.Q<VisualElement>("player-trade-terms");
+        playerResponsesPanel = root.Q<VisualElement>("player-trade-responses");
+        tradeResponseList = root.Q<VisualElement>("trade-response-list");
+        btnSendProposal = root.Q<Button>("btn-send-proposal");
+        btnCancelProposal = root.Q<Button>("btn-cancel-proposal");
 
         stealOverlay = root.Q<VisualElement>("steal-overlay");
         stealPlayerList = root.Q<VisualElement>("steal-player-list");
@@ -493,7 +506,8 @@ public class GameHUDController : MonoBehaviour
         btnTradeTabBank.clicked += () => SwitchTradeTab(true);
         btnTradeTabPlayer.clicked += () => SwitchTradeTab(false);
         btnExecuteBankTrade.clicked += OnExecuteBankTrade;
-        btnExecutePlayerTrade.clicked += OnExecutePlayerTrade;
+        btnSendProposal.clicked += OnSendProposalClicked;
+        btnCancelProposal.clicked += OnCancelProposalClicked;
 
         // 자원 선택 버튼
         btnSelectWood.clicked += () => OnResourceSelected(ResourceType.Wood);
@@ -1184,7 +1198,9 @@ public class GameHUDController : MonoBehaviour
     {
         playerOfferAmounts.Clear();
         playerRequestAmounts.Clear();
-        playerTradeTarget = -1;
+        proposalResponses.Clear();
+        pendingOffer = null;
+        pendingRequest = null;
 
         foreach (var res in AllResources)
         {
@@ -1194,8 +1210,8 @@ public class GameHUDController : MonoBehaviour
 
         BuildAmountGrid(tradeOfferGrid, playerOfferAmounts, true);
         BuildAmountGrid(tradeRequestGrid, playerRequestAmounts, false);
-        BuildPlayerSelectionButtons();
-        UpdatePlayerTradeExecuteButton();
+        UpdateSendProposalButton();
+        ShowPlayerTradeTerms();
     }
 
     void BuildAmountGrid(VisualElement grid, Dictionary<ResourceType, int> amounts, bool isOffer)
@@ -1236,7 +1252,7 @@ public class GameHUDController : MonoBehaviour
                 {
                     amounts[capturedRes]--;
                     BuildAmountGrid(grid, amounts, isOffer);
-                    UpdatePlayerTradeExecuteButton();
+                    UpdateSendProposalButton();
                 }
             };
             btnPlus.clicked += () =>
@@ -1246,7 +1262,7 @@ public class GameHUDController : MonoBehaviour
                 {
                     amounts[capturedRes]++;
                     BuildAmountGrid(grid, amounts, isOffer);
-                    UpdatePlayerTradeExecuteButton();
+                    UpdateSendProposalButton();
                 }
             };
 
@@ -1259,62 +1275,151 @@ public class GameHUDController : MonoBehaviour
         }
     }
 
-    void BuildPlayerSelectionButtons()
-    {
-        tradePlayerGrid.Clear();
-        if (GM == null) return;
-
-        for (int i = 0; i < GM.PlayerCount; i++)
-        {
-            if (i == GM.LocalPlayerIndex) continue;
-
-            var state = GM.GetPlayerState(i);
-            int resCount = state?.TotalResourceCount ?? 0;
-            var btn = new Button();
-            btn.text = $"{GM.GetPlayerName(i)} ({resCount}장)";
-            btn.AddToClassList("trade-player-btn");
-
-            if (playerTradeTarget == i)
-                btn.AddToClassList("trade-player-btn--selected");
-
-            int captured = i;
-            btn.clicked += () =>
-            {
-                playerTradeTarget = captured;
-                BuildPlayerSelectionButtons();
-                UpdatePlayerTradeExecuteButton();
-            };
-
-            tradePlayerGrid.Add(btn);
-        }
-    }
-
-    void UpdatePlayerTradeExecuteButton()
+    void UpdateSendProposalButton()
     {
         bool hasOffer = false;
         bool hasRequest = false;
         foreach (var kv in playerOfferAmounts) if (kv.Value > 0) { hasOffer = true; break; }
         foreach (var kv in playerRequestAmounts) if (kv.Value > 0) { hasRequest = true; break; }
-
-        btnExecutePlayerTrade.SetEnabled(hasOffer && hasRequest && playerTradeTarget >= 0);
+        btnSendProposal?.SetEnabled(hasOffer && hasRequest);
     }
 
-    void OnExecutePlayerTrade()
+    void ShowPlayerTradeTerms()
     {
-        if (playerTradeTarget < 0) return;
+        playerTermsPanel?.RemoveFromClassList("trade-section--hidden");
+        playerResponsesPanel?.AddToClassList("trade-section--hidden");
+    }
 
-        var offer = new Dictionary<ResourceType, int>();
-        var request = new Dictionary<ResourceType, int>();
+    void ShowPlayerTradeResponses()
+    {
+        playerTermsPanel?.AddToClassList("trade-section--hidden");
+        playerResponsesPanel?.RemoveFromClassList("trade-section--hidden");
+    }
 
-        foreach (var kv in playerOfferAmounts)
-            if (kv.Value > 0) offer[kv.Key] = kv.Value;
-        foreach (var kv in playerRequestAmounts)
-            if (kv.Value > 0) request[kv.Key] = kv.Value;
+    void OnSendProposalClicked()
+    {
+        if (GM == null) return;
 
-        if (offer.Count == 0 || request.Count == 0) return;
+        pendingOffer = new Dictionary<ResourceType, int>();
+        pendingRequest = new Dictionary<ResourceType, int>();
+        foreach (var kv in playerOfferAmounts) if (kv.Value > 0) pendingOffer[kv.Key] = kv.Value;
+        foreach (var kv in playerRequestAmounts) if (kv.Value > 0) pendingRequest[kv.Key] = kv.Value;
+        if (pendingOffer.Count == 0 || pendingRequest.Count == 0) return;
 
-        if (!GM.TryPlayerTrade(playerTradeTarget, offer, request))
-            ShowToast("trade", "거래 실패: 상대방의 자원이 부족합니다");
+        proposalResponses.Clear();
+
+        for (int i = 0; i < GM.PlayerCount; i++)
+        {
+            if (i == GM.LocalPlayerIndex) continue;
+
+            if (GM.IsPlayerAI(i))
+            {
+                // AI가 받는 것 = 내가 주는 것(pendingOffer), AI가 줘야 하는 것 = 내가 원하는 것(pendingRequest)
+                bool accepts = AIBoardEvaluator.ShouldAcceptTradeOffer(i, GM, pendingOffer, pendingRequest);
+                proposalResponses[i] = accepts;
+            }
+            else
+            {
+                proposalResponses[i] = null; // 인간: 버튼으로 직접 응답
+            }
+        }
+
+        ShowPlayerTradeResponses();
+        BuildResponseList();
+    }
+
+    void OnCancelProposalClicked()
+    {
+        proposalResponses.Clear();
+        pendingOffer = null;
+        pendingRequest = null;
+        ShowPlayerTradeTerms();
+        BuildAmountGrid(tradeOfferGrid, playerOfferAmounts, true);
+        BuildAmountGrid(tradeRequestGrid, playerRequestAmounts, false);
+        UpdateSendProposalButton();
+    }
+
+    void BuildResponseList()
+    {
+        tradeResponseList.Clear();
+        if (GM == null) return;
+
+        bool anyAccepted = false;
+        bool anyPending = false;
+
+        foreach (var kv in proposalResponses)
+        {
+            int playerIndex = kv.Key;
+            bool? response = kv.Value;
+
+            var row = new VisualElement();
+            row.AddToClassList("trade-response-row");
+            row.style.borderLeftColor = PlayerColors[playerIndex % PlayerColors.Length];
+
+            var nameLabel = new Label(GM.GetPlayerName(playerIndex));
+            nameLabel.AddToClassList("trade-response-row__name");
+            row.Add(nameLabel);
+
+            if (response == null) // 인간 플레이어 대기 중
+            {
+                anyPending = true;
+                var acceptBtn = new Button { text = "✓ 수락" };
+                acceptBtn.AddToClassList("trade-response-row__status");
+                acceptBtn.AddToClassList("trade-response--pending");
+                var declineBtn = new Button { text = "✗ 거절" };
+                declineBtn.AddToClassList("trade-response-row__status");
+                declineBtn.AddToClassList("trade-response--pending");
+                declineBtn.style.marginLeft = 4;
+
+                int captured = playerIndex;
+                acceptBtn.clicked += () => { proposalResponses[captured] = true; BuildResponseList(); };
+                declineBtn.clicked += () => { proposalResponses[captured] = false; BuildResponseList(); };
+
+                row.Add(acceptBtn);
+                row.Add(declineBtn);
+            }
+            else if (response == true)
+            {
+                anyAccepted = true;
+                var statusBtn = new Button { text = "✓ 수락" };
+                statusBtn.AddToClassList("trade-response-row__status");
+                statusBtn.AddToClassList("trade-response--accepted");
+
+                int captured = playerIndex;
+                statusBtn.clicked += () => OnSelectTradePartner(captured);
+                row.Add(statusBtn);
+            }
+            else
+            {
+                var statusLabel = new Label("✗ 거절");
+                statusLabel.AddToClassList("trade-response-row__status");
+                statusLabel.AddToClassList("trade-response--declined");
+                row.Add(statusLabel);
+            }
+
+            tradeResponseList.Add(row);
+        }
+
+        if (!anyAccepted && !anyPending)
+        {
+            var msg = new Label("모든 플레이어가 거절했습니다.");
+            msg.AddToClassList("trade-subtitle");
+            msg.style.marginTop = 8;
+            tradeResponseList.Add(msg);
+        }
+    }
+
+    void OnSelectTradePartner(int targetPlayerIndex)
+    {
+        if (pendingOffer == null || pendingRequest == null) return;
+
+        if (!GM.TryPlayerTrade(targetPlayerIndex, pendingOffer, pendingRequest))
+        {
+            ShowToast("trade", "거래 실패: 자원이 부족합니다");
+            proposalResponses[targetPlayerIndex] = false;
+            BuildResponseList();
+        }
+        // 성공 시 HandlePlayerTrade 이벤트가 overlay를 닫음
     }
 
     // ========================

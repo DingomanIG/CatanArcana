@@ -171,14 +171,19 @@
                     <ui:Button name="btn-execute-bank-trade" text="거래 실행" class="trade-execute-btn"/>
                 </ui:VisualElement>
                 <ui:VisualElement name="player-trade-section" class="trade-section trade-section--hidden">
-                    <ui:Label text="내가 줄 자원" class="trade-subtitle"/>
-                    <ui:VisualElement name="trade-offer-grid" class="trade-amount-grid"/>
-                    <ui:Label text="↕" class="trade-arrow"/>
-                    <ui:Label text="받을 자원" class="trade-subtitle"/>
-                    <ui:VisualElement name="trade-request-grid" class="trade-amount-grid"/>
-                    <ui:Label text="상대 선택" class="trade-subtitle"/>
-                    <ui:VisualElement name="trade-player-grid" class="trade-player-grid"/>
-                    <ui:Button name="btn-execute-player-trade" text="거래 제안" class="trade-execute-btn"/>
+                    <ui:VisualElement name="player-trade-terms">
+                        <ui:Label text="내가 줄 자원" class="trade-subtitle"/>
+                        <ui:VisualElement name="trade-offer-grid" class="trade-amount-grid"/>
+                        <ui:Label text="↕" class="trade-arrow"/>
+                        <ui:Label text="받을 자원" class="trade-subtitle"/>
+                        <ui:VisualElement name="trade-request-grid" class="trade-amount-grid"/>
+                        <ui:Button name="btn-send-proposal" text="전체에게 제안" class="trade-execute-btn"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="player-trade-responses" class="trade-section--hidden">
+                        <ui:Label text="제안 결과" class="trade-subtitle"/>
+                        <ui:VisualElement name="trade-response-list" class="trade-response-list"/>
+                        <ui:Button name="btn-cancel-proposal" text="제안 취소" class="overlay-close-btn" style="margin-top: 8px;"/>
+                    </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:Button name="btn-close-trade" text="닫기" class="overlay-close-btn"/>
             </ui:VisualElement>

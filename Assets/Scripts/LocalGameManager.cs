@@ -192,6 +192,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     }
 
     public bool IsMyTurn() => humanPlayerIndex < 0 || currentPlayerIndex == humanPlayerIndex;
+    public bool IsPlayerAI(int playerIndex) => humanPlayerIndex >= 0 && playerIndex != humanPlayerIndex;
 
     public string GetPlayerName(int index)
     {

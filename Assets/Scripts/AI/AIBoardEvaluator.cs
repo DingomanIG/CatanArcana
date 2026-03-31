@@ -323,4 +323,51 @@ public static class AIBoardEvaluator
         receive = deficit;
         return true;
     }
+
+    /// <summary>
+    /// AI 플레이어가 인간의 거래 제안을 수락할지 판단
+    /// offerToAI = AI가 받는 것, requestFromAI = AI가 줘야 하는 것
+    /// </summary>
+    public static bool ShouldAcceptTradeOffer(
+        int aiPlayerIndex, IGameManager gm,
+        Dictionary<ResourceType, int> offerToAI,
+        Dictionary<ResourceType, int> requestFromAI)
+    {
+        var state = gm.GetPlayerState(aiPlayerIndex);
+        if (state == null) return false;
+
+        // 줄 자원이 충분한지 확인
+        foreach (var kv in requestFromAI)
+        {
+            int have = state.Resources.ContainsKey(kv.Key) ? state.Resources[kv.Key] : 0;
+            if (have < kv.Value) return false;
+        }
+
+        // 현재 건설 목표 결정
+        Dictionary<ResourceType, int> buildGoal;
+        if (state.CitiesRemaining > 0 && gm.GetValidCityVertices(aiPlayerIndex).Count > 0)
+            buildGoal = BuildingCosts.City;
+        else if (state.SettlementsRemaining > 0)
+            buildGoal = BuildingCosts.Settlement;
+        else
+            buildGoal = BuildingCosts.DevelopmentCard;
+
+        // 줘야 하는 자원이 건설 목표에 필요한지 확인 (없어도 되는 것만 줌)
+        foreach (var kv in requestFromAI)
+        {
+            int needed = buildGoal.ContainsKey(kv.Key) ? buildGoal[kv.Key] : 0;
+            int remaining = state.Resources[kv.Key] - kv.Value;
+            if (remaining < needed) return false;
+        }
+
+        // 받는 자원이 건설 목표에 유용한지 확인
+        foreach (var kv in offerToAI)
+        {
+            int needed = buildGoal.ContainsKey(kv.Key) ? buildGoal[kv.Key] : 0;
+            int have = state.Resources.ContainsKey(kv.Key) ? state.Resources[kv.Key] : 0;
+            if (have < needed) return true; // 부족한 걸 받으면 수락
+        }
+
+        return false; // 필요한 자원이 아니면 거절
+    }
 }

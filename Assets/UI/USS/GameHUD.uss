@@ -658,6 +658,66 @@
     min-height: 18px;
 }
 
+.trade-response-list {
+    padding: 2px 0;
+}
+
+.trade-response-row {
+    flex-direction: row;
+    align-items: center;
+    height: 42px;
+    margin-bottom: 4px;
+    padding-left: 8px;
+    padding-right: 8px;
+    background-color: rgba(255, 255, 255, 0.04);
+    border-radius: 4px;
+    border-left-width: 3px;
+    border-left-color: rgb(74, 63, 53);
+}
+
+.trade-response-row__name {
+    color: rgb(232, 220, 200);
+    font-size: 13px;
+    flex-grow: 1;
+}
+
+.trade-response-row__status {
+    width: 80px;
+    height: 28px;
+    font-size: 12px;
+    border-radius: 4px;
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+    border-width: 1px;
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.trade-response--accepted {
+    background-color: rgba(50, 110, 40, 0.9);
+    border-color: rgb(90, 158, 75);
+    color: rgb(200, 240, 180);
+}
+
+.trade-response--accepted:hover {
+    background-color: rgba(70, 140, 55, 0.9);
+}
+
+.trade-response--declined {
+    background-color: rgba(80, 30, 25, 0.6);
+    border-color: rgb(120, 60, 50);
+    color: rgb(200, 130, 120);
+    opacity: 0.7;
+}
+
+.trade-response--pending {
+    background-color: rgba(60, 55, 50, 0.6);
+    border-color: rgb(100, 90, 80);
+    color: rgb(168, 152, 128);
+}
+
 .build-panel {
     max-width: 420px;
     max-height: 80%;

@@ -69,6 +69,7 @@ public interface IGameManager
     bool TryBankTrade(ResourceType give, ResourceType receive);
     bool TryPlayerTrade(int otherPlayer, Dictionary<ResourceType, int> offer, Dictionary<ResourceType, int> request);
     int GetTradeRate(ResourceType resource);
+    bool IsPlayerAI(int playerIndex);
 
     // 거래 이벤트
     event Action<int, ResourceType, ResourceType, int> OnBankTrade; // (player, gave, received, rate)
