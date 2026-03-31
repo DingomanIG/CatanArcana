@@ -150,7 +150,7 @@ public class HexGridView : MonoBehaviour
         {
             var dots = new GameObject("Dots");
             dots.transform.SetParent(parent.transform);
-            dots.transform.localPosition = new Vector3(0f, 0.03f, -hexSize * 0.06f);
+            dots.transform.localPosition = new Vector3(0f, 0.03f, -hexSize * 0.12f);
             dots.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
 
             var dotTm = dots.AddComponent<TextMesh>();
