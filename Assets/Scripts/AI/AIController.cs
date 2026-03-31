@@ -105,7 +105,7 @@ public static class AIDifficultySettings
     public static string GetAIName(AIDifficulty d) => (int)d switch
     {
         1 => "덕",         // Duck
-        2 => "잼민",       // Jaemin - 꼬꼬마
+        2 => "잼미니",     // Jemini
         3 => "또리",       // Ddori - 기초 전략
         4 => "지피",       // Gipy
         5 => "수리",       // Suri - 중급
@@ -120,7 +120,7 @@ public static class AIDifficultySettings
     public static string GetAINameEN(AIDifficulty d) => (int)d switch
     {
         1 => "Duck",
-        2 => "Jaemin",
+        2 => "Jemini",
         3 => "Ddori",
         4 => "Gipy",
         5 => "Suri",
