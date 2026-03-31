@@ -283,6 +283,81 @@
     -unity-font-style: bold;
 }
 
+/* ========================
+   DEV CARD QUICK SLOT BAR
+   ======================== */
+
+.devcard-quickslot-bar {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    min-height: 0;
+    padding: 0 24px;
+    background-color: rgba(20, 17, 14, 0.85);
+    border-top-width: 1px;
+    border-top-color: rgb(60, 50, 42);
+    flex-wrap: wrap;
+    row-gap: 0;
+}
+
+.devcard-slot-btn {
+    flex-direction: row;
+    align-items: center;
+    padding: 4px 12px;
+    margin: 5px 4px;
+    border-radius: 20px;
+    border-width: 1px;
+    border-color: rgb(90, 75, 60);
+    background-color: rgba(42, 35, 28, 0.95);
+    color: rgb(220, 200, 170);
+    font-size: 13px;
+    cursor: link;
+    transition-property: background-color, border-color;
+    transition-duration: 0.15s;
+}
+
+.devcard-slot-btn:hover {
+    background-color: rgba(70, 58, 46, 0.95);
+    border-color: rgb(160, 130, 90);
+}
+
+.devcard-slot-btn:active {
+    background-color: rgba(100, 80, 55, 0.95);
+}
+
+.devcard-slot-btn--disabled {
+    opacity: 0.4;
+    cursor: arrow;
+}
+
+.devcard-slot-btn--knight {
+    border-color: rgb(80, 100, 150);
+    background-color: rgba(35, 45, 70, 0.95);
+}
+
+.devcard-slot-btn--knight:hover {
+    background-color: rgba(55, 70, 110, 0.95);
+    border-color: rgb(120, 150, 200);
+}
+
+.devcard-slot-count {
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: rgb(255, 220, 120);
+    margin-right: 5px;
+}
+
+.devcard-slot-name {
+    font-size: 12px;
+    color: rgb(200, 185, 160);
+}
+
+.devcard-slot-hint {
+    font-size: 10px;
+    color: rgb(130, 115, 95);
+    margin-left: 4px;
+}
+
 .resource-panel {
     flex-direction: row;
     justify-content: center;

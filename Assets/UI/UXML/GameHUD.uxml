@@ -105,6 +105,7 @@
                 <ui:Button name="btn-end-turn" text="턴 종료" class="action-btn action-btn--warning"/>
             </ui:VisualElement>
         </ui:VisualElement>
+        <ui:VisualElement name="devcard-quickslot-bar" class="devcard-quickslot-bar"/>
         <ui:VisualElement name="resource-panel" class="resource-panel" style="height: 86px;">
             <ui:VisualElement name="res-wood" class="resource-item02">
                 <ui:VisualElement class="resource-icon resource-icon--wood" style="align-items: center; -unity-text-align: middle-left; margin-right: 0;"/>

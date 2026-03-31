@@ -173,6 +173,9 @@ public class GameHUDController : MonoBehaviour
     // Dev Card Hand
     ScrollView devCardHand;
 
+    // Dev Card Quick Slot Bar
+    VisualElement devCardQuickSlotBar;
+
     // Dice dot elements (3x3 grid per die)
     VisualElement[,] die1Dots;
     VisualElement[,] die2Dots;
@@ -368,6 +371,7 @@ public class GameHUDController : MonoBehaviour
         btnSelectOre = root.Q<Button>("btn-select-ore");
 
         devCardHand = root.Q<ScrollView>("devcard-hand");
+        devCardQuickSlotBar = root.Q<VisualElement>("devcard-quickslot-bar");
 
         btnTradeTabBank = root.Q<Button>("btn-trade-tab-bank");
         btnTradeTabPlayer = root.Q<Button>("btn-trade-tab-player");
@@ -631,6 +635,7 @@ public class GameHUDController : MonoBehaviour
         UpdateTopBar();
         UpdateActionButtons();
         UpdateOpponentHighlight();
+        RefreshDevCardQuickSlots();
     }
 
     void HandlePhaseChanged(GamePhase newPhase)
@@ -638,6 +643,7 @@ public class GameHUDController : MonoBehaviour
         UpdateTopBar();
         UpdateActionButtons();
         UpdateOpponentHighlight();
+        RefreshDevCardQuickSlots();
 
         if (newPhase == GamePhase.InitialPlacement)
             ShowTurnOrderOverlay();
@@ -716,6 +722,7 @@ public class GameHUDController : MonoBehaviour
             Debug.Log($"[HUD] 발전카드 구매: {cardType}");
             UpdateBuildCounts();
             UpdatePlayerStats();
+            RefreshDevCardQuickSlots();
         }
         UpdateOpponentCard(playerIndex);
     }
@@ -729,7 +736,11 @@ public class GameHUDController : MonoBehaviour
             ShowToast("knight", $"{who}이(가) 기사 카드를 사용했습니다!");
 
         UpdateOpponentCard(playerIndex);
-        if (playerIndex == GM.LocalPlayerIndex) UpdatePlayerStats();
+        if (playerIndex == GM.LocalPlayerIndex)
+        {
+            UpdatePlayerStats();
+            RefreshDevCardQuickSlots();
+        }
     }
 
     void HandleLongestRoadChanged(int playerIndex, bool gained)
@@ -834,6 +845,7 @@ public class GameHUDController : MonoBehaviour
         UpdatePlayerStats();
         UpdateBuildCounts();
         UpdateBankResources();
+        RefreshDevCardQuickSlots();
         AddEventLog("게임 대기중...", "system");
     }
 
@@ -1038,6 +1050,98 @@ public class GameHUDController : MonoBehaviour
                 OpenResourceSelect(ResourceSelectMode.Monopoly, "독점: 자원 선택");
                 break;
         }
+    }
+
+    // ========================
+    // DEV CARD QUICK SLOT BAR
+    // ========================
+
+    void RefreshDevCardQuickSlots()
+    {
+        if (devCardQuickSlotBar == null || GM == null) return;
+        devCardQuickSlotBar.Clear();
+
+        var state = GM.GetPlayerState(GM.LocalPlayerIndex);
+        if (state == null || state.DevCards.Count == 0)
+        {
+            SetVisible(devCardQuickSlotBar, false);
+            return;
+        }
+
+        // 종류별 카운트 집계 (미사용만)
+        var counts = new Dictionary<DevCardType, int>();
+        foreach (var card in state.DevCards)
+        {
+            if (card.IsUsed) continue;
+            counts.TryGetValue(card.Type, out int cnt);
+            counts[card.Type] = cnt + 1;
+        }
+
+        if (counts.Count == 0)
+        {
+            SetVisible(devCardQuickSlotBar, false);
+            return;
+        }
+
+        bool isMyTurn = GM.IsMyTurn();
+        bool canUseCard = isMyTurn
+            && !state.HasUsedDevCardThisTurn
+            && (GM.CurrentPhase == GamePhase.Action || GM.CurrentPhase == GamePhase.RollDice);
+
+        // 표시 순서: 기사 → 도로건설 → 풍년 → 독점 → 승리점
+        DevCardType[] order = { DevCardType.Knight, DevCardType.RoadBuilding, DevCardType.YearOfPlenty, DevCardType.Monopoly, DevCardType.VictoryPoint };
+        foreach (var type in order)
+        {
+            if (!counts.TryGetValue(type, out int count)) continue;
+
+            var btn = new Button();
+            btn.AddToClassList("devcard-slot-btn");
+            if (type == DevCardType.Knight) btn.AddToClassList("devcard-slot-btn--knight");
+
+            var countLabel = new Label(count.ToString());
+            countLabel.AddToClassList("devcard-slot-count");
+
+            var nameLabel = new Label(GetDevCardName(type));
+            nameLabel.AddToClassList("devcard-slot-name");
+
+            btn.Add(countLabel);
+            btn.Add(nameLabel);
+
+            bool isVP = type == DevCardType.VictoryPoint;
+            bool usable = canUseCard && !isVP;
+
+            // 사용 불가 이유 힌트
+            if (!isVP && isMyTurn && !canUseCard)
+            {
+                string hint = state.HasUsedDevCardThisTurn ? "(이미 사용)" :
+                              GM.CurrentPhase == GamePhase.RollDice ? "(주사위 전 가능)" : "";
+                if (!string.IsNullOrEmpty(hint))
+                {
+                    var hintLabel = new Label(hint);
+                    hintLabel.AddToClassList("devcard-slot-hint");
+                    btn.Add(hintLabel);
+                }
+            }
+
+            if (!usable) btn.AddToClassList("devcard-slot-btn--disabled");
+            btn.SetEnabled(usable);
+
+            if (usable)
+            {
+                // 해당 타입의 첫 번째 사용 가능한 카드 찾기
+                var capturedType = type;
+                btn.clicked += () =>
+                {
+                    var card = GM.GetPlayerState(GM.LocalPlayerIndex)?.DevCards
+                        .Find(c => !c.IsUsed && c.Type == capturedType && c.CanUseOnTurn(GM.TurnNumber));
+                    if (card != null) UseDevCard(card);
+                };
+            }
+
+            devCardQuickSlotBar.Add(btn);
+        }
+
+        SetVisible(devCardQuickSlotBar, true);
     }
 
     // ========================
