@@ -65,6 +65,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     public BuildMode CurrentBuildMode => currentBuildMode;
     public DevCardUseState DevCardState => devCardUseState;
     public int DevCardDeckRemaining => devCardDeck?.RemainingCount ?? 0;
+    public bool IsWaitingForDiscard => waitingForDiscard;
 
     // ========================
     // 이벤트

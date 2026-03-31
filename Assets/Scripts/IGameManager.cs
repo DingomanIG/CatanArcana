@@ -17,6 +17,7 @@ public interface IGameManager
     BuildMode CurrentBuildMode { get; }
     DevCardUseState DevCardState { get; }
     int DevCardDeckRemaining { get; }
+    bool IsWaitingForDiscard { get; }
 
     // 기존 이벤트
     event Action<int> OnTurnChanged;

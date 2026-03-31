@@ -347,6 +347,10 @@ public class AIController : MonoBehaviour
         gm.RollDice();
         yield return new WaitForSeconds(actionDelay);
 
+        // 1.5. 인간 플레이어 디스카드 대기 (7이 나왔을 때)
+        while (gm.IsWaitingForDiscard)
+            yield return null;
+
         // 2. 도적 이동 (7이 나왔을 때)
         if (gm.CurrentPhase == GamePhase.MoveRobber)
         {
