@@ -277,6 +277,10 @@ public static class AIStrategySelector
 
         foreach (var type in candidates)
         {
+            // Port 전략 하드캡: 이미 다른 AI가 사용 중이면 제외
+            if (type == AIStrategyType.Port && chosenCount.ContainsKey(AIStrategyType.Port))
+                continue;
+
             float score = ScoreStrategyFit(type, availablePips, grid, hasPort);
             score *= 1f + Random.Range(-noiseRange, noiseRange);
 
@@ -330,6 +334,10 @@ public static class AIStrategySelector
 
         foreach (var type in candidates)
         {
+            // Port 전략 하드캡: 이미 다른 AI가 사용 중이면 제외
+            if (type == AIStrategyType.Port && chosenCount.ContainsKey(AIStrategyType.Port))
+                continue;
+
             float score = ScoreStrategyFit(type, ownedPips, grid, ownsPort);
             score *= 1f + Random.Range(-noiseRange, noiseRange);
 

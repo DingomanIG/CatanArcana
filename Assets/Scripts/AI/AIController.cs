@@ -358,6 +358,9 @@ public class AIController : MonoBehaviour
         // 모든 플레이어 상태
         var allPlayers = GetAllPlayerStates();
 
+        // 도적 노이즈는 평가 노이즈의 30% (도적은 정밀하게 배치해야 함)
+        float robberNoise = AIDifficultySettings.EvalNoise(diff) * 0.3f;
+
         foreach (var tile in grid.Tiles.Values)
         {
             if (tile.Resource == ResourceType.Sea) continue;
@@ -370,8 +373,10 @@ public class AIController : MonoBehaviour
             }
             else
             {
-                score = AIBoardEvaluator.EvaluateRobberTarget(tile, playerIndex, allPlayers, diff);
-                score += Random.Range(0f, AIDifficultySettings.EvalNoise(diff));
+                float baseScore = AIBoardEvaluator.EvaluateRobberTarget(tile, playerIndex, allPlayers, diff);
+                // 적 건물이 없는 타일(score=0)은 건너뜀
+                if (baseScore <= 0f) continue;
+                score = baseScore + Random.Range(0f, robberNoise);
             }
 
             if (score > bestScore)
@@ -381,7 +386,7 @@ public class AIController : MonoBehaviour
             }
         }
 
-        Debug.Log($"[AI] P{playerIndex}: 도적 이동 → {bestTile}");
+        Debug.Log($"[AI] P{playerIndex}: 도적 이동 → {bestTile} (점수: {bestScore:F1})");
         gm.TryMoveRobber(bestTile);
     }
 
@@ -803,14 +808,24 @@ public class AIController : MonoBehaviour
             if (tile.HasRobber) { currentRobber = tile.Coord; break; }
         }
 
+        float robberNoise = AIDifficultySettings.EvalNoise(diff) * 0.3f;
+
         foreach (var tile in grid.Tiles.Values)
         {
             if (tile.Resource == ResourceType.Sea) continue;
             if (tile.Coord.Equals(currentRobber)) continue;
 
-            float score = AIDifficultySettings.IsRandom(diff)
-                ? Random.value
-                : AIBoardEvaluator.EvaluateRobberTarget(tile, playerIndex, allPlayers, diff) + Random.Range(0f, AIDifficultySettings.EvalNoise(diff));
+            float score;
+            if (AIDifficultySettings.IsRandom(diff))
+            {
+                score = Random.value;
+            }
+            else
+            {
+                float baseScore = AIBoardEvaluator.EvaluateRobberTarget(tile, playerIndex, allPlayers, diff);
+                if (baseScore <= 0f) continue;
+                score = baseScore + Random.Range(0f, robberNoise);
+            }
 
             if (score > bestScore)
             {
