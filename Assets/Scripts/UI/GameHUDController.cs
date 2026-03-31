@@ -121,6 +121,7 @@ public class GameHUDController : MonoBehaviour
     VisualElement tradePlayerGrid;
     Button btnExecuteBankTrade;
     Button btnExecutePlayerTrade;
+    Label bankTradeSummaryLabel;
 
     // Steal Overlay
     VisualElement stealOverlay;
@@ -362,6 +363,7 @@ public class GameHUDController : MonoBehaviour
         tradePlayerGrid = root.Q<VisualElement>("trade-player-grid");
         btnExecuteBankTrade = root.Q<Button>("btn-execute-bank-trade");
         btnExecutePlayerTrade = root.Q<Button>("btn-execute-player-trade");
+        bankTradeSummaryLabel = root.Q<Label>("bank-trade-summary");
 
         stealOverlay = root.Q<VisualElement>("steal-overlay");
         stealPlayerList = root.Q<VisualElement>("steal-player-list");
@@ -857,7 +859,7 @@ public class GameHUDController : MonoBehaviour
         btnBuildCity.SetEnabled(actionPhase);
         btnBuyDevCard.SetEnabled(actionPhase);
         btnTrade.SetEnabled(actionPhase);
-        btnDevCardHand.SetEnabled(actionPhase);
+        btnDevCardHand.SetEnabled(phase != GamePhase.WaitingForPlayers && phase != GamePhase.GameOver);
     }
 
     void HideAllButtons()
@@ -873,7 +875,7 @@ public class GameHUDController : MonoBehaviour
         btnBuildCity.SetEnabled(false);
         btnBuyDevCard.SetEnabled(false);
         btnTrade.SetEnabled(false);
-        btnDevCardHand.SetEnabled(false);
+        btnDevCardHand.SetEnabled(false); // HideAllButtons는 GM==null일 때만 호출
     }
 
     static void SetVisible(VisualElement element, bool visible)
@@ -1077,6 +1079,7 @@ public class GameHUDController : MonoBehaviour
         bankReceiveSelected = null;
         BuildBankGiveButtons();
         BuildBankReceiveButtons();
+        UpdateBankTradeSummary();
         UpdateBankTradeExecuteButton();
     }
 
@@ -1104,8 +1107,10 @@ public class GameHUDController : MonoBehaviour
             btn.clicked += () =>
             {
                 bankGiveSelected = captured;
+                bankReceiveSelected = null;
                 BuildBankGiveButtons();
                 BuildBankReceiveButtons();
+                UpdateBankTradeSummary();
                 UpdateBankTradeExecuteButton();
             };
 
@@ -1119,10 +1124,11 @@ public class GameHUDController : MonoBehaviour
 
         foreach (var res in AllResources)
         {
+            int bankStock = GM?.GetBankResourceCount(res) ?? 0;
             var btn = new Button();
-            btn.text = GetResourceName(res);
+            btn.text = $"{GetResourceName(res)}\n(재고 {bankStock})";
             btn.AddToClassList("trade-res-btn");
-            btn.SetEnabled(bankGiveSelected.HasValue && bankGiveSelected != res);
+            btn.SetEnabled(bankGiveSelected.HasValue && bankGiveSelected != res && bankStock > 0);
 
             if (bankReceiveSelected == res)
                 btn.AddToClassList("trade-res-btn--selected");
@@ -1132,10 +1138,32 @@ public class GameHUDController : MonoBehaviour
             {
                 bankReceiveSelected = captured;
                 BuildBankReceiveButtons();
+                UpdateBankTradeSummary();
                 UpdateBankTradeExecuteButton();
             };
 
             tradeReceiveGrid.Add(btn);
+        }
+    }
+
+    void UpdateBankTradeSummary()
+    {
+        if (bankTradeSummaryLabel == null) return;
+
+        if (bankGiveSelected.HasValue && bankReceiveSelected.HasValue)
+        {
+            int rate = GM?.GetTradeRate(bankGiveSelected.Value) ?? 4;
+            bankTradeSummaryLabel.text =
+                $"{GetResourceName(bankGiveSelected.Value)} ×{rate}  →  {GetResourceName(bankReceiveSelected.Value)} ×1";
+        }
+        else if (bankGiveSelected.HasValue)
+        {
+            int rate = GM?.GetTradeRate(bankGiveSelected.Value) ?? 4;
+            bankTradeSummaryLabel.text = $"{GetResourceName(bankGiveSelected.Value)} ×{rate}  →  ?";
+        }
+        else
+        {
+            bankTradeSummaryLabel.text = "";
         }
     }
 
@@ -1240,8 +1268,10 @@ public class GameHUDController : MonoBehaviour
         {
             if (i == GM.LocalPlayerIndex) continue;
 
+            var state = GM.GetPlayerState(i);
+            int resCount = state?.TotalResourceCount ?? 0;
             var btn = new Button();
-            btn.text = GM.GetPlayerName(i);
+            btn.text = $"{GM.GetPlayerName(i)} ({resCount}장)";
             btn.AddToClassList("trade-player-btn");
 
             if (playerTradeTarget == i)

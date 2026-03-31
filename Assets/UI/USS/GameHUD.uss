@@ -649,6 +649,15 @@
     background-color: rgba(90, 158, 75, 0.2);
 }
 
+.trade-summary {
+    color: rgb(212, 168, 69);
+    font-size: 14px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    margin-top: 4px;
+    min-height: 18px;
+}
+
 .build-panel {
     max-width: 420px;
     max-height: 80%;
@@ -981,6 +990,13 @@
 
 .bonus-label--hidden {
     display: none;
+}
+
+.now-playing-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 11px;
+    -unity-text-align: middle-left;
+    padding: 2px 12px;
 }
 
 .volume-panel {
