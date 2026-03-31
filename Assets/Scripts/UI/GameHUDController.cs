@@ -1575,7 +1575,7 @@ public class GameHUDController : MonoBehaviour
     static string GetStatusText(GamePhase phase) => phase switch
     {
         GamePhase.InitialPlacement => "배치중 ...",
-        GamePhase.RollDice => "주사위 ...",
+        GamePhase.RollDice => "주사위 굴리는중 ...",
         GamePhase.Action => "행동중 ...",
         GamePhase.MoveRobber => "도적 이동 ...",
         GamePhase.StealResource => "약탈중 ...",
