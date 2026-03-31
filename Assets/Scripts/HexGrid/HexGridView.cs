@@ -18,6 +18,11 @@ public class HexGridView : MonoBehaviour
     [SerializeField] bool showVertices = false;
     [SerializeField] bool showEdges = false;
 
+    [Header("프리팹 (Catan > 프리팹 생성 메뉴로 자동 생성)")]
+    [SerializeField] GameObject hexTilePrefab;
+    [SerializeField] GameObject numberTokenPrefab;
+    [SerializeField] GameObject robberPrefab;
+
     HexGrid grid;
     Dictionary<HexCoord, GameObject> tileViews = new();
     Mesh hexMesh;
@@ -38,7 +43,8 @@ public class HexGridView : MonoBehaviour
 
     void Awake()
     {
-        hexMesh = HexMeshGenerator.CreateFlatHexMesh(hexSize - tileGap);
+        if (hexTilePrefab == null)
+            hexMesh = HexMeshGenerator.CreateFlatHexMesh(hexSize - tileGap);
         defaultMaterial = CreateDefaultMaterial();
 
         grid = new HexGrid(hexSize);
@@ -68,31 +74,30 @@ public class HexGridView : MonoBehaviour
 
     void CreateTileView(HexTile tile)
     {
-        var go = new GameObject($"Tile_{tile.Coord}");
-        go.transform.SetParent(transform);
-        go.transform.position = tile.Coord.ToWorldPosition(hexSize);
+        GameObject go;
+        if (hexTilePrefab != null)
+        {
+            go = Instantiate(hexTilePrefab, tile.Coord.ToWorldPosition(hexSize), Quaternion.identity, transform);
+        }
+        else
+        {
+            go = new GameObject();
+            go.transform.SetParent(transform);
+            go.transform.position = tile.Coord.ToWorldPosition(hexSize);
+            go.AddComponent<MeshFilter>().mesh = hexMesh;
+            go.AddComponent<MeshRenderer>().material = new Material(defaultMaterial);
+            go.AddComponent<MeshCollider>();
+        }
+        go.name = $"Tile_{tile.Coord}";
 
-        var mf = go.AddComponent<MeshFilter>();
-        mf.mesh = hexMesh;
-
-        var mr = go.AddComponent<MeshRenderer>();
-        mr.material = new Material(defaultMaterial);
+        var mr = go.GetComponent<MeshRenderer>();
         mr.material.color = RESOURCE_COLORS[tile.Resource];
 
-        // 도적 이동용 콜라이더
-        go.AddComponent<MeshCollider>();
-
-        // 숫자 토큰 라벨
         if (tile.NumberToken > 0)
-        {
             CreateNumberLabel(go, tile);
-        }
 
-        // 도적 표시
         if (tile.HasRobber)
-        {
             CreateRobberMarker(go);
-        }
 
         tileViews[tile.Coord] = go;
     }
@@ -100,42 +105,61 @@ public class HexGridView : MonoBehaviour
     void CreateNumberLabel(GameObject parent, HexTile tile)
     {
         bool isHot = tile.NumberToken == 6 || tile.NumberToken == 8;
+
+        if (numberTokenPrefab != null)
+        {
+            var token = Instantiate(numberTokenPrefab, parent.transform);
+            token.transform.localPosition = Vector3.zero;
+
+            var numberText = token.transform.Find("NumberText").GetComponent<TextMesh>();
+            numberText.text = tile.NumberToken.ToString();
+            numberText.color = isHot ? Color.red : Color.black;
+            SetTextMeshDepthTest(numberText.gameObject);
+
+            int dotCount = GetProbabilityDots(tile.NumberToken);
+            var dots = token.transform.Find("Dots").GetComponent<TextMesh>();
+            if (dotCount > 0)
+            {
+                dots.text = new string('\u2022', dotCount);
+                dots.color = isHot ? Color.red : Color.black;
+                SetTextMeshDepthTest(dots.gameObject);
+            }
+            else
+            {
+                dots.gameObject.SetActive(false);
+            }
+            return;
+        }
+
+        // 프리팹 없을 때 폴백
         float tokenRadius = hexSize * 0.45f;
 
-        // 테두리 링 (약간 더 큰 납작 실린더, 먼저 깔기)
         var ring = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         ring.name = "TokenRing";
         ring.transform.SetParent(parent.transform);
         ring.transform.localPosition = new Vector3(0f, 0.015f, 0f);
         ring.transform.localScale = new Vector3(tokenRadius * 1.12f, 0.008f, tokenRadius * 1.12f);
-
         var ringCol = ring.GetComponent<Collider>();
         if (ringCol != null) Destroy(ringCol);
-
         var ringMr = ring.GetComponent<MeshRenderer>();
         ringMr.material = new Material(defaultMaterial);
-        ringMr.material.color = new Color(0.35f, 0.25f, 0.15f); // 다크 브라운
+        ringMr.material.color = new Color(0.35f, 0.25f, 0.15f);
 
-        // 토큰 배경 (납작한 실린더)
-        var token = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        token.name = "NumberToken";
-        token.transform.SetParent(parent.transform);
-        token.transform.localPosition = new Vector3(0f, 0.02f, 0f);
-        token.transform.localScale = new Vector3(tokenRadius, 0.01f, tokenRadius);
-
-        var col = token.GetComponent<Collider>();
+        var bg = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        bg.name = "NumberToken";
+        bg.transform.SetParent(parent.transform);
+        bg.transform.localPosition = new Vector3(0f, 0.02f, 0f);
+        bg.transform.localScale = new Vector3(tokenRadius, 0.01f, tokenRadius);
+        var col = bg.GetComponent<Collider>();
         if (col != null) Destroy(col);
-
-        var tokenMr = token.GetComponent<MeshRenderer>();
+        var tokenMr = bg.GetComponent<MeshRenderer>();
         tokenMr.material = new Material(defaultMaterial);
-        tokenMr.material.color = new Color(0.95f, 0.92f, 0.85f); // 크림색
+        tokenMr.material.color = new Color(0.95f, 0.92f, 0.85f);
 
-        // 숫자 텍스트 (타일 직접 자식 - 비균일 스케일 회피)
         var label = new GameObject("NumberText");
         label.transform.SetParent(parent.transform);
-        label.transform.localPosition = new Vector3(0f, 0.03f, 0f);
+        label.transform.localPosition = new Vector3(0f, 0.05f, 0f);
         label.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
-
         var tm = label.AddComponent<TextMesh>();
         tm.text = tile.NumberToken.ToString();
         tm.characterSize = hexSize * 0.06f;
@@ -144,35 +168,33 @@ public class HexGridView : MonoBehaviour
         tm.fontSize = 64;
         tm.fontStyle = FontStyle.Bold;
         tm.color = isHot ? Color.red : Color.black;
-        // depth test 활성화 → 건물/도적 뒤로 가려지도록
         SetTextMeshDepthTest(label);
 
-        // 확률 도트 (타일 직접 자식)
-        int dotCount = GetProbabilityDots(tile.NumberToken);
-        if (dotCount > 0)
+        int fallbackDotCount = GetProbabilityDots(tile.NumberToken);
+        if (fallbackDotCount > 0)
         {
-            var dots = new GameObject("Dots");
-            dots.transform.SetParent(parent.transform);
-            dots.transform.localPosition = new Vector3(0f, 0.03f, -hexSize * 0.18f);
-            dots.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
-
-            var dotTm = dots.AddComponent<TextMesh>();
-            dotTm.text = new string('\u2022', dotCount);
+            var dotsGo = new GameObject("Dots");
+            dotsGo.transform.SetParent(parent.transform);
+            dotsGo.transform.localPosition = new Vector3(0f, 0.05f, -hexSize * 0.18f);
+            dotsGo.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+            var dotTm = dotsGo.AddComponent<TextMesh>();
+            dotTm.text = new string('\u2022', fallbackDotCount);
             dotTm.characterSize = hexSize * 0.025f;
             dotTm.anchor = TextAnchor.MiddleCenter;
             dotTm.alignment = TextAlignment.Center;
             dotTm.fontSize = 48;
             dotTm.color = isHot ? Color.red : Color.black;
-            SetTextMeshDepthTest(dots);
+            SetTextMeshDepthTest(dotsGo);
         }
     }
 
     static void SetTextMeshDepthTest(GameObject go)
     {
-        var mat = go.GetComponent<MeshRenderer>().material;
-        mat.renderQueue = 2001;
-        // GUI/Text Shader의 depth test 강제 활성화
-        mat.SetInt("unity_GUIZTestMode", (int)UnityEngine.Rendering.CompareFunction.LessEqual);
+        var mr = go.GetComponent<MeshRenderer>();
+        var mat = mr.material;
+        // 원래 텍스트 셰이더 유지 (TextMesh.color 정상 반영)
+        // depth test만 LessEqual로 변경 → 도적/건물 뒤로 가려짐
+        mat.SetFloat("unity_GUIZTestMode", (float)UnityEngine.Rendering.CompareFunction.LessEqual);
     }
 
     static int GetProbabilityDots(int number) => number switch
@@ -187,15 +209,22 @@ public class HexGridView : MonoBehaviour
 
     void CreateRobberMarker(GameObject parent)
     {
-        var marker = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        GameObject marker;
+        if (robberPrefab != null)
+        {
+            marker = Instantiate(robberPrefab, parent.transform);
+        }
+        else
+        {
+            marker = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            marker.transform.localScale = new Vector3(hexSize * 0.25f, 0.3f, hexSize * 0.25f);
+            var mr = marker.GetComponent<MeshRenderer>();
+            mr.material = new Material(defaultMaterial);
+            mr.material.color = new Color(0.15f, 0.15f, 0.15f);
+        }
         marker.name = "Robber";
         marker.transform.SetParent(parent.transform);
         marker.transform.localPosition = new Vector3(0f, 0.5f, 0f);
-        marker.transform.localScale = new Vector3(hexSize * 0.25f, 0.3f, hexSize * 0.25f);
-
-        var mr = marker.GetComponent<MeshRenderer>();
-        mr.material = new Material(defaultMaterial);
-        mr.material.color = new Color(0.15f, 0.15f, 0.15f);
     }
 
     void CreateVertexVisuals()

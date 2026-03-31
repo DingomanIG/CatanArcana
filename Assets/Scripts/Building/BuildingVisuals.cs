@@ -17,6 +17,12 @@ public class BuildingVisuals : MonoBehaviour
     static readonly Color HIGHLIGHT_VALID = new Color(0.3f, 1f, 0.3f, 0.5f);
     static readonly Color HIGHLIGHT_HOVER = new Color(1f, 1f, 0.3f, 0.8f);
 
+    [Header("프리팹 (Catan > 프리팹 생성 메뉴로 자동 생성)")]
+    [SerializeField] GameObject settlementPrefab;
+    [SerializeField] GameObject cityPrefab;
+    [SerializeField] GameObject roadPrefab;
+    [SerializeField] GameObject vertexHighlightPrefab;
+
     Material defaultMaterial;
     Material highlightMaterial;
 
@@ -69,11 +75,19 @@ public class BuildingVisuals : MonoBehaviour
         if (settlementObjects.ContainsKey(vertex.Id))
             return;
 
-        var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        GameObject go;
+        if (settlementPrefab != null)
+        {
+            go = Instantiate(settlementPrefab, buildingsParent);
+        }
+        else
+        {
+            go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go.transform.localScale = new Vector3(0.25f, 0.25f, 0.25f);
+        }
         go.name = $"Settlement_P{playerIndex}_V{vertex.Id}";
         go.transform.SetParent(buildingsParent);
         go.transform.position = vertex.Position + Vector3.up * 0.15f;
-        go.transform.localScale = new Vector3(0.25f, 0.25f, 0.25f);
 
         var mr = go.GetComponent<MeshRenderer>();
         mr.material = new Material(defaultMaterial);
@@ -85,18 +99,25 @@ public class BuildingVisuals : MonoBehaviour
     /// <summary>도시 생성 (마을 → 도시 교체)</summary>
     public void CreateCity(HexVertex vertex, int playerIndex)
     {
-        // 기존 마을 제거
         if (settlementObjects.TryGetValue(vertex.Id, out var old))
         {
             Destroy(old);
             settlementObjects.Remove(vertex.Id);
         }
 
-        var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        GameObject go;
+        if (cityPrefab != null)
+        {
+            go = Instantiate(cityPrefab, buildingsParent);
+        }
+        else
+        {
+            go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
+        }
         go.name = $"City_P{playerIndex}_V{vertex.Id}";
         go.transform.SetParent(buildingsParent);
         go.transform.position = vertex.Position + Vector3.up * 0.2f;
-        go.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
 
         var mr = go.GetComponent<MeshRenderer>();
         mr.material = new Material(defaultMaterial);
@@ -111,21 +132,28 @@ public class BuildingVisuals : MonoBehaviour
         if (roadObjects.ContainsKey(edge.Id))
             return;
 
-        var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        var dir = edge.VertexB.Position - edge.VertexA.Position;
+
+        GameObject go;
+        if (roadPrefab != null)
+        {
+            go = Instantiate(roadPrefab, buildingsParent);
+            go.transform.localScale = new Vector3(0.1f, dir.magnitude / 2f, 0.1f);
+        }
+        else
+        {
+            go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            go.transform.localScale = new Vector3(0.1f, dir.magnitude / 2f, 0.1f);
+            Destroy(go.GetComponent<Collider>());
+        }
         go.name = $"Road_P{playerIndex}_E{edge.Id}";
         go.transform.SetParent(buildingsParent);
-
-        var dir = edge.VertexB.Position - edge.VertexA.Position;
         go.transform.position = edge.MidPoint + Vector3.up * 0.05f;
         go.transform.rotation = Quaternion.LookRotation(dir) * Quaternion.Euler(90f, 0f, 0f);
-        go.transform.localScale = new Vector3(0.1f, dir.magnitude / 2f, 0.1f);
 
         var mr = go.GetComponent<MeshRenderer>();
         mr.material = new Material(defaultMaterial);
         mr.material.color = GetPlayerColor(playerIndex);
-
-        // 도로 콜라이더 제거 (건물과 겹치지 않게)
-        Destroy(go.GetComponent<Collider>());
 
         roadObjects[edge.Id] = go;
     }
@@ -139,12 +167,20 @@ public class BuildingVisuals : MonoBehaviour
     {
         foreach (var vertex in vertices)
         {
-            var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            GameObject go;
+            if (vertexHighlightPrefab != null)
+            {
+                go = Instantiate(vertexHighlightPrefab, highlightsParent);
+            }
+            else
+            {
+                go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                go.transform.localScale = Vector3.one * 0.3f;
+            }
             go.name = $"Highlight_V{vertex.Id}";
             go.transform.SetParent(highlightsParent);
             go.transform.position = vertex.Position + Vector3.up * 0.1f;
-            go.transform.localScale = Vector3.one * 0.3f;
-            go.layer = 0; // Default layer for raycasting
+            go.layer = 0;
 
             var mr = go.GetComponent<MeshRenderer>();
             mr.material = new Material(highlightMaterial);
@@ -160,14 +196,23 @@ public class BuildingVisuals : MonoBehaviour
     {
         foreach (var edge in edges)
         {
-            var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            var dir = edge.VertexB.Position - edge.VertexA.Position;
+
+            GameObject go;
+            if (roadPrefab != null)
+            {
+                go = Instantiate(roadPrefab, highlightsParent);
+                go.transform.localScale = new Vector3(0.15f, dir.magnitude / 2f, 0.15f);
+            }
+            else
+            {
+                go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                go.transform.localScale = new Vector3(0.15f, dir.magnitude / 2f, 0.15f);
+            }
             go.name = $"Highlight_E{edge.Id}";
             go.transform.SetParent(highlightsParent);
-
-            var dir = edge.VertexB.Position - edge.VertexA.Position;
             go.transform.position = edge.MidPoint + Vector3.up * 0.05f;
             go.transform.rotation = Quaternion.LookRotation(dir) * Quaternion.Euler(90f, 0f, 0f);
-            go.transform.localScale = new Vector3(0.15f, dir.magnitude / 2f, 0.15f);
             go.layer = 0;
 
             var mr = go.GetComponent<MeshRenderer>();
