@@ -1543,7 +1543,7 @@ public class GameHUDController : MonoBehaviour
             ui.statusText.text = string.Join(", ", gains);
             ui.statusBar.style.backgroundColor = StatusGreen;
             ui.statusBar.style.display = DisplayStyle.Flex;
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(1.5f);
         }
 
         // 손실 표시
@@ -1552,7 +1552,7 @@ public class GameHUDController : MonoBehaviour
             ui.statusText.text = string.Join(", ", losses);
             ui.statusBar.style.backgroundColor = StatusRed;
             ui.statusBar.style.display = DisplayStyle.Flex;
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(1.5f);
         }
 
         // 원래 상태로 복귀
