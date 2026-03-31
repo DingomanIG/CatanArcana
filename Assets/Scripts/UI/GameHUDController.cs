@@ -163,6 +163,7 @@ public class GameHUDController : MonoBehaviour
     VisualElement turnOrderOverlay;
     VisualElement turnOrderList;
     Button btnCloseTurnOrder;
+    Coroutine turnOrderCountdown;
 
     // Result Overlay
     VisualElement resultOverlay;
@@ -519,7 +520,7 @@ public class GameHUDController : MonoBehaviour
         btnCloseRules.clicked += OnCloseRulesClicked;
         btnCloseDevCard.clicked += OnCloseDevCardClicked;
         btnCancelResourceSelect.clicked += OnCancelResourceSelect;
-        btnCloseTurnOrder.clicked += () => turnOrderOverlay.AddToClassList("overlay--hidden");
+        btnCloseTurnOrder.clicked += () => CloseTurnOrderOverlay();
         btnResultMenu.clicked += OnResultMenuClicked;
         btnResultRematch.clicked += OnResultRematchClicked;
 
@@ -661,6 +662,9 @@ public class GameHUDController : MonoBehaviour
         UpdateOpponentHighlight();
         RefreshDevCardQuickSlots();
 
+        if (newPhase == GamePhase.WaitingForPlayers)
+            StartCoroutine(AutoStartGame());
+
         if (newPhase == GamePhase.InitialPlacement)
             ShowTurnOrderOverlay();
 
@@ -671,6 +675,12 @@ public class GameHUDController : MonoBehaviour
 
         if (newPhase == GamePhase.GameOver)
             ShowResultScreen();
+    }
+
+    IEnumerator AutoStartGame()
+    {
+        yield return null; // 1프레임 대기 (초기화 완료 보장)
+        GM?.StartGame();
     }
 
     void HandleDiceRolled(int die1, int die2, int total)
@@ -947,7 +957,7 @@ public class GameHUDController : MonoBehaviour
         // 행동 패널 항상 표시
         SetVisible(actionPanel, true);
 
-        SetVisible(btnStartGame, phase == GamePhase.WaitingForPlayers && GM.IsHost);
+        SetVisible(btnStartGame, false); // 자동 시작이므로 수동 버튼 비활성화
 
         // 초기 배치 안내
         bool initialPhase = isMyTurn && phase == GamePhase.InitialPlacement;
@@ -2221,6 +2231,37 @@ public class GameHUDController : MonoBehaviour
         }
 
         turnOrderOverlay.RemoveFromClassList("overlay--hidden");
+
+        // 카운트다운 시작
+        if (turnOrderCountdown != null) StopCoroutine(turnOrderCountdown);
+        turnOrderCountdown = StartCoroutine(TurnOrderCountdown());
+    }
+
+    IEnumerator TurnOrderCountdown()
+    {
+        const int totalSeconds = 15;
+        for (int remaining = totalSeconds; remaining > 0; remaining--)
+        {
+            if (btnCloseTurnOrder != null)
+                btnCloseTurnOrder.text = $"게임 시작 ({remaining})";
+            yield return new WaitForSeconds(1f);
+        }
+
+        if (btnCloseTurnOrder != null)
+            btnCloseTurnOrder.text = "게임 시작!";
+
+        turnOrderCountdown = null;
+        CloseTurnOrderOverlay();
+    }
+
+    void CloseTurnOrderOverlay()
+    {
+        turnOrderOverlay?.AddToClassList("overlay--hidden");
+        if (turnOrderCountdown != null)
+        {
+            StopCoroutine(turnOrderCountdown);
+            turnOrderCountdown = null;
+        }
     }
 
     // ========================
