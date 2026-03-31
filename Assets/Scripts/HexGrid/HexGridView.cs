@@ -101,27 +101,12 @@ public class HexGridView : MonoBehaviour
         bool isHot = tile.NumberToken == 6 || tile.NumberToken == 8;
         float tokenRadius = hexSize * 0.28f;
 
-        // 토큰 배경 (납작한 실린더)
-        var token = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        token.name = "NumberToken";
-        token.transform.SetParent(parent.transform);
-        token.transform.localPosition = new Vector3(0f, 0.02f, 0f);
-        token.transform.localScale = new Vector3(tokenRadius, 0.01f, tokenRadius);
-
-        // 콜라이더 제거 (타일 클릭 방해 방지)
-        var col = token.GetComponent<Collider>();
-        if (col != null) Destroy(col);
-
-        var tokenMr = token.GetComponent<MeshRenderer>();
-        tokenMr.material = new Material(defaultMaterial);
-        tokenMr.material.color = new Color(0.95f, 0.92f, 0.85f); // 크림색
-
-        // 테두리 링 (약간 더 큰 실린더)
+        // 테두리 링 (약간 더 큰 납작 실린더, 먼저 깔기)
         var ring = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         ring.name = "TokenRing";
-        ring.transform.SetParent(token.transform);
-        ring.transform.localPosition = new Vector3(0f, -0.5f, 0f);
-        ring.transform.localScale = new Vector3(1.12f, 0.5f, 1.12f);
+        ring.transform.SetParent(parent.transform);
+        ring.transform.localPosition = new Vector3(0f, 0.015f, 0f);
+        ring.transform.localScale = new Vector3(tokenRadius * 1.12f, 0.008f, tokenRadius * 1.12f);
 
         var ringCol = ring.GetComponent<Collider>();
         if (ringCol != null) Destroy(ringCol);
@@ -130,10 +115,24 @@ public class HexGridView : MonoBehaviour
         ringMr.material = new Material(defaultMaterial);
         ringMr.material.color = new Color(0.35f, 0.25f, 0.15f); // 다크 브라운
 
-        // 숫자 텍스트
+        // 토큰 배경 (납작한 실린더)
+        var token = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        token.name = "NumberToken";
+        token.transform.SetParent(parent.transform);
+        token.transform.localPosition = new Vector3(0f, 0.02f, 0f);
+        token.transform.localScale = new Vector3(tokenRadius, 0.01f, tokenRadius);
+
+        var col = token.GetComponent<Collider>();
+        if (col != null) Destroy(col);
+
+        var tokenMr = token.GetComponent<MeshRenderer>();
+        tokenMr.material = new Material(defaultMaterial);
+        tokenMr.material.color = new Color(0.95f, 0.92f, 0.85f); // 크림색
+
+        // 숫자 텍스트 (타일 직접 자식 - 비균일 스케일 회피)
         var label = new GameObject("NumberText");
-        label.transform.SetParent(token.transform);
-        label.transform.localPosition = new Vector3(0f, 1.5f, 0f);
+        label.transform.SetParent(parent.transform);
+        label.transform.localPosition = new Vector3(0f, 0.03f, 0f);
         label.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
 
         var tm = label.AddComponent<TextMesh>();
@@ -145,18 +144,18 @@ public class HexGridView : MonoBehaviour
         tm.fontStyle = FontStyle.Bold;
         tm.color = isHot ? new Color(0.85f, 0.1f, 0.1f) : new Color(0.15f, 0.15f, 0.15f);
 
-        // 확률 도트
+        // 확률 도트 (타일 직접 자식)
         int dotCount = GetProbabilityDots(tile.NumberToken);
         if (dotCount > 0)
         {
             var dots = new GameObject("Dots");
-            dots.transform.SetParent(token.transform);
-            dots.transform.localPosition = new Vector3(0f, 1.5f, 0.25f);
+            dots.transform.SetParent(parent.transform);
+            dots.transform.localPosition = new Vector3(0f, 0.03f, -hexSize * 0.08f);
             dots.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
 
             var dotTm = dots.AddComponent<TextMesh>();
-            dotTm.text = new string('\u2022', dotCount); // bullet dots
-            dotTm.characterSize = hexSize * 0.06f;
+            dotTm.text = new string('\u2022', dotCount);
+            dotTm.characterSize = hexSize * 0.05f;
             dotTm.anchor = TextAnchor.MiddleCenter;
             dotTm.alignment = TextAlignment.Center;
             dotTm.fontSize = 48;
