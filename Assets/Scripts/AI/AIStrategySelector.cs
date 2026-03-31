@@ -243,15 +243,30 @@ public static class AIStrategySelector
 
     /// <summary>
     /// 보드 평가 후 최적 전략 선택
-    /// 초기 배치 전 호출
+    /// 초기 배치 전 호출. alreadyChosen = 다른 AI가 이미 고른 전략 (중복 방지)
     /// </summary>
     public static AIStrategyType SelectStrategy(HexGrid grid, int playerIndex,
-        AIDifficulty difficulty, PlayerState[] allPlayers)
+        AIDifficulty difficulty, PlayerState[] allPlayers,
+        AIStrategyType[] alreadyChosen = null)
     {
         if (!AIDifficultySettings.UsesStrategy(difficulty)) return AIStrategyType.None;
 
         var candidates = AIDifficultySettings.UsesFullStrategy(difficulty) ? FullCandidates : BasicCandidates;
         float noiseRange = AIDifficultySettings.StrategyNoise(difficulty);
+
+        // 이미 선택된 전략 카운트 (중복 페널티용)
+        var chosenCount = new Dictionary<AIStrategyType, int>();
+        if (alreadyChosen != null)
+        {
+            foreach (var s in alreadyChosen)
+            {
+                if (s != AIStrategyType.None)
+                {
+                    chosenCount.TryGetValue(s, out int c);
+                    chosenCount[s] = c + 1;
+                }
+            }
+        }
 
         // 보드 자원별 가용 핍 계산
         var availablePips = CalculateAvailablePips(grid);
@@ -264,6 +279,10 @@ public static class AIStrategySelector
         {
             float score = ScoreStrategyFit(type, availablePips, grid, hasPort);
             score *= 1f + Random.Range(-noiseRange, noiseRange);
+
+            // 중복 전략 페널티: 이미 고른 AI 수만큼 50% 감점
+            if (chosenCount.TryGetValue(type, out int dupCount))
+                score *= 1f / (1f + dupCount * 0.5f);
 
             if (score > bestScore)
             {

@@ -256,7 +256,7 @@ public class AIController : MonoBehaviour
         {
             var allPlayers = GetAllPlayerStates();
             playerStrategies[playerIndex] = AIStrategySelector.SelectStrategy(
-                gm.GetGrid(), playerIndex, diff, allPlayers);
+                gm.GetGrid(), playerIndex, diff, allPlayers, playerStrategies);
             Debug.Log($"[AI] P{playerIndex} ({diff}): 전략 선택 → {playerStrategies[playerIndex]}");
         }
 

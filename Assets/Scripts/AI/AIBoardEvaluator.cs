@@ -36,13 +36,16 @@ public static class AIBoardEvaluator
 
             int pips = GetPips(tile.NumberToken);
 
+            // 고핍 보너스: 6/8(5핍)은 카탄에서 압도적으로 중요
+            float pipBonus = pips >= 5 ? pips * 1.4f : pips >= 4 ? pips * 1.1f : pips;
+
             if (strategy != null && strategy.ResourceWeights.TryGetValue(tile.Resource, out float weight))
             {
-                score += pips * weight;
+                score += pipBonus * weight;
             }
             else
             {
-                score += pips;
+                score += pipBonus;
                 // 전략 없을 때 Lv6+ → 광석/밀 가중
                 if (AIDifficultySettings.UsesFullStrategy(difficulty))
                 {
@@ -58,19 +61,20 @@ public static class AIBoardEvaluator
         if (AIDifficultySettings.UsesDiversityBonus(difficulty))
         {
             float diversityMul = strategy?.DiversityMultiplier ?? 1f;
-            score += resourceTypes.Count * 1.5f * diversityMul;
+            score += resourceTypes.Count * 1.2f * diversityMul;
         }
 
         // 항구 보너스 (전략 있으면 전략 가중치, 없으면 Lv5+)
+        // 항구는 좋은 핍 위치보다 우선하면 안 됨
         if (vertex.Port != PortType.None)
         {
             if (strategy != null && strategy.PortWeights.TryGetValue(vertex.Port, out float portScore))
             {
-                score += portScore;
+                score += portScore * 0.7f; // 항구 가중치 30% 감소
             }
             else if (AIDifficultySettings.UsesPortBonus(difficulty))
             {
-                score += vertex.Port == PortType.Generic ? 1f : 2f;
+                score += vertex.Port == PortType.Generic ? 0.7f : 1.4f;
             }
         }
 
