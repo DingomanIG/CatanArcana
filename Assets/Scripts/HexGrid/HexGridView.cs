@@ -137,7 +137,7 @@ public class HexGridView : MonoBehaviour
 
         var tm = label.AddComponent<TextMesh>();
         tm.text = tile.NumberToken.ToString();
-        tm.characterSize = hexSize * 0.12f;
+        tm.characterSize = hexSize * 0.06f;
         tm.anchor = TextAnchor.MiddleCenter;
         tm.alignment = TextAlignment.Center;
         tm.fontSize = 64;
@@ -150,12 +150,12 @@ public class HexGridView : MonoBehaviour
         {
             var dots = new GameObject("Dots");
             dots.transform.SetParent(parent.transform);
-            dots.transform.localPosition = new Vector3(0f, 0.03f, -hexSize * 0.08f);
+            dots.transform.localPosition = new Vector3(0f, 0.03f, -hexSize * 0.06f);
             dots.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
 
             var dotTm = dots.AddComponent<TextMesh>();
             dotTm.text = new string('\u2022', dotCount);
-            dotTm.characterSize = hexSize * 0.05f;
+            dotTm.characterSize = hexSize * 0.025f;
             dotTm.anchor = TextAnchor.MiddleCenter;
             dotTm.alignment = TextAlignment.Center;
             dotTm.fontSize = 48;
