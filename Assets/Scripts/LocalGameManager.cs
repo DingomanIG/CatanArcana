@@ -250,7 +250,20 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         if (ai != null && ai.IsAI(index))
         {
             var diff = ai.GetDifficulty(index);
-            return $"{AIDifficultySettings.GetAIName(diff)}(AI)";
+            string baseName = AIDifficultySettings.GetAIName(diff);
+
+            // 같은 이름이 여러 명이면 숫자 부여 (수리1, 수리2, 수리3)
+            int totalSame = 0, myOrder = 0;
+            for (int i = 0; i < playerCount; i++)
+            {
+                if (ai.IsAI(i) && ai.GetDifficulty(i) == diff)
+                {
+                    totalSame++;
+                    if (i < index) myOrder++;
+                }
+            }
+            string suffix = totalSame > 1 ? $"{myOrder + 1}" : "";
+            return $"{baseName}{suffix}(AI)";
         }
 
         string name = index < DefaultPlayerNames.Length ? DefaultPlayerNames[index] : $"Player {index + 1}";

@@ -10,16 +10,16 @@ public enum AIDifficulty
     Lv2 = 2,   // 약간의 판단
     Lv3 = 3,   // 기초 전략 (3개 중 택1)
     Lv4 = 4,   // 기초 전략 + 거래
-    Lv5 = 5,   // 중급 전략
-    Lv6 = 6,   // 고급 전략 (6개 전체 평가)
-    Lv7 = 7,   // 고급 전략 + 정밀 거래
-    Lv8 = 8,   // 최상위 전략
-    Lv9 = 9    // 마스터
+    Lv5 = 5,   // 고급 전략 (6개 전체 + VP 추적)
+    Lv6 = 6,   // 고급 전략 + 정밀
+    Lv7 = 7,   // 최상위 전략
+    Lv8 = 8,   // 준마스터
+    Lv9 = 9    // 마스터 (클로디)
 }
 
 /// <summary>
 /// 레벨별 AI 파라미터 헬퍼
-/// Lv1~2: 초급 (구 Easy), Lv3~5: 중급 (구 Medium), Lv6~9: 고급 (구 Hard)
+/// Lv1~2: 초급, Lv3~4: 중급, Lv5~8: 고급, Lv9: 마스터
 /// </summary>
 public static class AIDifficultySettings
 {
@@ -29,37 +29,37 @@ public static class AIDifficultySettings
     /// <summary>거래를 사용하는 레벨인가? (Lv4+)</summary>
     public static bool UsesTrade(AIDifficulty d) => (int)d >= 4;
 
-    /// <summary>전체 6개 전략을 평가하는 레벨인가? (Lv6+)</summary>
-    public static bool UsesFullStrategy(AIDifficulty d) => (int)d >= 6;
+    /// <summary>전체 6개 전략을 평가하는 레벨인가? (Lv5+)</summary>
+    public static bool UsesFullStrategy(AIDifficulty d) => (int)d >= 5;
 
     /// <summary>완전 랜덤 레벨인가? (Lv1~2)</summary>
     public static bool IsRandom(AIDifficulty d) => (int)d >= 1 && (int)d <= 2;
 
-    /// <summary>교차점 평가 시 노이즈 (높을수록 랜덤)</summary>
+    /// <summary>교차점 평가 시 노이즈 (높을수록 랜덤) - Lv5+ 한 단계 상향</summary>
     public static float EvalNoise(AIDifficulty d) => (int)d switch
     {
         1 => 3.0f,
         2 => 2.5f,
         3 => 1.5f,
         4 => 1.2f,
-        5 => 0.8f,
-        6 => 0.5f,
-        7 => 0.35f,
-        8 => 0.2f,
-        9 => 0.05f,  // 클로디: 거의 완벽한 판단
+        5 => 0.5f,   // 구 Lv6 수준
+        6 => 0.35f,   // 구 Lv7 수준
+        7 => 0.2f,    // 구 Lv8 수준
+        8 => 0.1f,    // 구 Lv9급
+        9 => 0.03f,   // 클로디: 거의 완벽한 판단
         _ => 3.0f
     };
 
-    /// <summary>전략 선택 시 노이즈 범위 (높을수록 최적 전략에서 벗어남)</summary>
+    /// <summary>전략 선택 시 노이즈 범위 - Lv5+ 한 단계 상향</summary>
     public static float StrategyNoise(AIDifficulty d) => (int)d switch
     {
         3 => 0.3f,
         4 => 0.25f,
-        5 => 0.15f,
-        6 => 0.08f,
-        7 => 0.05f,
-        8 => 0.04f,
-        9 => 0.01f,  // 클로디: 최적 전략 거의 확정
+        5 => 0.08f,   // 구 Lv6 수준
+        6 => 0.05f,   // 구 Lv7 수준
+        7 => 0.04f,   // 구 Lv8 수준
+        8 => 0.02f,   // 구 Lv9급
+        9 => 0.005f,  // 클로디: 최적 전략 확정
         _ => 0.3f
     };
 
@@ -69,8 +69,8 @@ public static class AIDifficultySettings
     /// <summary>독점 카드 사용 최소 레벨 (Lv4+)</summary>
     public static bool UsesMonopoly(AIDifficulty d) => (int)d >= 4;
 
-    /// <summary>상대 VP 추적 (선두 타겟팅) 레벨 (Lv6+)</summary>
-    public static bool TracksOpponentVP(AIDifficulty d) => (int)d >= 6;
+    /// <summary>상대 VP 추적 (선두 타겟팅) 레벨 (Lv5+)</summary>
+    public static bool TracksOpponentVP(AIDifficulty d) => (int)d >= 5;
 
     /// <summary>기사 카드 적극 사용 (방어 외 공격) 레벨 (Lv5+)</summary>
     public static bool UsesKnightOffensively(AIDifficulty d) => (int)d >= 5;
@@ -89,15 +89,15 @@ public static class AIDifficultySettings
         _ => 1.0f   // Lv3+ 는 전략 기반이라 별도 처리
     };
 
-    /// <summary>거래 수락/제안 판단 임계값 (낮을수록 쉽게 수락)</summary>
+    /// <summary>거래 수락/제안 판단 임계값 - Lv5+ 한 단계 상향</summary>
     public static float TradeThreshold(AIDifficulty d) => (int)d switch
     {
         4 => 1.5f,
-        5 => 2.0f,
-        6 => 2.5f,
-        7 => 3.0f,
-        8 => 3.0f,
-        9 => 4.0f,  // 클로디: 거래 매우 까다롭게
+        5 => 2.5f,   // 구 Lv6 수준
+        6 => 3.0f,   // 구 Lv7 수준
+        7 => 3.5f,   // 구 Lv8급
+        8 => 3.5f,   // 구 Lv9급
+        9 => 4.0f,   // 클로디: 거래 매우 까다롭게
         _ => 2.0f
     };
 
