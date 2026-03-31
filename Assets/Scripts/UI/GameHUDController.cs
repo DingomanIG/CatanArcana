@@ -126,7 +126,7 @@ public class GameHUDController : MonoBehaviour
     VisualElement stealPlayerList;
 
     // Bank Resources
-    Label bankWood, bankBrick, bankWool, bankWheat, bankOre;
+    Label bankWood, bankBrick, bankWool, bankWheat, bankOre, bankDevCard;
 
     // Event Log
     ScrollView eventLogScroll;
@@ -367,6 +367,7 @@ public class GameHUDController : MonoBehaviour
         bankWool = root.Q<Label>("bank-wool");
         bankWheat = root.Q<Label>("bank-wheat");
         bankOre = root.Q<Label>("bank-ore");
+        bankDevCard = root.Q<Label>("bank-devcard");
 
         // Utility Bar
         btnOptions = root.Q<Button>("btn-options");
@@ -1659,6 +1660,8 @@ public class GameHUDController : MonoBehaviour
         bankWool.text = GM.GetBankResourceCount(ResourceType.Wool).ToString();
         bankWheat.text = GM.GetBankResourceCount(ResourceType.Wheat).ToString();
         bankOre.text = GM.GetBankResourceCount(ResourceType.Ore).ToString();
+        if (bankDevCard != null)
+            bankDevCard.text = GM.DevCardDeckRemaining.ToString();
     }
 
     // ========================

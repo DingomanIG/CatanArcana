@@ -366,21 +366,33 @@
     font-size: 22px;
 }
 
-.bank-resource-group {
-    flex-direction: column;
+.bank-card {
+    background-color: rgba(26, 22, 18, 0.9);
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: rgb(74, 63, 53);
+    padding: 6px 10px;
+    margin-left: 8px;
     align-items: center;
-    padding: 4px 8px;
+    flex-shrink: 0;
 }
 
-.bank-label {
+.bank-card__title {
     color: rgb(168, 152, 128);
     font-size: 11px;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
+    -unity-font-style: bold;
 }
 
-.bank-resource-row {
+.bank-card__row {
     flex-direction: row;
     align-items: center;
+}
+
+.bank-card__devlabel {
+    color: rgb(168, 152, 128);
+    font-size: 11px;
+    margin-right: 4px;
 }
 
 .bank-res {

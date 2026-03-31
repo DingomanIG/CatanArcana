@@ -9,7 +9,38 @@
             <ui:Label name="phase-indicator" text="대기 중" class="top-bar__label top-bar__phase"/>
         </ui:VisualElement>
         <ui:VisualElement name="toast-container" picking-mode="Ignore" class="toast-container" style="top: auto; left: 50%; flex-direction: column-reverse; bottom: 10%;"/>
-        <ui:VisualElement name="opponent-bar" class="opponent-bar" style="flex-direction: row; padding-top: 10px; padding-right: 10px; padding-bottom: 10px; padding-left: 10px;"/>
+        <ui:VisualElement name="opponent-bar-wrapper" style="flex-direction: row; align-items: flex-start; padding: 10px;">
+            <ui:VisualElement name="opponent-bar" class="opponent-bar" style="flex-direction: row; flex-grow: 1; justify-content: center;"/>
+            <ui:VisualElement name="bank-card" class="bank-card">
+                <ui:Label text="은행" class="bank-card__title"/>
+                <ui:VisualElement class="bank-card__row">
+                    <ui:VisualElement class="bank-res">
+                        <ui:VisualElement class="resource-icon resource-icon--wood bank-icon"/>
+                        <ui:Label name="bank-wood" text="19" class="bank-count"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="bank-res">
+                        <ui:VisualElement class="resource-icon resource-icon--brick bank-icon"/>
+                        <ui:Label name="bank-brick" text="19" class="bank-count"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="bank-res">
+                        <ui:VisualElement class="resource-icon resource-icon--wool bank-icon"/>
+                        <ui:Label name="bank-wool" text="19" class="bank-count"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="bank-res">
+                        <ui:VisualElement class="resource-icon resource-icon--wheat bank-icon"/>
+                        <ui:Label name="bank-wheat" text="19" class="bank-count"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="bank-res">
+                        <ui:VisualElement class="resource-icon resource-icon--ore bank-icon"/>
+                        <ui:Label name="bank-ore" text="19" class="bank-count"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement class="bank-card__row" style="margin-top: 2px;">
+                    <ui:Label text="발전카드:" class="bank-card__devlabel"/>
+                    <ui:Label name="bank-devcard" text="25" class="bank-count"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
         <ui:VisualElement name="middle-area" class="middle-area" style="flex-direction: row; justify-content: space-between; align-self: auto; align-content: auto; align-items: flex-end;">
             <ui:VisualElement name="left-panel" class="left-panel" style="left: 18px; bottom: 22px; width: 305px;">
                 <ui:VisualElement name="utility-bar" class="utility-bar" style="flex-direction: row; background-color: rgba(42, 36, 32, 0);">
@@ -120,32 +151,6 @@
             <ui:VisualElement class="resource-item resource-item--vp">
                 <ui:Label text="VP" class="resource-name resource-name--vp"/>
                 <ui:Label name="stat-vp" text="0" class="resource-count resource-count--vp"/>
-            </ui:VisualElement>
-            <ui:VisualElement class="resource-divider"/>
-            <ui:VisualElement class="bank-resource-group">
-                <ui:Label text="은행" class="bank-label"/>
-                <ui:VisualElement class="bank-resource-row">
-                    <ui:VisualElement class="bank-res">
-                        <ui:VisualElement class="resource-icon resource-icon--wood bank-icon"/>
-                        <ui:Label name="bank-wood" text="19" class="bank-count"/>
-                    </ui:VisualElement>
-                    <ui:VisualElement class="bank-res">
-                        <ui:VisualElement class="resource-icon resource-icon--brick bank-icon"/>
-                        <ui:Label name="bank-brick" text="19" class="bank-count"/>
-                    </ui:VisualElement>
-                    <ui:VisualElement class="bank-res">
-                        <ui:VisualElement class="resource-icon resource-icon--wool bank-icon"/>
-                        <ui:Label name="bank-wool" text="19" class="bank-count"/>
-                    </ui:VisualElement>
-                    <ui:VisualElement class="bank-res">
-                        <ui:VisualElement class="resource-icon resource-icon--wheat bank-icon"/>
-                        <ui:Label name="bank-wheat" text="19" class="bank-count"/>
-                    </ui:VisualElement>
-                    <ui:VisualElement class="bank-res">
-                        <ui:VisualElement class="resource-icon resource-icon--ore bank-icon"/>
-                        <ui:Label name="bank-ore" text="19" class="bank-count"/>
-                    </ui:VisualElement>
-                </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="trade-overlay" class="overlay overlay--hidden">
