@@ -125,6 +125,9 @@ public class GameHUDController : MonoBehaviour
     VisualElement stealOverlay;
     VisualElement stealPlayerList;
 
+    // Bank Resources
+    Label bankWood, bankBrick, bankWool, bankWheat, bankOre;
+
     // Event Log
     ScrollView eventLogScroll;
 
@@ -357,6 +360,13 @@ public class GameHUDController : MonoBehaviour
 
         // Event Log
         eventLogScroll = root.Q<ScrollView>("event-log-scroll");
+
+        // Bank Resources
+        bankWood = root.Q<Label>("bank-wood");
+        bankBrick = root.Q<Label>("bank-brick");
+        bankWool = root.Q<Label>("bank-wool");
+        bankWheat = root.Q<Label>("bank-wheat");
+        bankOre = root.Q<Label>("bank-ore");
 
         // Utility Bar
         btnOptions = root.Q<Button>("btn-options");
@@ -619,6 +629,7 @@ public class GameHUDController : MonoBehaviour
             UpdatePlayerStats();
         }
         UpdateOpponentCard(playerIndex);
+        UpdateBankResources();
     }
 
     void HandleVPChanged(int playerIndex, int vp)
@@ -729,6 +740,7 @@ public class GameHUDController : MonoBehaviour
         UpdateResourceDisplay(0, 0, 0, 0, 0);
         UpdatePlayerStats();
         UpdateBuildCounts();
+        UpdateBankResources();
         AddEventLog("게임 대기중...", "system");
     }
 
@@ -1637,6 +1649,16 @@ public class GameHUDController : MonoBehaviour
             _ => null
         };
         if (target != null) target.text = count.ToString();
+    }
+
+    void UpdateBankResources()
+    {
+        if (GM == null || bankWood == null) return;
+        bankWood.text = GM.GetBankResourceCount(ResourceType.Wood).ToString();
+        bankBrick.text = GM.GetBankResourceCount(ResourceType.Brick).ToString();
+        bankWool.text = GM.GetBankResourceCount(ResourceType.Wool).ToString();
+        bankWheat.text = GM.GetBankResourceCount(ResourceType.Wheat).ToString();
+        bankOre.text = GM.GetBankResourceCount(ResourceType.Ore).ToString();
     }
 
     // ========================

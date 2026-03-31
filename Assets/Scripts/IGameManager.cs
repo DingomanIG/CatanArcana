@@ -77,6 +77,7 @@ public interface IGameManager
     // 조회
     PlayerState GetPlayerState(int playerIndex);
     HexGrid GetGrid();
+    int GetBankResourceCount(ResourceType type);
     int GetLongestRoadLength(int playerIndex);
     int GetLongestRoadHolder();
     int GetLargestArmyHolder();

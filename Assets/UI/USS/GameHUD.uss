@@ -366,6 +366,43 @@
     font-size: 22px;
 }
 
+.bank-resource-group {
+    flex-direction: column;
+    align-items: center;
+    padding: 4px 8px;
+}
+
+.bank-label {
+    color: rgb(168, 152, 128);
+    font-size: 11px;
+    margin-bottom: 2px;
+}
+
+.bank-resource-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.bank-res {
+    flex-direction: column;
+    align-items: center;
+    margin: 0 3px;
+}
+
+.bank-icon {
+    width: 18px;
+    height: 18px;
+    margin-right: 0;
+    margin-bottom: 1px;
+}
+
+.bank-count {
+    color: rgb(200, 190, 170);
+    font-size: 13px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
 .overlay {
     position: absolute;
     left: 0;

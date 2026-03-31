@@ -1001,6 +1001,15 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     public int GetLongestRoadHolder() => longestRoadHolder;
     public int GetLargestArmyHolder() => largestArmyHolder;
 
+    const int BANK_RESOURCE_PER_TYPE = 19;
+    public int GetBankResourceCount(ResourceType type)
+    {
+        int held = 0;
+        for (int i = 0; i < playerCount; i++)
+            held += players[i].Resources.GetValueOrDefault(type, 0);
+        return BANK_RESOURCE_PER_TYPE - held;
+    }
+
     // ========================
     // 헬퍼
     // ========================

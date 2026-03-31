@@ -121,6 +121,32 @@
                 <ui:Label text="VP" class="resource-name resource-name--vp"/>
                 <ui:Label name="stat-vp" text="0" class="resource-count resource-count--vp"/>
             </ui:VisualElement>
+            <ui:VisualElement class="resource-divider"/>
+            <ui:VisualElement class="bank-resource-group">
+                <ui:Label text="은행" class="bank-label"/>
+                <ui:VisualElement class="bank-resource-row">
+                    <ui:VisualElement class="bank-res">
+                        <ui:VisualElement class="resource-icon resource-icon--wood bank-icon"/>
+                        <ui:Label name="bank-wood" text="19" class="bank-count"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="bank-res">
+                        <ui:VisualElement class="resource-icon resource-icon--brick bank-icon"/>
+                        <ui:Label name="bank-brick" text="19" class="bank-count"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="bank-res">
+                        <ui:VisualElement class="resource-icon resource-icon--wool bank-icon"/>
+                        <ui:Label name="bank-wool" text="19" class="bank-count"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="bank-res">
+                        <ui:VisualElement class="resource-icon resource-icon--wheat bank-icon"/>
+                        <ui:Label name="bank-wheat" text="19" class="bank-count"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="bank-res">
+                        <ui:VisualElement class="resource-icon resource-icon--ore bank-icon"/>
+                        <ui:Label name="bank-ore" text="19" class="bank-count"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="trade-overlay" class="overlay overlay--hidden">
             <ui:VisualElement class="overlay-panel trade-panel">
