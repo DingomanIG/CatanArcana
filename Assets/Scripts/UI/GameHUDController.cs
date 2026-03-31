@@ -125,6 +125,9 @@ public class GameHUDController : MonoBehaviour
     VisualElement stealOverlay;
     VisualElement stealPlayerList;
 
+    // Event Log
+    ScrollView eventLogScroll;
+
     // Toast Notifications
     VisualElement toastContainer;
     const float TOAST_DURATION = 3f;
@@ -351,6 +354,9 @@ public class GameHUDController : MonoBehaviour
         btnResultMenu = root.Q<Button>("btn-result-menu");
         btnResultRematch = root.Q<Button>("btn-result-rematch");
 
+        // Event Log
+        eventLogScroll = root.Q<ScrollView>("event-log-scroll");
+
         // Utility Bar
         btnOptions = root.Q<Button>("btn-options");
         btnVolume = root.Q<Button>("btn-volume");
@@ -538,6 +544,9 @@ public class GameHUDController : MonoBehaviour
 
     void HandleTurnChanged(int playerIndex)
     {
+        string who = GM.GetPlayerName(playerIndex);
+        AddEventLog($"--- {who}의 턴 (턴 {GM.TurnNumber}) ---", "system");
+
         UpdateTopBar();
         UpdateActionButtons();
         UpdateOpponentHighlight();
@@ -566,8 +575,14 @@ public class GameHUDController : MonoBehaviour
         ShowDice(die1, die2, total);
         UpdateActionButtons();
 
+        string who = GM.GetPlayerName(GM.CurrentPlayerIndex);
+        AddEventLog($"{who} 주사위 [{die1}]+[{die2}] = {total}", "dice");
+
         if (total == 7)
+        {
             ShowToast("robber", "도적 출현! 자원 7장 이상 보유자는 절반 폐기");
+            AddEventLog("도적 출현!", "robber");
+        }
     }
 
     void HandlePlayerListChanged()
@@ -596,6 +611,9 @@ public class GameHUDController : MonoBehaviour
 
     void HandleDevCardPurchased(int playerIndex, DevCardType cardType)
     {
+        string who = GM.GetPlayerName(playerIndex);
+        AddEventLog($"{who} 발전카드 구매", "devcard");
+
         if (playerIndex == GM.LocalPlayerIndex)
         {
             Debug.Log($"[HUD] 발전카드 구매: {cardType}");
@@ -607,11 +625,12 @@ public class GameHUDController : MonoBehaviour
 
     void HandleDevCardUsed(int playerIndex, DevCardType cardType)
     {
+        string who = GM.GetPlayerName(playerIndex);
+        AddEventLog($"{who} {GetDevCardName(cardType)} 사용", "devcard");
+
         if (cardType == DevCardType.Knight)
-        {
-            string who = GM.GetPlayerName(playerIndex);
             ShowToast("knight", $"{who}이(가) 기사 카드를 사용했습니다!");
-        }
+
         UpdateOpponentCard(playerIndex);
         if (playerIndex == GM.LocalPlayerIndex) UpdatePlayerStats();
     }
@@ -624,6 +643,7 @@ public class GameHUDController : MonoBehaviour
         {
             string who = GM.GetPlayerName(playerIndex);
             ShowToast("longest-road", $"{who}이(가) 최장교역로를 획득! (+2점)");
+            AddEventLog($"{who} 최장교역로 획득! (+2점)", "bonus");
         }
     }
 
@@ -635,11 +655,15 @@ public class GameHUDController : MonoBehaviour
         {
             string who = GM.GetPlayerName(playerIndex);
             ShowToast("largest-army", $"{who}이(가) 최대기사단을 획득! (+2점)");
+            AddEventLog($"{who} 최대기사단 획득! (+2점)", "bonus");
         }
     }
 
     void HandleRobberMoved(HexCoord newCoord)
     {
+        string who = GM?.GetPlayerName(GM.CurrentPlayerIndex) ?? "?";
+        AddEventLog($"{who} 도적 이동", "robber");
+
         var gridView = FindObjectOfType<HexGridView>();
         if (gridView != null)
             gridView.MoveRobberVisual(newCoord);
@@ -650,12 +674,14 @@ public class GameHUDController : MonoBehaviour
         string thiefName = GM.GetPlayerName(thief);
         string victimName = GM.GetPlayerName(victim);
         ShowToast("robber", $"{thiefName}이(가) {victimName}에게서 자원을 약탈!");
+        AddEventLog($"{thiefName} -> {victimName} 약탈", "robber");
     }
 
     void HandleBankTrade(int player, ResourceType gave, ResourceType received, int rate)
     {
         string who = GM.GetPlayerName(player);
         ShowToast("trade", $"{who}: {GetResourceName(gave)}×{rate} → {GetResourceName(received)}×1");
+        AddEventLog($"{who} 은행거래: {GetResourceName(gave)}x{rate} -> {GetResourceName(received)}x1", "trade");
         tradeOverlay.AddToClassList("overlay--hidden");
     }
 
@@ -664,6 +690,7 @@ public class GameHUDController : MonoBehaviour
         string name1 = GM.GetPlayerName(player1);
         string name2 = GM.GetPlayerName(player2);
         ShowToast("trade", $"{name1} ↔ {name2} 거래 성사!");
+        AddEventLog($"{name1} <-> {name2} 거래 성사", "trade");
         tradeOverlay.AddToClassList("overlay--hidden");
     }
 
@@ -683,6 +710,7 @@ public class GameHUDController : MonoBehaviour
         UpdateResourceDisplay(0, 0, 0, 0, 0);
         UpdatePlayerStats();
         UpdateBuildCounts();
+        AddEventLog("게임 대기중...", "system");
     }
 
     void UpdatePlayerStats()
@@ -1454,6 +1482,11 @@ public class GameHUDController : MonoBehaviour
 
     void HandleBuildingPlaced(int playerIndex, int vertexId, BuildingType type)
     {
+        string who = GM.GetPlayerName(playerIndex);
+        string building = type == BuildingType.Settlement ? "마을" : "도시";
+        int vp = type == BuildingType.Settlement ? 1 : 2;
+        AddEventLog($"{who} {building} 건설 (+{vp}점)", "build");
+
         UpdateOpponentCard(playerIndex);
         if (playerIndex == GM.LocalPlayerIndex)
         {
@@ -1464,6 +1497,9 @@ public class GameHUDController : MonoBehaviour
 
     void HandleRoadPlaced(int playerIndex, int edgeId)
     {
+        string who = GM.GetPlayerName(playerIndex);
+        AddEventLog($"{who} 도로 건설", "build");
+
         UpdateOpponentCard(playerIndex);
         if (playerIndex == GM.LocalPlayerIndex)
         {
@@ -1546,6 +1582,36 @@ public class GameHUDController : MonoBehaviour
         DevCardType.Monopoly => "선택한 자원을 전부 약탈",
         _ => ""
     };
+
+    // ========================
+    // EVENT LOG
+    // ========================
+
+    const int MAX_LOG_ENTRIES = 100;
+
+    void AddEventLog(string message, string cssModifier = "")
+    {
+        if (eventLogScroll == null) return;
+
+        var entry = new VisualElement();
+        entry.AddToClassList("event-log-entry");
+
+        var label = new Label(message);
+        label.AddToClassList("event-log__text");
+        if (!string.IsNullOrEmpty(cssModifier))
+            label.AddToClassList($"event-log__text--{cssModifier}");
+
+        entry.Add(label);
+        eventLogScroll.Add(entry);
+
+        // 최대 엔트리 제한
+        while (eventLogScroll.childCount > MAX_LOG_ENTRIES)
+            eventLogScroll.RemoveAt(0);
+
+        // 자동 스크롤
+        eventLogScroll.schedule.Execute(() =>
+            eventLogScroll.scrollOffset = new Vector2(0, float.MaxValue));
+    }
 
     // ========================
     // TOAST NOTIFICATIONS

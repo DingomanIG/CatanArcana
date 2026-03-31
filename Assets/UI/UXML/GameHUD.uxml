@@ -11,10 +11,16 @@
         <ui:VisualElement name="toast-container" picking-mode="Ignore" class="toast-container" style="top: auto; left: 50%; flex-direction: column-reverse; bottom: 10%;"/>
         <ui:VisualElement name="opponent-bar" class="opponent-bar" style="flex-direction: row; padding-top: 10px; padding-right: 10px; padding-bottom: 10px; padding-left: 10px;"/>
         <ui:VisualElement name="middle-area" class="middle-area" style="flex-direction: row; justify-content: space-between; align-self: auto; align-content: auto; align-items: flex-end;">
-            <ui:VisualElement name="utility-bar" class="utility-bar" style="flex-direction: column-reverse; background-color: rgba(42, 36, 32, 0);">
-                <ui:Button name="btn-options" text="⚙" tooltip="옵션" class="utility-btn"/>
-                <ui:Button name="btn-rules" text="?" tooltip="규칙" class="utility-btn utility-btn--info"/>
-                <ui:Button name="btn-volume" text="♪" tooltip="음량" class="utility-btn"/>
+            <ui:VisualElement name="left-panel" class="left-panel">
+                <ui:VisualElement name="utility-bar" class="utility-bar" style="flex-direction: row; background-color: rgba(42, 36, 32, 0);">
+                    <ui:Button name="btn-options" text="⚙" tooltip="옵션" class="utility-btn"/>
+                    <ui:Button name="btn-rules" text="?" tooltip="규칙" class="utility-btn utility-btn--info"/>
+                    <ui:Button name="btn-volume" text="♪" tooltip="음량" class="utility-btn"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="event-log-panel" class="event-log-panel">
+                    <ui:Label text="이벤트 로그" class="event-log-title"/>
+                    <ui:ScrollView name="event-log-scroll" class="event-log-scroll"/>
+                </ui:VisualElement>
             </ui:VisualElement>
             <ui:Instance template="dice-display" style="right: 285px; left: auto; translate: 0% 0%; margin-left: 12px; margin-top: 12px; margin-bottom: 12px; margin-right: 12px; flex-direction: column; position: absolute; bottom: 0;"/>
             <ui:VisualElement name="action-panel" class="action-panel" style="height: auto; width: 270px; background-color: rgb(35, 31, 28); justify-content: flex-end; flex-grow: 0; flex-shrink: 0; flex-direction: column; padding-top: 8px; padding-right: 8px; padding-bottom: 8px; padding-left: 8px; margin-left: 12px; margin-right: 12px; margin-bottom: 12px; margin-top: 12px; right: 0; position: absolute; bottom: 0; border-left-width: 0; border-top-left-radius: 8px; border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-bottom-left-radius: 8px;">

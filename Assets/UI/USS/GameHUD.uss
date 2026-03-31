@@ -659,18 +659,21 @@
     padding: 24px;
 }
 
-.utility-bar {
+.left-panel {
     position: absolute;
     left: 0;
-    top: 50%;
-    translate: 0 -50%;
+    top: 0;
+    bottom: 0;
+    width: 220px;
+    flex-direction: column;
+    padding-top: 8px;
+}
+
+.utility-bar {
+    flex-direction: row;
     padding: 6px;
-    background-color: rgba(42, 36, 32, 0.82);
-    border-top-right-radius: 8px;
-    border-bottom-right-radius: 8px;
-    border-right-width: 1px;
-    border-right-color: rgb(74, 63, 53);
     align-items: center;
+    justify-content: center;
 }
 
 .utility-btn {
@@ -1169,4 +1172,80 @@
     align-self: center;
     align-items: center;
     margin-right: 4px;
+}
+
+.event-log-panel {
+    flex-grow: 1;
+    margin: 4px 0 0 0;
+    padding: 0 6px 6px 6px;
+    background-color: rgba(26, 22, 18, 0.85);
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    border-right-width: 1px;
+    border-right-color: rgb(74, 63, 53);
+    overflow: hidden;
+}
+
+.event-log-title {
+    color: rgb(168, 152, 128);
+    font-size: 11px;
+    -unity-font-style: bold;
+    padding: 6px 4px 4px 4px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(74, 63, 53);
+    margin-bottom: 4px;
+}
+
+.event-log-scroll {
+    flex-grow: 1;
+}
+
+.event-log-entry {
+    padding: 3px 4px;
+    margin-bottom: 2px;
+    border-radius: 3px;
+}
+
+.event-log-entry:hover {
+    background-color: rgba(53, 46, 40, 0.5);
+}
+
+.event-log__text {
+    color: rgb(200, 188, 168);
+    font-size: 11px;
+    white-space: normal;
+}
+
+.event-log__text--dice {
+    color: rgb(212, 168, 69);
+}
+
+.event-log__text--resource {
+    color: rgb(168, 200, 122);
+}
+
+.event-log__text--build {
+    color: rgb(107, 180, 210);
+}
+
+.event-log__text--trade {
+    color: rgb(90, 158, 75);
+}
+
+.event-log__text--robber {
+    color: rgb(196, 92, 62);
+}
+
+.event-log__text--devcard {
+    color: rgb(180, 140, 210);
+}
+
+.event-log__text--bonus {
+    color: rgb(212, 168, 69);
+    -unity-font-style: bold;
+}
+
+.event-log__text--system {
+    color: rgb(168, 152, 128);
+    -unity-font-style: italic;
 }
