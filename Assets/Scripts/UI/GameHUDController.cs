@@ -88,6 +88,7 @@ public class GameHUDController : MonoBehaviour
     Slider sliderSfx;
     Label bgmValueLabel;
     Label sfxValueLabel;
+    Label nowPlayingLabel;
 
     // Build Buttons
     Button btnBuildRoad;
@@ -130,6 +131,8 @@ public class GameHUDController : MonoBehaviour
 
     // Event Log
     ScrollView eventLogScroll;
+    readonly Dictionary<int, Dictionary<ResourceType, int>> pendingLogDeltas = new();
+    Coroutine logFlushCoroutine;
 
     // Toast Notifications
     VisualElement toastContainer;
@@ -245,11 +248,28 @@ public class GameHUDController : MonoBehaviour
         gm = GameServices.GameManager;
         SubscribeToEvents();
         RefreshAllUI();
+        InvokeRepeating(nameof(UpdateNowPlaying), 0.5f, 1f);
     }
 
     void OnDisable()
     {
         UnsubscribeFromEvents();
+        CancelInvoke(nameof(UpdateNowPlaying));
+    }
+
+    void UpdateNowPlaying()
+    {
+        if (nowPlayingLabel == null) return;
+        var bgm = BGMManager.Instance;
+        if (bgm == null || string.IsNullOrEmpty(bgm.CurrentClipName))
+        {
+            nowPlayingLabel.text = "♪ —";
+            return;
+        }
+        int sec = Mathf.CeilToInt(bgm.RemainingTime);
+        int m = sec / 60;
+        int s = sec % 60;
+        nowPlayingLabel.text = $"♪ {bgm.CurrentClipName}  {m}:{s:D2}";
     }
 
     // ========================
@@ -368,6 +388,9 @@ public class GameHUDController : MonoBehaviour
         bankWheat = root.Q<Label>("bank-wheat");
         bankOre = root.Q<Label>("bank-ore");
         bankDevCard = root.Q<Label>("bank-devcard");
+
+        // Now Playing
+        nowPlayingLabel = root.Q<Label>("now-playing");
 
         // Utility Bar
         btnOptions = root.Q<Button>("btn-options");
@@ -490,11 +513,14 @@ public class GameHUDController : MonoBehaviour
         btnOptionSurrender.clicked += OnSurrenderClicked;
         btnOptionMainMenu.clicked += OnOptionMainMenuClicked;
 
-        // 음량 슬라이더
+        // 음량 슬라이더 - BGMManager 연동
+        if (BGMManager.Instance != null)
+            sliderBgm.value = BGMManager.Instance.volume * 100f;
         sliderBgm.RegisterValueChangedCallback(evt =>
         {
             bgmValueLabel.text = Mathf.RoundToInt(evt.newValue).ToString();
-            AudioListener.volume = evt.newValue / 100f;
+            if (BGMManager.Instance != null)
+                BGMManager.Instance.SetVolume(evt.newValue / 100f);
         });
         sliderSfx.RegisterValueChangedCallback(evt =>
         {
@@ -612,14 +638,11 @@ public class GameHUDController : MonoBehaviour
         int delta = newCount - prev;
         if (delta != 0)
         {
-            string who = GM.GetPlayerName(playerIndex);
-            string resName = GetResourceName(type);
-            if (delta > 0)
-                AddEventLog($"{who} +{delta} {resName}", "resource");
-            else
-                AddEventLog($"{who} {delta} {resName}", "robber");
+            // 이벤트 로그: 프레임 단위 배치 처리 (같은 자원 합산)
+            BufferResourceLog(playerIndex, type, delta);
 
             // 상대 카드 status bar에 자원 증감 표시
+            string resName = GetResourceName(type);
             ShowOpponentResourceDelta(playerIndex, resName, delta);
         }
 
@@ -1542,12 +1565,20 @@ public class GameHUDController : MonoBehaviour
         var deltas = pendingDeltas.GetValueOrDefault(playerIndex);
         if (deltas == null || deltas.Count == 0) yield break;
 
-        var gains = new List<string>();
-        var losses = new List<string>();
+        // 같은 자원 합산
+        var aggregated = new Dictionary<string, int>();
         foreach (var (name, d) in deltas)
         {
-            if (d > 0) gains.Add($"+{d} {name}");
-            else losses.Add($"{d} {name}");
+            if (aggregated.ContainsKey(name)) aggregated[name] += d;
+            else aggregated[name] = d;
+        }
+
+        var gains = new List<string>();
+        var losses = new List<string>();
+        foreach (var kv in aggregated)
+        {
+            if (kv.Value > 0) gains.Add($"+{kv.Value} {kv.Key}");
+            else if (kv.Value < 0) losses.Add($"{kv.Value} {kv.Key}");
         }
 
         // 획득 먼저 표시
@@ -1715,6 +1746,45 @@ public class GameHUDController : MonoBehaviour
     // ========================
 
     const int MAX_LOG_ENTRIES = 100;
+
+    void BufferResourceLog(int playerIndex, ResourceType type, int delta)
+    {
+        if (!pendingLogDeltas.ContainsKey(playerIndex))
+            pendingLogDeltas[playerIndex] = new Dictionary<ResourceType, int>();
+
+        var dict = pendingLogDeltas[playerIndex];
+        if (dict.ContainsKey(type)) dict[type] += delta;
+        else dict[type] = delta;
+
+        if (logFlushCoroutine == null)
+            logFlushCoroutine = StartCoroutine(FlushResourceLogs());
+    }
+
+    IEnumerator FlushResourceLogs()
+    {
+        yield return null; // 한 프레임 대기 (같은 프레임 델타 합산)
+
+        foreach (var kv in pendingLogDeltas)
+        {
+            string who = GM.GetPlayerName(kv.Key);
+
+            var gains = new List<string>();
+            var losses = new List<string>();
+            foreach (var res in kv.Value)
+            {
+                if (res.Value > 0) gains.Add($"+{res.Value} {GetResourceName(res.Key)}");
+                else if (res.Value < 0) losses.Add($"{res.Value} {GetResourceName(res.Key)}");
+            }
+
+            if (gains.Count > 0)
+                AddEventLog($"{who} {string.Join(", ", gains)}", "resource");
+            if (losses.Count > 0)
+                AddEventLog($"{who} {string.Join(", ", losses)}", "robber");
+        }
+
+        pendingLogDeltas.Clear();
+        logFlushCoroutine = null;
+    }
 
     void AddEventLog(string message, string cssModifier = "")
     {
