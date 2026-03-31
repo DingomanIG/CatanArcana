@@ -176,10 +176,12 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
         if (total == 7)
         {
+            SFXManager.Instance?.Play(SFXType.DiceSeven);
             HandleSeven();
         }
         else
         {
+            SFXManager.Instance?.Play(SFXType.DiceLand);
             DistributeResources(total);
             SetPhase(GamePhase.Action);
         }
@@ -333,6 +335,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
                 int amount = vertex.Building == BuildingType.City ? 2 : 1;
                 players[owner].AddResource(tile.Resource, amount);
                 OnResourceChanged?.Invoke(owner, tile.Resource, players[owner].Resources[tile.Resource]);
+                SFXManager.Instance?.Play(SFXType.ResourceGain);
 
                 Debug.Log($"[Local] {GetPlayerName(owner)}: +{amount} {tile.Resource} (타일 {tile.Coord})");
             }
@@ -377,6 +380,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
             player.Resources[pool[i]]--;
 
         NotifyAllResources(playerIndex);
+        SFXManager.Instance?.Play(SFXType.ResourceLost);
         Debug.Log($"[Local] {GetPlayerName(playerIndex)}: 자원 {toDiscard}장 버림 (남은: {player.TotalResourceCount})");
     }
 
@@ -396,6 +400,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
         tile.HasRobber = true;
         OnRobberMoved?.Invoke(newTile);
+        SFXManager.Instance?.Play(SFXType.RobberMove);
         Debug.Log($"[Local] 도적 이동: {newTile}");
 
         bool fromKnight = devCardUseState == DevCardUseState.SelectingKnightTarget;
@@ -485,6 +490,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         NotifyAllResources(victimIndex);
         NotifyAllResources(thiefIndex);
         OnRobberSteal?.Invoke(thiefIndex, victimIndex, stolen);
+        SFXManager.Instance?.Play(SFXType.RobberSteal);
 
         Debug.Log($"[Local] {GetPlayerName(thiefIndex)}이 {GetPlayerName(victimIndex)}에게서 {stolen} 1장 약탈!");
     }
@@ -551,6 +557,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         if (!isInitial)
             NotifyAllResources(currentPlayerIndex);
         OnBuildingPlaced?.Invoke(currentPlayerIndex, vertexId, BuildingType.Settlement);
+        SFXManager.Instance?.Play(SFXType.BuildSettlement);
         CheckVictory(currentPlayerIndex);
 
         if (isInitial)
@@ -575,6 +582,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
         NotifyAllResources(currentPlayerIndex);
         OnBuildingPlaced?.Invoke(currentPlayerIndex, vertexId, BuildingType.City);
+        SFXManager.Instance?.Play(SFXType.BuildCity);
         CheckVictory(currentPlayerIndex);
         return true;
     }
@@ -606,6 +614,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         if (!isInitial && !isFreeRoad)
             NotifyAllResources(currentPlayerIndex);
         OnRoadPlaced?.Invoke(currentPlayerIndex, edgeId);
+        SFXManager.Instance?.Play(SFXType.BuildRoad);
 
         // 최장교역로 갱신
         UpdateLongestRoad();
@@ -667,6 +676,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
         NotifyAllResources(currentPlayerIndex);
         OnDevCardPurchased?.Invoke(currentPlayerIndex, cardType.Value);
+        SFXManager.Instance?.Play(SFXType.DevCardBuy);
 
         if (cardType.Value == DevCardType.VictoryPoint)
             CheckVictory(currentPlayerIndex);
@@ -697,6 +707,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         player.KnightsPlayed++;
 
         OnDevCardUsed?.Invoke(currentPlayerIndex, DevCardType.Knight);
+        SFXManager.Instance?.Play(SFXType.KnightUse);
         devCardUseState = DevCardUseState.SelectingKnightTarget;
 
         Debug.Log($"[Local] {GetPlayerName(currentPlayerIndex)} 기사 카드 사용 → 도적을 이동하세요");
@@ -723,6 +734,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         devCardUseState = DevCardUseState.PlacingFreeRoad1;
 
         OnDevCardUsed?.Invoke(currentPlayerIndex, DevCardType.RoadBuilding);
+        SFXManager.Instance?.Play(SFXType.DevCardUse);
 
         // 무료 도로 건설 모드 진입
         BuildModeController.Instance?.SetInitialPlacement(false);
@@ -750,6 +762,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
         NotifyAllResources(currentPlayerIndex);
         OnDevCardUsed?.Invoke(currentPlayerIndex, DevCardType.YearOfPlenty);
+        SFXManager.Instance?.Play(SFXType.DevCardUse);
 
         Debug.Log($"[Local] {GetPlayerName(currentPlayerIndex)} 풍년 카드: {res1} + {res2}");
         return true;
@@ -784,6 +797,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         player.AddResource(targetResource, totalStolen);
         NotifyAllResources(currentPlayerIndex);
         OnDevCardUsed?.Invoke(currentPlayerIndex, DevCardType.Monopoly);
+        SFXManager.Instance?.Play(SFXType.DevCardUse);
 
         Debug.Log($"[Local] {GetPlayerName(currentPlayerIndex)} 독점 카드: {targetResource} x{totalStolen} 획득");
         return true;
@@ -830,6 +844,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
             if (longestRoadHolder >= 0)
             {
                 players[longestRoadHolder].HasLongestRoad = true;
+                SFXManager.Instance?.Play(SFXType.LongestRoad);
                 OnLongestRoadChanged?.Invoke(longestRoadHolder, true);
                 OnVPChanged?.Invoke(longestRoadHolder, players[longestRoadHolder].VictoryPoints);
                 Debug.Log($"[Local] 최장교역로: {GetPlayerName(longestRoadHolder)} ({maxLength}칸)");
@@ -866,6 +881,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
             if (largestArmyHolder >= 0)
             {
                 players[largestArmyHolder].HasLargestArmy = true;
+                SFXManager.Instance?.Play(SFXType.LargestArmy);
                 OnLargestArmyChanged?.Invoke(largestArmyHolder, true);
                 OnVPChanged?.Invoke(largestArmyHolder, players[largestArmyHolder].VictoryPoints);
                 Debug.Log($"[Local] 최대기사단: {GetPlayerName(largestArmyHolder)} ({maxKnights}명)");
@@ -885,6 +901,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
         if (vp >= 10)
         {
+            SFXManager.Instance?.Play(SFXType.Victory);
             SetPhase(GamePhase.GameOver);
             Debug.Log($"[Local] {GetPlayerName(playerIndex)} 승리! ({vp}점)");
         }
@@ -938,6 +955,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
         NotifyAllResources(currentPlayerIndex);
         OnBankTrade?.Invoke(currentPlayerIndex, give, receive, rate);
+        SFXManager.Instance?.Play(SFXType.BankTrade);
 
         Debug.Log($"[Local] {GetPlayerName(currentPlayerIndex)}: 은행 거래 {give}×{rate} → {receive}×1");
         return true;
@@ -968,6 +986,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
                 request = new Dictionary<ResourceType, int>(request)
             };
             OnIncomingTradeProposal?.Invoke(currentPlayerIndex, offer, request);
+            SFXManager.Instance?.Play(SFXType.TradeOffer);
             return false; // 실제 실행은 RespondToIncomingTrade에서
         }
 
@@ -1013,6 +1032,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         NotifyAllResources(p1);
         NotifyAllResources(p2);
         OnPlayerTrade?.Invoke(p1, p2);
+        SFXManager.Instance?.Play(SFXType.TradeAccept);
         Debug.Log($"[Local] {GetPlayerName(p1)} ↔ {GetPlayerName(p2)} 거래 성사!");
     }
 

@@ -58,12 +58,12 @@ public class MainMenuController : MonoBehaviour
             }
         }
 
-        btnLocalPlay.clicked += OnLocalPlay;
-        btnCreateRoom.clicked += OnCreateRoom;
-        btnJoinRoom.clicked += OnJoinRoom;
-        btnBrowseRooms.clicked += OnBrowseRooms;
-        btnRefreshRooms.clicked += OnRefreshRooms;
-        btnCloseRooms.clicked += OnCloseRooms;
+        btnLocalPlay.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); OnLocalPlay(); };
+        btnCreateRoom.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); OnCreateRoom(); };
+        btnJoinRoom.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); OnJoinRoom(); };
+        btnBrowseRooms.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); OnBrowseRooms(); };
+        btnRefreshRooms.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); OnRefreshRooms(); };
+        btnCloseRooms.clicked += () => { SFXManager.Instance?.Play(SFXType.MenuClose); OnCloseRooms(); };
 
         inputJoinCode.value = "";
 

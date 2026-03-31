@@ -36,8 +36,8 @@ public class LobbyController : MonoBehaviour
         for (int i = 0; i < 4; i++)
             slots[i] = root.Q<VisualElement>($"slot-{i}");
 
-        btnStartGame.clicked += OnStartGame;
-        btnLeave.clicked += OnLeave;
+        btnStartGame.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); OnStartGame(); };
+        btnLeave.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); OnLeave(); };
     }
 
     void Start()

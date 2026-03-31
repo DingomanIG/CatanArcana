@@ -519,23 +519,25 @@ public class GameHUDController : MonoBehaviour
         btnResultMenu.clicked += OnResultMenuClicked;
         btnResultRematch.clicked += OnResultRematchClicked;
 
-        btnBuildRoad.clicked += () => GM?.EnterBuildMode(BuildMode.PlacingRoad);
-        btnBuildSettlement.clicked += () => GM?.EnterBuildMode(BuildMode.PlacingSettlement);
-        btnBuildCity.clicked += () => GM?.EnterBuildMode(BuildMode.PlacingCity);
+        btnBuildRoad.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); GM?.EnterBuildMode(BuildMode.PlacingRoad); };
+        btnBuildSettlement.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); GM?.EnterBuildMode(BuildMode.PlacingSettlement); };
+        btnBuildCity.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); GM?.EnterBuildMode(BuildMode.PlacingCity); };
 
         // 거래 탭 및 실행
-        btnTradeTabBank.clicked += () => SwitchTradeTab(true);
-        btnTradeTabPlayer.clicked += () => SwitchTradeTab(false);
+        btnTradeTabBank.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); SwitchTradeTab(true); };
+        btnTradeTabPlayer.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); SwitchTradeTab(false); };
         btnExecuteBankTrade.clicked += OnExecuteBankTrade;
         btnSendProposal.clicked += OnSendProposalClicked;
         btnCancelProposal.clicked += OnCancelProposalClicked;
         btnIncomingAccept.clicked += () =>
         {
+            SFXManager.Instance?.Play(SFXType.TradeAccept);
             GM?.RespondToIncomingTrade(true);
             incomingTradeOverlay.AddToClassList("overlay--hidden");
         };
         btnIncomingDecline.clicked += () =>
         {
+            SFXManager.Instance?.Play(SFXType.TradeReject);
             GM?.RespondToIncomingTrade(false);
             incomingTradeOverlay.AddToClassList("overlay--hidden");
         };
@@ -575,12 +577,13 @@ public class GameHUDController : MonoBehaviour
         });
     }
 
-    void OnStartGameClicked() => GM?.StartGame();
-    void OnRollDiceClicked() => GM?.RollDice();
-    void OnEndTurnClicked() => GM?.EndTurn();
+    void OnStartGameClicked() { SFXManager.Instance?.Play(SFXType.ButtonClick); GM?.StartGame(); }
+    void OnRollDiceClicked() { SFXManager.Instance?.Play(SFXType.DiceRoll); GM?.RollDice(); }
+    void OnEndTurnClicked() { SFXManager.Instance?.Play(SFXType.ButtonClick); GM?.EndTurn(); }
 
     void OnTradeClicked()
     {
+        SFXManager.Instance?.Play(SFXType.MenuOpen);
         SwitchTradeTab(true);
         tradeOverlay.RemoveFromClassList("overlay--hidden");
     }
@@ -592,11 +595,12 @@ public class GameHUDController : MonoBehaviour
 
     void OnDevCardHandClicked()
     {
+        SFXManager.Instance?.Play(SFXType.MenuOpen);
         RefreshDevCardHand();
         devCardOverlay.RemoveFromClassList("overlay--hidden");
     }
 
-    void OnCloseTradeClicked() => tradeOverlay.AddToClassList("overlay--hidden");
+    void OnCloseTradeClicked() { SFXManager.Instance?.Play(SFXType.MenuClose); tradeOverlay.AddToClassList("overlay--hidden"); }
     void OnRulesClicked() => rulesOverlay.RemoveFromClassList("overlay--hidden");
     void OnCloseRulesClicked() => rulesOverlay.AddToClassList("overlay--hidden");
     void OnCloseDevCardClicked() => devCardOverlay.AddToClassList("overlay--hidden");
@@ -629,6 +633,9 @@ public class GameHUDController : MonoBehaviour
 
     void HandleTurnChanged(int playerIndex)
     {
+        if (GM.IsMyTurn())
+            SFXManager.Instance?.Play(SFXType.TurnStart);
+
         string who = GM.GetPlayerName(playerIndex);
         AddEventLog($"--- {who}의 턴 (턴 {GM.TurnNumber}) ---", "system");
 

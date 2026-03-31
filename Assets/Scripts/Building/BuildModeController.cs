@@ -232,6 +232,8 @@ public class BuildModeController : MonoBehaviour
                     if (currentMode == modeBefore)
                         CancelBuildMode();
                 }
+                else
+                    SFXManager.Instance?.Play(SFXType.BuildFailed);
                 break;
             }
 
@@ -247,6 +249,8 @@ public class BuildModeController : MonoBehaviour
                     if (currentMode == modeBefore)
                         CancelBuildMode();
                 }
+                else
+                    SFXManager.Instance?.Play(SFXType.BuildFailed);
                 break;
             }
 
@@ -262,6 +266,8 @@ public class BuildModeController : MonoBehaviour
                     if (currentMode == modeBefore)
                         CancelBuildMode();
                 }
+                else
+                    SFXManager.Instance?.Play(SFXType.BuildFailed);
                 break;
             }
         }
