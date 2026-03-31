@@ -20,13 +20,14 @@ public static class CatanPrefabGenerator
         GenerateNumberToken(baseMat);
         GenerateRobber(baseMat);
         GenerateVertex(baseMat);
+        GenerateEdge(baseMat);
         GenerateRoad(baseMat);
         GenerateSettlement(baseMat);
         GenerateCity(baseMat);
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        Debug.Log("[Catan] 프리팹 7개 생성 완료! (Board: HexTile, NumberToken, Robber / Buildings: Vertex, Road, Settlement, City)");
+        Debug.Log("[Catan] 프리팹 8개 생성 완료! (Board: HexTile, NumberToken, Robber / Buildings: Vertex, Edge, Road, Settlement, City)");
     }
 
     [MenuItem("Catan/프리팹 자동 연결")]
@@ -40,6 +41,7 @@ public static class CatanPrefabGenerator
             TryAssign(so, "hexTilePrefab", BOARD + "/HexTile.prefab");
             TryAssign(so, "numberTokenPrefab", BOARD + "/NumberToken.prefab");
             TryAssign(so, "robberPrefab", BOARD + "/Robber.prefab");
+            TryAssign(so, "edgePrefab", BUILDINGS + "/Edge.prefab");
             so.ApplyModifiedProperties();
             EditorUtility.SetDirty(gridView);
             Debug.Log("[Catan] HexGridView 프리팹 연결 완료");
@@ -232,6 +234,18 @@ public static class CatanPrefabGenerator
         go.GetComponent<MeshRenderer>().sharedMaterial = baseMat;
 
         SavePrefab(go, BUILDINGS + "/Vertex.prefab");
+    }
+
+    static void GenerateEdge(Material baseMat)
+    {
+        var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        go.name = "Edge";
+        go.transform.localScale = new Vector3(0.04f, 0.5f, 0.04f);
+        DestroyCollider(go);
+        go.GetComponent<MeshRenderer>().sharedMaterial =
+            CreateColorMaterial(baseMat, BUILDINGS + "/EdgeMat.mat", new Color(0.4f, 0.35f, 0.25f));
+
+        SavePrefab(go, BUILDINGS + "/Edge.prefab");
     }
 
     static void GenerateRoad(Material baseMat)

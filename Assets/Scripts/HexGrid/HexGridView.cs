@@ -22,6 +22,7 @@ public class HexGridView : MonoBehaviour
     [SerializeField] GameObject hexTilePrefab;
     [SerializeField] GameObject numberTokenPrefab;
     [SerializeField] GameObject robberPrefab;
+    [SerializeField] GameObject edgePrefab;
 
     HexGrid grid;
     Dictionary<HexCoord, GameObject> tileViews = new();
@@ -253,21 +254,26 @@ public class HexGridView : MonoBehaviour
 
         foreach (var edge in grid.Edges)
         {
-            var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            var dir = edge.VertexB.Position - edge.VertexA.Position;
+
+            GameObject go;
+            if (edgePrefab != null)
+            {
+                go = Instantiate(edgePrefab, edgeParent.transform);
+                go.transform.localScale = new Vector3(hexSize * 0.04f, dir.magnitude / 2f, hexSize * 0.04f);
+            }
+            else
+            {
+                go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                go.transform.localScale = new Vector3(hexSize * 0.04f, dir.magnitude / 2f, hexSize * 0.04f);
+                var mr = go.GetComponent<MeshRenderer>();
+                mr.material = new Material(defaultMaterial);
+                mr.material.color = new Color(0.4f, 0.35f, 0.25f, 0.5f);
+            }
             go.name = $"Edge_{edge.Id}";
             go.transform.SetParent(edgeParent.transform);
-
-            var dir = edge.VertexB.Position - edge.VertexA.Position;
             go.transform.position = edge.MidPoint;
             go.transform.rotation = Quaternion.LookRotation(dir) * Quaternion.Euler(90f, 0f, 0f);
-            go.transform.localScale = new Vector3(
-                hexSize * 0.04f,
-                dir.magnitude / 2f,
-                hexSize * 0.04f);
-
-            var mr = go.GetComponent<MeshRenderer>();
-            mr.material = new Material(defaultMaterial);
-            mr.material.color = new Color(0.4f, 0.35f, 0.25f, 0.5f);
         }
     }
 
