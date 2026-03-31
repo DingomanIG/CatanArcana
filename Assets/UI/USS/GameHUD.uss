@@ -1477,3 +1477,21 @@
     margin-bottom: 0;
     margin-left: 3px;
 }
+
+.discard-panel {
+    max-width: 380px;
+}
+
+.discard-resource-grid {
+    padding: 4px 0;
+}
+
+.discard-info {
+    color: rgb(230, 120, 90);
+    font-size: 14px;
+    -unity-font-style: bold;
+}
+
+.discard-info--ready {
+    color: rgb(90, 200, 90);
+}

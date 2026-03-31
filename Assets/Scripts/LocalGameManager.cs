@@ -90,6 +90,13 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     public event Action<int, ResourceType, ResourceType, int> OnBankTrade;
     public event Action<int, int> OnPlayerTrade;
     public event Action<int, Dictionary<ResourceType, int>, Dictionary<ResourceType, int>> OnIncomingTradeProposal;
+    public event Action OnIncomingTradeCancelled;
+    public event Action<int, int> OnDiscardRequired;
+
+    // 디스카드 대기 상태
+    bool waitingForDiscard;
+    int pendingDiscardPlayer;
+    int pendingDiscardCount;
 
     // 수신 대기 중인 거래 제안 (AI→인간)
     class PendingTrade
@@ -405,14 +412,69 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
     void HandleSeven()
     {
+        // AI는 즉시 자동 디스카드
         for (int i = 0; i < playerCount; i++)
         {
-            if (players[i].TotalResourceCount > 7)
+            if (players[i].TotalResourceCount > 7 && IsPlayerAI(i))
                 AutoDiscardHalf(i);
         }
 
+        // 인간 플레이어 디스카드 필요 여부 확인
+        if (humanPlayerIndex >= 0 && players[humanPlayerIndex].TotalResourceCount > 7)
+        {
+            int toDiscard = players[humanPlayerIndex].TotalResourceCount / 2;
+            waitingForDiscard = true;
+            pendingDiscardPlayer = humanPlayerIndex;
+            pendingDiscardCount = toDiscard;
+            OnDiscardRequired?.Invoke(humanPlayerIndex, toDiscard);
+            Debug.Log($"[Local] {GetPlayerName(humanPlayerIndex)}: 자원 {toDiscard}장 버려야 함 (보유: {players[humanPlayerIndex].TotalResourceCount})");
+            return; // MoveRobber 진입을 디스카드 완료까지 대기
+        }
+
+        ProceedToMoveRobber();
+    }
+
+    void ProceedToMoveRobber()
+    {
         SetPhase(GamePhase.MoveRobber);
         Debug.Log("[Local] 7 나옴! 도적 이동 필요 (아무 육지 타일 클릭)");
+    }
+
+    public void ConfirmDiscard(Dictionary<ResourceType, int> toDiscard)
+    {
+        if (!waitingForDiscard) return;
+
+        var player = players[pendingDiscardPlayer];
+
+        // 검증: 총 버리는 수가 정확한지
+        int totalDiscard = 0;
+        foreach (var kv in toDiscard) totalDiscard += kv.Value;
+        if (totalDiscard != pendingDiscardCount)
+        {
+            Debug.LogWarning($"[Local] 디스카드 수 불일치: 필요 {pendingDiscardCount}, 시도 {totalDiscard}");
+            return;
+        }
+
+        // 검증: 보유량 이상 버리는지
+        foreach (var kv in toDiscard)
+        {
+            if (kv.Value > player.Resources.GetValueOrDefault(kv.Key, 0))
+            {
+                Debug.LogWarning($"[Local] {kv.Key} 보유량 초과 디스카드 시도");
+                return;
+            }
+        }
+
+        // 적용
+        foreach (var kv in toDiscard)
+            player.Resources[kv.Key] -= kv.Value;
+
+        NotifyAllResources(pendingDiscardPlayer);
+        SFXManager.Instance?.Play(SFXType.ResourceLost);
+        Debug.Log($"[Local] {GetPlayerName(pendingDiscardPlayer)}: 자원 {pendingDiscardCount}장 버림 (남은: {player.TotalResourceCount})");
+
+        waitingForDiscard = false;
+        ProceedToMoveRobber();
     }
 
     void AutoDiscardHalf(int playerIndex)
@@ -1008,6 +1070,10 @@ public class LocalGameManager : MonoBehaviour, IGameManager
             return false;
         }
 
+        // 제안자가 은행 거래 성사 → 수신 대기 중인 제안 자동 취소
+        if (pendingIncomingTrade != null && currentPlayerIndex == pendingIncomingTrade.proposer)
+            CancelPendingIncomingTrade();
+
         player.Resources[give] -= rate;
         player.AddResource(receive, 1);
 
@@ -1073,6 +1139,15 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
     void ExecuteTrade(int p1, int p2, Dictionary<ResourceType, int> offer, Dictionary<ResourceType, int> request)
     {
+        // 제안자가 다른 상대와 거래 성사 → 수신 대기 중인 제안 자동 취소
+        if (pendingIncomingTrade != null &&
+            (p1 == pendingIncomingTrade.proposer || p2 == pendingIncomingTrade.proposer) &&
+            !(p1 == pendingIncomingTrade.target && p2 == pendingIncomingTrade.proposer) &&
+            !(p2 == pendingIncomingTrade.target && p1 == pendingIncomingTrade.proposer))
+        {
+            CancelPendingIncomingTrade();
+        }
+
         var me = players[p1];
         var them = players[p2];
 
@@ -1092,6 +1167,14 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         OnPlayerTrade?.Invoke(p1, p2);
         SFXManager.Instance?.Play(SFXType.TradeAccept);
         Debug.Log($"[Local] {GetPlayerName(p1)} ↔ {GetPlayerName(p2)} 거래 성사!");
+    }
+
+    void CancelPendingIncomingTrade()
+    {
+        if (pendingIncomingTrade == null) return;
+        Debug.Log($"[Local] 수신 거래 제안 자동 취소 (제안자: {GetPlayerName(pendingIncomingTrade.proposer)})");
+        pendingIncomingTrade = null;
+        OnIncomingTradeCancelled?.Invoke();
     }
 
     static bool PortMatchesResource(PortType port, ResourceType resource) => port switch

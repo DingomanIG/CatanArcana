@@ -39,6 +39,9 @@ public interface IGameManager
     event Action<int, bool> OnLargestArmyChanged;  // (playerIndex, gained)
     event Action<int, int, ResourceType> OnRobberSteal; // (thief, victim, resource)
 
+    // 디스카드 이벤트
+    event Action<int, int> OnDiscardRequired; // (playerIndex, discardCount) — 인간 플레이어에게 디스카드 UI 표시
+
     // 기본 액션
     void PrepareGame();
     void StartGame();
@@ -53,6 +56,9 @@ public interface IGameManager
     bool TryBuildRoad(int edgeId);
     void EnterBuildMode(BuildMode mode);
     void CancelBuildMode();
+
+    // 디스카드
+    void ConfirmDiscard(Dictionary<ResourceType, int> toDiscard);
 
     // 도적
     bool TryMoveRobber(HexCoord newTile);
@@ -77,6 +83,7 @@ public interface IGameManager
     event Action<int, int> OnPlayerTrade; // (player1, player2)
     // AI→인간 거래 제안 수신 (proposer, offerToHuman, requestFromHuman)
     event Action<int, Dictionary<ResourceType, int>, Dictionary<ResourceType, int>> OnIncomingTradeProposal;
+    event Action OnIncomingTradeCancelled; // 제안자가 다른 거래 성사 시 자동 취소
     void RespondToIncomingTrade(bool accept);
 
     // 조회

@@ -147,6 +147,15 @@ public class GameHUDController : MonoBehaviour
     VisualElement stealOverlay;
     VisualElement stealPlayerList;
 
+    // Discard Overlay
+    VisualElement discardOverlay;
+    Label discardTitle;
+    Label discardInfo;
+    VisualElement discardResourceGrid;
+    Button btnConfirmDiscard;
+    readonly Dictionary<ResourceType, int> discardAmounts = new();
+    int discardRequired;
+
     // Bank Resources
     Label bankWood, bankBrick, bankWool, bankWheat, bankOre, bankDevCard;
 
@@ -412,6 +421,13 @@ public class GameHUDController : MonoBehaviour
         stealOverlay = root.Q<VisualElement>("steal-overlay");
         stealPlayerList = root.Q<VisualElement>("steal-player-list");
 
+        // Discard Overlay
+        discardOverlay = root.Q<VisualElement>("discard-overlay");
+        discardTitle = root.Q<Label>("discard-title");
+        discardInfo = root.Q<Label>("discard-info");
+        discardResourceGrid = root.Q<VisualElement>("discard-resource-grid");
+        btnConfirmDiscard = root.Q<Button>("btn-confirm-discard");
+
         // Turn Order Overlay
         turnOrderOverlay = root.Q<VisualElement>("turn-order-overlay");
         turnOrderList = root.Q<VisualElement>("turn-order-list");
@@ -483,6 +499,8 @@ public class GameHUDController : MonoBehaviour
             GM.OnBuildingPlaced += HandleBuildingPlaced;
             GM.OnRoadPlaced += HandleRoadPlaced;
             GM.OnIncomingTradeProposal += HandleIncomingTradeProposal;
+            GM.OnIncomingTradeCancelled += HandleIncomingTradeCancelled;
+            GM.OnDiscardRequired += HandleDiscardRequired;
         }
     }
 
@@ -507,6 +525,8 @@ public class GameHUDController : MonoBehaviour
             GM.OnBuildingPlaced -= HandleBuildingPlaced;
             GM.OnRoadPlaced -= HandleRoadPlaced;
             GM.OnIncomingTradeProposal -= HandleIncomingTradeProposal;
+            GM.OnIncomingTradeCancelled -= HandleIncomingTradeCancelled;
+            GM.OnDiscardRequired -= HandleDiscardRequired;
         }
     }
 
@@ -527,6 +547,7 @@ public class GameHUDController : MonoBehaviour
         btnCloseRules.clicked += OnCloseRulesClicked;
         btnCloseDevCard.clicked += OnCloseDevCardClicked;
         btnCancelResourceSelect.clicked += OnCancelResourceSelect;
+        btnConfirmDiscard.clicked += OnConfirmDiscardClicked;
         btnCloseTurnOrder.clicked += () => CloseTurnOrderOverlay();
         btnResultMenu.clicked += OnResultMenuClicked;
         btnResultRematch.clicked += OnResultRematchClicked;
@@ -833,6 +854,14 @@ public class GameHUDController : MonoBehaviour
         BuildIncomingResourceDisplay(incomingTradeRequestGrid, requestFromHuman);
 
         incomingTradeOverlay.RemoveFromClassList("overlay--hidden");
+    }
+
+    void HandleIncomingTradeCancelled()
+    {
+        if (incomingTradeOverlay == null) return;
+        SFXManager.Instance?.Play(SFXType.TradeReject);
+        incomingTradeOverlay.AddToClassList("overlay--hidden");
+        ShowToast("trade", "제안자가 다른 거래를 성사시켜 제안이 취소되었습니다.");
     }
 
     void BuildIncomingResourceDisplay(VisualElement grid, Dictionary<ResourceType, int> amounts)
@@ -1258,6 +1287,130 @@ public class GameHUDController : MonoBehaviour
         }
 
         stealOverlay.RemoveFromClassList("overlay--hidden");
+    }
+
+    // ========================
+    // DISCARD
+    // ========================
+
+    void HandleDiscardRequired(int playerIndex, int count)
+    {
+        if (discardOverlay == null || discardResourceGrid == null) return;
+
+        discardRequired = count;
+        discardAmounts.Clear();
+        foreach (var res in AllResources)
+            discardAmounts[res] = 0;
+
+        var state = GM?.GetPlayerState(playerIndex);
+        discardTitle.text = $"자원 버리기 ({state?.TotalResourceCount}장 중 {count}장)";
+        BuildDiscardGrid();
+        UpdateDiscardInfo();
+        discardOverlay.RemoveFromClassList("overlay--hidden");
+    }
+
+    void BuildDiscardGrid()
+    {
+        discardResourceGrid.Clear();
+        if (GM == null) return;
+
+        var state = GM.GetPlayerState(GM.LocalPlayerIndex);
+
+        foreach (var res in AllResources)
+        {
+            int owned = state.Resources.GetValueOrDefault(res, 0);
+            if (owned <= 0) continue;
+
+            var row = new VisualElement();
+            row.AddToClassList("trade-amount-row");
+
+            var icon = new VisualElement();
+            icon.AddToClassList("trade-amount-row__icon");
+            icon.AddToClassList($"resource-icon--{res.ToString().ToLower()}");
+
+            var nameLabel = new Label($"{GetResourceName(res)} ({owned})");
+            nameLabel.AddToClassList("trade-amount-row__name");
+
+            var countLabel = new Label(discardAmounts[res].ToString());
+            countLabel.AddToClassList("trade-amount-row__count");
+
+            var btnMinus = new Button { text = "-" };
+            btnMinus.AddToClassList("trade-amount-btn");
+            btnMinus.SetEnabled(discardAmounts[res] > 0);
+
+            var btnPlus = new Button { text = "+" };
+            btnPlus.AddToClassList("trade-amount-btn");
+            int totalSelected = 0;
+            foreach (var kv in discardAmounts) totalSelected += kv.Value;
+            btnPlus.SetEnabled(discardAmounts[res] < owned && totalSelected < discardRequired);
+
+            var capturedRes = res;
+            btnMinus.clicked += () =>
+            {
+                if (discardAmounts[capturedRes] > 0)
+                {
+                    discardAmounts[capturedRes]--;
+                    BuildDiscardGrid();
+                    UpdateDiscardInfo();
+                }
+            };
+            btnPlus.clicked += () =>
+            {
+                int total = 0;
+                foreach (var kv in discardAmounts) total += kv.Value;
+                if (discardAmounts[capturedRes] < state.Resources.GetValueOrDefault(capturedRes, 0) && total < discardRequired)
+                {
+                    discardAmounts[capturedRes]++;
+                    BuildDiscardGrid();
+                    UpdateDiscardInfo();
+                }
+            };
+
+            row.Add(icon);
+            row.Add(nameLabel);
+            row.Add(btnMinus);
+            row.Add(countLabel);
+            row.Add(btnPlus);
+            discardResourceGrid.Add(row);
+        }
+    }
+
+    void UpdateDiscardInfo()
+    {
+        int totalSelected = 0;
+        foreach (var kv in discardAmounts) totalSelected += kv.Value;
+
+        discardInfo.text = $"버릴 자원을 선택하세요 ({totalSelected}/{discardRequired})";
+
+        bool ready = totalSelected == discardRequired;
+        if (ready)
+        {
+            discardInfo.AddToClassList("discard-info--ready");
+            discardInfo.text = $"선택 완료! ({totalSelected}/{discardRequired})";
+        }
+        else
+        {
+            discardInfo.RemoveFromClassList("discard-info--ready");
+        }
+
+        btnConfirmDiscard.SetEnabled(ready);
+    }
+
+    void OnConfirmDiscardClicked()
+    {
+        int totalSelected = 0;
+        foreach (var kv in discardAmounts) totalSelected += kv.Value;
+        if (totalSelected != discardRequired) return;
+
+        var toDiscard = new Dictionary<ResourceType, int>();
+        foreach (var kv in discardAmounts)
+        {
+            if (kv.Value > 0) toDiscard[kv.Key] = kv.Value;
+        }
+
+        SFXManager.Instance?.Play(SFXType.ResourceLost);
+        discardOverlay.AddToClassList("overlay--hidden");
+        GM?.ConfirmDiscard(toDiscard);
     }
 
     // ========================
