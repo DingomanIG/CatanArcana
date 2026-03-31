@@ -1483,9 +1483,17 @@ public class GameHUDController : MonoBehaviour
             else
                 kvp.Value.card.RemoveFromClassList("opponent-card--active");
 
-            kvp.Value.statusBar.style.display = isActive ? DisplayStyle.Flex : DisplayStyle.None;
-            if (isActive)
-                kvp.Value.statusText.text = GetStatusText(GM.CurrentPhase);
+            // 자원 델타 표시 중이면 건드리지 않음
+            bool showingDelta = opponentStatusTimers.ContainsKey(kvp.Key);
+            if (!showingDelta)
+            {
+                kvp.Value.statusBar.style.display = isActive ? DisplayStyle.Flex : DisplayStyle.None;
+                if (isActive)
+                {
+                    kvp.Value.statusBar.style.backgroundColor = StatusYellow;
+                    kvp.Value.statusText.text = GetStatusText(GM.CurrentPhase);
+                }
+            }
         }
     }
 
@@ -1493,27 +1501,42 @@ public class GameHUDController : MonoBehaviour
     static readonly Color StatusRed = new(0.7f, 0.2f, 0.15f);
     static readonly Color StatusYellow = new(1f, 0.7f, 0f);
     readonly Dictionary<int, Coroutine> opponentStatusTimers = new();
+    readonly Dictionary<int, List<(string resName, int delta)>> pendingDeltas = new();
 
     void ShowOpponentResourceDelta(int playerIndex, string resName, int delta)
     {
         if (!opponentCards.TryGetValue(playerIndex, out var ui)) return;
 
-        // 기존 타이머 취소
+        // 기존 타이머 취소 (같은 프레임에 여러 자원 변동 합산)
         if (opponentStatusTimers.TryGetValue(playerIndex, out var existing) && existing != null)
             StopCoroutine(existing);
 
-        bool gained = delta > 0;
-        string sign = gained ? "+" : "";
-        ui.statusText.text = $"{sign}{delta} {resName}";
-        ui.statusBar.style.backgroundColor = gained ? StatusGreen : StatusRed;
+        if (!pendingDeltas.ContainsKey(playerIndex))
+            pendingDeltas[playerIndex] = new List<(string, int)>();
+        pendingDeltas[playerIndex].Add((resName, delta));
+
+        // 합산 텍스트 생성
+        var parts = new List<string>();
+        bool hasGain = false, hasLoss = false;
+        foreach (var (name, d) in pendingDeltas[playerIndex])
+        {
+            string sign = d > 0 ? "+" : "";
+            parts.Add($"{sign}{d} {name}");
+            if (d > 0) hasGain = true; else hasLoss = true;
+        }
+
+        ui.statusText.text = string.Join(", ", parts);
+        ui.statusBar.style.backgroundColor = hasLoss ? StatusRed : StatusGreen;
         ui.statusBar.style.display = DisplayStyle.Flex;
 
-        opponentStatusTimers[playerIndex] = StartCoroutine(RevertOpponentStatus(playerIndex, 2f));
+        opponentStatusTimers[playerIndex] = StartCoroutine(RevertOpponentStatus(playerIndex, 2.5f));
     }
 
     IEnumerator RevertOpponentStatus(int playerIndex, float delay)
     {
         yield return new WaitForSeconds(delay);
+
+        pendingDeltas.Remove(playerIndex);
 
         if (!opponentCards.TryGetValue(playerIndex, out var ui)) yield break;
 
