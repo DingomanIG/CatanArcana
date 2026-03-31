@@ -74,6 +74,7 @@ Docs/
 - 일은 즐겁게!
 
 ## Rules
+- UI/코드/문서에 "카탄(Catan)" 명칭 사용 금지 (라이센스 이슈)
 - 커밋 시 항상 push까지 수행
 - Unity .meta 파일 포함하여 커밋
 - Library/, Temp/, Logs/, UserSettings/ 는 gitignore 처리됨
