@@ -322,6 +322,13 @@ public class HexGridView : MonoBehaviour
         grid.RebuildTopology();
     }
 
+    /// <summary>좌표로 타일 GameObject 조회</summary>
+    public GameObject GetTileGameObject(HexCoord coord)
+    {
+        tileViews.TryGetValue(coord, out var go);
+        return go;
+    }
+
     /// <summary>히트된 게임 오브젝트에서 타일 좌표 조회</summary>
     public bool TryGetTileCoord(GameObject go, out HexCoord coord)
     {

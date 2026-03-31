@@ -125,6 +125,10 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         buildingSystem = new BuildingSystem(grid);
         devCardDeck = new DevCardDeck();
 
+        // 타일 플래시 이펙트 자동 추가
+        if (GetComponent<TileFlashEffect>() == null)
+            gameObject.AddComponent<TileFlashEffect>();
+
         OnPlayerListChanged?.Invoke();
     }
 
