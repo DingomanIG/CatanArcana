@@ -245,8 +245,16 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
     public string GetPlayerName(int index)
     {
+        // AI 플레이어면 레벨별 캐릭터 이름 사용
+        var ai = GetComponent<AIController>();
+        if (ai != null && ai.IsAI(index))
+        {
+            var diff = ai.GetDifficulty(index);
+            return $"{AIDifficultySettings.GetAIName(diff)}(AI)";
+        }
+
         string name = index < DefaultPlayerNames.Length ? DefaultPlayerNames[index] : $"Player {index + 1}";
-        return $"{name}";
+        return name;
     }
 
     // ========================

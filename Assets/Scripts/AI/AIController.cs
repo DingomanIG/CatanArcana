@@ -100,6 +100,36 @@ public static class AIDifficultySettings
         9 => 3.5f,
         _ => 2.0f
     };
+
+    /// <summary>AI 레벨별 캐릭터 이름</summary>
+    public static string GetAIName(AIDifficulty d) => (int)d switch
+    {
+        1 => "감자",       // Gamja - 완전 랜덤, 감자처럼 멍때리는 AI
+        2 => "잼민",       // Jaemin - 약간의 판단, 꼬꼬마
+        3 => "또리",       // Ddori - 기초 전략, 동네 꼬마
+        4 => "하루",       // Haru - 기초 전략 + 거래
+        5 => "수리",       // Suri - 중급, 영리한 여우
+        6 => "클로디",     // Cloudi - 고급 전략
+        7 => "아르카",     // Arka - 고급 + 정밀 거래
+        8 => "세이지",     // Sage - 현자
+        9 => "오라클",     // Oracle - 마스터, 신탁
+        _ => "AI"
+    };
+
+    /// <summary>AI 레벨별 영문 이름</summary>
+    public static string GetAINameEN(AIDifficulty d) => (int)d switch
+    {
+        1 => "Gamja",
+        2 => "Jaemin",
+        3 => "Ddori",
+        4 => "Haru",
+        5 => "Suri",
+        6 => "Cloudi",
+        7 => "Arka",
+        8 => "Sage",
+        9 => "Oracle",
+        _ => "AI"
+    };
 }
 
 /// <summary>
