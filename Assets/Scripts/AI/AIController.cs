@@ -373,7 +373,19 @@ public class AIController : MonoBehaviour
                 }
             }
 
-            // --- 은행 거래 (Medium+) ---
+            // --- 플레이어 간 거래 (Medium+, 1:1 교환) ---
+            if (diff >= AIDifficulty.Medium)
+            {
+                bool playerTraded = TryPlayerTrade(playerIndex, diff);
+                if (playerTraded)
+                {
+                    yield return new WaitForSeconds(actionDelay);
+                    actions++;
+                    continue;
+                }
+            }
+
+            // --- 은행 거래 (Medium+, 4:1~2:1) ---
             if (diff >= AIDifficulty.Medium)
             {
                 bool traded = TryBankTrade(playerIndex, diff);
@@ -528,6 +540,24 @@ public class AIController : MonoBehaviour
     // ========================
     // 거래 로직
     // ========================
+
+    bool TryPlayerTrade(int playerIndex, AIDifficulty diff)
+    {
+        if (AIBoardEvaluator.FindBestPlayerTrade(playerIndex, gm, diff,
+            out int target, out var offer, out var request))
+        {
+            if (gm.TryPlayerTrade(target, offer, request))
+            {
+                // 로그용 문자열
+                string offerStr = "", reqStr = "";
+                foreach (var kv in offer) offerStr += $"{kv.Key}×{kv.Value} ";
+                foreach (var kv in request) reqStr += $"{kv.Key}×{kv.Value} ";
+                Debug.Log($"[AI] P{playerIndex}: P{target}과 거래 - 제공:{offerStr.TrimEnd()} 요청:{reqStr.TrimEnd()}");
+                return true;
+            }
+        }
+        return false;
+    }
 
     bool TryBankTrade(int playerIndex, AIDifficulty diff)
     {

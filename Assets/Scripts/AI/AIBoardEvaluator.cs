@@ -183,6 +183,105 @@ public static class AIBoardEvaluator
         return best;
     }
 
+    /// <summary>AI 플레이어 간 거래 탐색 (1:1 교환)</summary>
+    public static bool FindBestPlayerTrade(
+        int myIndex, IGameManager gm, AIDifficulty diff,
+        out int targetPlayer,
+        out Dictionary<ResourceType, int> offer,
+        out Dictionary<ResourceType, int> request)
+    {
+        targetPlayer = -1;
+        offer = null;
+        request = null;
+
+        var myState = gm.GetPlayerState(myIndex);
+
+        // 건설 목표 결정 (우선순위: 도시 > 마을 > 발전카드)
+        Dictionary<ResourceType, int> buildGoal = null;
+        if (myState.CitiesRemaining > 0 && gm.GetValidCityVertices(myIndex).Count > 0)
+            buildGoal = BuildingCosts.City;
+        else if (myState.SettlementsRemaining > 0)
+            buildGoal = BuildingCosts.Settlement;
+        else
+            buildGoal = BuildingCosts.DevelopmentCard;
+
+        // 부족한 자원
+        var deficits = new List<ResourceType>();
+        foreach (var kv in buildGoal)
+        {
+            if (myState.Resources[kv.Key] < kv.Value)
+                deficits.Add(kv.Key);
+        }
+        if (deficits.Count == 0) return false;
+
+        // 잉여 자원 (건설 목표에 불필요하거나 초과분)
+        var surplus = new List<ResourceType>();
+        foreach (var kv in myState.Resources)
+        {
+            if (kv.Key == ResourceType.None || kv.Key == ResourceType.Sea) continue;
+            int needed = buildGoal.ContainsKey(kv.Key) ? buildGoal[kv.Key] : 0;
+            if (kv.Value > needed)
+                surplus.Add(kv.Key);
+        }
+        if (surplus.Count == 0) return false;
+
+        // Hard: VP 최고점 파악 (선두와 거래 회피용)
+        int maxVP = 0;
+        if (diff >= AIDifficulty.Hard)
+        {
+            for (int i = 0; i < gm.PlayerCount; i++)
+                maxVP = System.Math.Max(maxVP, gm.GetPlayerState(i).VictoryPoints);
+        }
+
+        float bestScore = 0f;
+
+        for (int i = 0; i < gm.PlayerCount; i++)
+        {
+            if (i == myIndex) continue;
+            var other = gm.GetPlayerState(i);
+
+            // Hard: 선두 주자와 거래 회피
+            if (diff >= AIDifficulty.Hard &&
+                other.VictoryPoints >= maxVP &&
+                other.VictoryPoints > myState.VictoryPoints)
+                continue;
+
+            foreach (var need in deficits)
+            {
+                if (other.Resources[need] <= 0) continue;
+
+                foreach (var give in surplus)
+                {
+                    if (give == need) continue;
+
+                    float score = 1f;
+
+                    // 상대에게 줄 자원이 상대에게 가치 있을수록 좋음
+                    if (other.Resources[give] == 0) score += 3f;
+                    else if (other.Resources[give] == 1) score += 1.5f;
+
+                    // 내가 받을 자원이 나에게 긴급할수록 좋음
+                    if (myState.Resources[need] == 0) score += 2f;
+
+                    // 내가 줄 자원이 많을수록 아깝지 않음
+                    score += myState.Resources[give] * 0.5f;
+
+                    if (score > bestScore)
+                    {
+                        bestScore = score;
+                        targetPlayer = i;
+                        offer = new Dictionary<ResourceType, int> { { give, 1 } };
+                        request = new Dictionary<ResourceType, int> { { need, 1 } };
+                    }
+                }
+            }
+        }
+
+        // Medium: 낮은 기준, Hard: 높은 기준
+        float threshold = diff >= AIDifficulty.Hard ? 3f : 2f;
+        return targetPlayer >= 0 && bestScore >= threshold;
+    }
+
     /// <summary>은행 거래 평가: 남는 자원 → 필요한 자원</summary>
     public static bool FindBestBankTrade(PlayerState player, IGameManager gm,
         out ResourceType give, out ResourceType receive)
