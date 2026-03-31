@@ -89,6 +89,17 @@ public static class AIBoardEvaluator
         float score = 0f;
         int tilePips = GetPips(tile.NumberToken);
 
+        // Lv9: 선두 VP 파악
+        int leaderVP = 0;
+        if (AIDifficultySettings.FocusesLeader(difficulty))
+        {
+            for (int i = 0; i < players.Length; i++)
+            {
+                if (i != myIndex && players[i].VictoryPoints > leaderVP)
+                    leaderVP = players[i].VictoryPoints;
+            }
+        }
+
         foreach (var vertex in tile.Vertices)
         {
             if (vertex.Building == BuildingType.None) continue;
@@ -101,6 +112,11 @@ public static class AIBoardEvaluator
             // Lv6+: 선두 플레이어 우선 타겟
             if (AIDifficultySettings.TracksOpponentVP(difficulty))
                 score += players[owner].VictoryPoints * 0.5f;
+
+            // Lv9: 선두에게 도적 집중 (VP 1등에게 2배 보너스)
+            if (AIDifficultySettings.FocusesLeader(difficulty) &&
+                players[owner].VictoryPoints >= leaderVP && leaderVP > 0)
+                score += tilePips * buildingValue; // 사실상 2배
         }
 
         return score;
@@ -431,6 +447,23 @@ public static class AIBoardEvaluator
     {
         var state = gm.GetPlayerState(aiPlayerIndex);
         if (state == null) return false;
+
+        // Lv9: 선두 플레이어와 거래 완전 거부
+        var aiCtrl = (gm as UnityEngine.MonoBehaviour)?.GetComponent<AIController>();
+        if (aiCtrl != null)
+        {
+            var diff = aiCtrl.GetDifficulty(aiPlayerIndex);
+            if (AIDifficultySettings.RefusesLeaderTrade(diff))
+            {
+                // 거래 상대 = 인간 = LocalPlayerIndex
+                int humanIndex = gm.LocalPlayerIndex;
+                int myVP = state.VictoryPoints;
+                int humanVP = gm.GetPlayerState(humanIndex)?.VictoryPoints ?? 0;
+                // 인간이 나보다 VP 높거나 같으면 거래 거부
+                if (humanVP >= myVP && humanVP >= 5)
+                    return false;
+            }
+        }
 
         // 줄 자원이 충분한지 확인
         foreach (var kv in requestFromAI)

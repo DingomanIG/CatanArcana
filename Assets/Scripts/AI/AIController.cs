@@ -46,7 +46,7 @@ public static class AIDifficultySettings
         6 => 0.5f,
         7 => 0.35f,
         8 => 0.2f,
-        9 => 0.15f,
+        9 => 0.05f,  // 클로디: 거의 완벽한 판단
         _ => 3.0f
     };
 
@@ -59,7 +59,7 @@ public static class AIDifficultySettings
         6 => 0.08f,
         7 => 0.05f,
         8 => 0.04f,
-        9 => 0.03f,
+        9 => 0.01f,  // 클로디: 최적 전략 거의 확정
         _ => 0.3f
     };
 
@@ -97,9 +97,18 @@ public static class AIDifficultySettings
         6 => 2.5f,
         7 => 3.0f,
         8 => 3.0f,
-        9 => 3.5f,
+        9 => 4.0f,  // 클로디: 거래 매우 까다롭게
         _ => 2.0f
     };
+
+    /// <summary>Lv9 전용: 선두 플레이어에게 도적을 집중하는가</summary>
+    public static bool FocusesLeader(AIDifficulty d) => (int)d >= 9;
+
+    /// <summary>Lv9 전용: 승리 직전(8VP+) 가속 모드 - 건물/카드 올인</summary>
+    public static bool UsesEndgameAccel(AIDifficulty d) => (int)d >= 9;
+
+    /// <summary>Lv9 전용: 선두에게 거래 완전 거부</summary>
+    public static bool RefusesLeaderTrade(AIDifficulty d) => (int)d >= 9;
 
     /// <summary>AI 레벨별 캐릭터 이름</summary>
     public static string GetAIName(AIDifficulty d) => (int)d switch
@@ -475,7 +484,10 @@ public class AIController : MonoBehaviour
         var strategy = GetStrategy(playerIndex);
         var actionOrder = AIStrategySelector.GetActionOrder(strategy);
         int actions = 0;
-        int maxActions = 8;
+        // Lv9 엔드게임 가속: 승리 직전(8VP+)이면 더 많은 액션 시도
+        bool endgameAccel = AIDifficultySettings.UsesEndgameAccel(diff) && player.VictoryPoints >= 8;
+        int maxActions = endgameAccel ? 12 : 8;
+        if (endgameAccel) Debug.Log($"[AI] P{playerIndex} 클로디: 🔥 엔드게임 가속 모드! (VP:{player.VictoryPoints})");
 
         while (actions < maxActions && gm.CurrentPhase == GamePhase.Action)
         {
@@ -722,8 +734,13 @@ public class AIController : MonoBehaviour
                 missingCount++;
         }
 
+        // Lv9 엔드게임 가속: 승리 직전이면 거래 조건 완화
+        bool endgameAccel = AIDifficultySettings.UsesEndgameAccel(diff) &&
+            gm.GetPlayerState(playerIndex).VictoryPoints >= 8;
+
         // 기본: 1종류 부족하면 거래, 적극적 전략(Port 등): 2종류도 OK
-        int maxMissing = aggression >= 1.3f ? 2 : 1;
+        // 엔드게임 가속: 3종류까지도 거래 시도
+        int maxMissing = endgameAccel ? 3 : (aggression >= 1.3f ? 2 : 1);
         if (missingCount == 0 || missingCount > maxMissing) return false;
 
         if (AIBoardEvaluator.FindBestBankTrade(player, gm, strategy, out var give, out var receive))
@@ -875,6 +892,17 @@ public class AIController : MonoBehaviour
         var player = gm.GetPlayerState(playerIndex);
         var strategy = GetStrategy(playerIndex);
 
+        // Lv9 엔드게임 가속: 최장도로로 승리 가능하면 무조건 건설
+        if (AIDifficultySettings.UsesEndgameAccel(diff) && player.VictoryPoints >= 8)
+        {
+            int myRoad = gm.GetLongestRoadLength(playerIndex);
+            int holder = gm.GetLongestRoadHolder();
+            // 최장도로 탈환/획득으로 +2VP → 승리 가능
+            if (holder != playerIndex && myRoad >= 4)
+                return true;
+            // 이미 최장도로 보유 중이면 방어 불필요
+        }
+
         // 마을 배치 가능한 곳이 없으면 도로로 확장
         var settlements = gm.GetValidSettlementVertices(playerIndex, false);
         if (settlements.Count == 0) return true;
@@ -906,8 +934,21 @@ public class AIController : MonoBehaviour
         var player = gm.GetPlayerState(playerIndex);
         var strategy = GetStrategy(playerIndex);
 
-        // 승리 직전이면 건물 우선
-        if (player.VictoryPoints >= 8) return false;
+        // 승리 직전이면 건물 우선 (BUT Lv9 엔드게임 가속: VP카드로 마무리 가능)
+        if (player.VictoryPoints >= 8)
+        {
+            if (AIDifficultySettings.UsesEndgameAccel(diff))
+            {
+                // VP카드가 승리를 줄 수 있음 → 적극 구매
+                // 최대기사단 미보유 + 기사 2장 이상 → 기사단 노림
+                int armyHolder = gm.GetLargestArmyHolder();
+                if (armyHolder != playerIndex && player.KnightsPlayed >= 2)
+                    return true;
+                // 그 외에도 50% 확률로 VP카드 도전
+                return Random.value < 0.5f;
+            }
+            return false;
+        }
 
         // 전략이 발전카드 비추구이면 확률 대폭 감소
         if (strategy != null && strategy.DevCardPriority < 0.5f)
