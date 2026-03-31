@@ -154,6 +154,7 @@ public class GameHUDController : MonoBehaviour
 
     // State
     readonly Dictionary<int, OpponentCardUI> opponentCards = new();
+    readonly Dictionary<(int player, ResourceType res), int> lastKnownResources = new();
 
     static readonly Color[] PlayerColors =
     {
@@ -593,6 +594,21 @@ public class GameHUDController : MonoBehaviour
 
     void HandleResourceChanged(int playerIndex, ResourceType type, int newCount)
     {
+        var key = (playerIndex, type);
+        int prev = lastKnownResources.GetValueOrDefault(key, 0);
+        lastKnownResources[key] = newCount;
+
+        int delta = newCount - prev;
+        if (delta != 0)
+        {
+            string who = GM.GetPlayerName(playerIndex);
+            string resName = GetResourceName(type);
+            if (delta > 0)
+                AddEventLog($"{who} +{delta} {resName}", "resource");
+            else
+                AddEventLog($"{who} {delta} {resName}", "robber");
+        }
+
         if (playerIndex == GM.LocalPlayerIndex)
         {
             UpdateResource(type, newCount);
