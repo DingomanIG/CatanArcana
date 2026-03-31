@@ -27,7 +27,9 @@ public class GameHUDController : MonoBehaviour
     Label statResTotalLabel;
     Label statDevTotalLabel;
     Label statRoadLabel;
+    Label statRoadNameLabel;
     Label statKnightLabel;
+    Label statKnightNameLabel;
     Label statVpLabel;
 
     // Action Buttons
@@ -314,7 +316,9 @@ public class GameHUDController : MonoBehaviour
         statResTotalLabel = root.Q<Label>("stat-res-total");
         statDevTotalLabel = root.Q<Label>("stat-dev-total");
         statRoadLabel = root.Q<Label>("stat-road");
+        statRoadNameLabel = root.Q<Label>("stat-road-label");
         statKnightLabel = root.Q<Label>("stat-knight");
+        statKnightNameLabel = root.Q<Label>("stat-knight-label");
         statVpLabel = root.Q<Label>("stat-vp");
 
         btnStartGame = root.Q<Button>("btn-start-game");
@@ -872,7 +876,23 @@ public class GameHUDController : MonoBehaviour
 
         int roadLen = GM.GetLongestRoadLength(GM.LocalPlayerIndex);
         statRoadLabel.text = roadLen.ToString();
+        if (statRoadNameLabel != null)
+        {
+            statRoadNameLabel.text = state.HasLongestRoad ? "최장\n도로" : "도로";
+            statRoadLabel.style.color = state.HasLongestRoad
+                ? new StyleColor(new Color(1f, 0.85f, 0.2f))
+                : StyleKeyword.Null;
+        }
+
         statKnightLabel.text = state.KnightsPlayed.ToString();
+        if (statKnightNameLabel != null)
+        {
+            statKnightNameLabel.text = state.HasLargestArmy ? "최강\n기사" : "기사";
+            statKnightLabel.style.color = state.HasLargestArmy
+                ? new StyleColor(new Color(1f, 0.85f, 0.2f))
+                : StyleKeyword.Null;
+        }
+
         statVpLabel.text = state.VictoryPoints.ToString();
     }
 
