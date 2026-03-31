@@ -1529,7 +1529,7 @@ public class GameHUDController : MonoBehaviour
         ui.statusBar.style.backgroundColor = hasLoss ? StatusRed : StatusGreen;
         ui.statusBar.style.display = DisplayStyle.Flex;
 
-        opponentStatusTimers[playerIndex] = StartCoroutine(RevertOpponentStatus(playerIndex, 2.5f));
+        opponentStatusTimers[playerIndex] = StartCoroutine(RevertOpponentStatus(playerIndex, 1.5f));
     }
 
     IEnumerator RevertOpponentStatus(int playerIndex, float delay)

@@ -11,7 +11,7 @@
         <ui:VisualElement name="toast-container" picking-mode="Ignore" class="toast-container" style="top: auto; left: 50%; flex-direction: column-reverse; bottom: 10%;"/>
         <ui:VisualElement name="opponent-bar" class="opponent-bar" style="flex-direction: row; padding-top: 10px; padding-right: 10px; padding-bottom: 10px; padding-left: 10px;"/>
         <ui:VisualElement name="middle-area" class="middle-area" style="flex-direction: row; justify-content: space-between; align-self: auto; align-content: auto; align-items: flex-end;">
-            <ui:VisualElement name="left-panel" class="left-panel">
+            <ui:VisualElement name="left-panel" class="left-panel" style="left: 18px; bottom: 22px; width: 305px;">
                 <ui:VisualElement name="utility-bar" class="utility-bar" style="flex-direction: row; background-color: rgba(42, 36, 32, 0);">
                     <ui:Button name="btn-options" text="⚙" tooltip="옵션" class="utility-btn"/>
                     <ui:Button name="btn-rules" text="?" tooltip="규칙" class="utility-btn utility-btn--info"/>
