@@ -294,6 +294,99 @@ public static class AIStrategySelector
         return best;
     }
 
+    /// <summary>
+    /// 초기 배치 완료 후 확보한 자원 기반으로 전략 선택
+    /// 실제 보유 타일의 핍을 분석하여 최적 전략 결정
+    /// </summary>
+    public static AIStrategyType SelectStrategyFromOwnedTiles(HexGrid grid, int playerIndex,
+        AIDifficulty difficulty, PlayerState[] allPlayers,
+        AIStrategyType[] alreadyChosen = null)
+    {
+        if (!AIDifficultySettings.UsesStrategy(difficulty)) return AIStrategyType.None;
+
+        var candidates = AIDifficultySettings.UsesFullStrategy(difficulty) ? FullCandidates : BasicCandidates;
+        float noiseRange = AIDifficultySettings.StrategyNoise(difficulty);
+
+        // 이미 선택된 전략 카운트 (중복 페널티용)
+        var chosenCount = new Dictionary<AIStrategyType, int>();
+        if (alreadyChosen != null)
+        {
+            foreach (var s in alreadyChosen)
+            {
+                if (s != AIStrategyType.None)
+                {
+                    chosenCount.TryGetValue(s, out int c);
+                    chosenCount[s] = c + 1;
+                }
+            }
+        }
+
+        // 실제 확보한 타일의 핍 계산 (보드 전체가 아닌 내 건물 인접 타일)
+        var ownedPips = CalculateOwnedPips(allPlayers[playerIndex]);
+        bool ownsPort = PlayerOwnsPort(allPlayers[playerIndex]);
+
+        AIStrategyType best = candidates[0];
+        float bestScore = -999f;
+
+        foreach (var type in candidates)
+        {
+            float score = ScoreStrategyFit(type, ownedPips, grid, ownsPort);
+            score *= 1f + Random.Range(-noiseRange, noiseRange);
+
+            // 중복 전략 페널티
+            if (chosenCount.TryGetValue(type, out int dupCount))
+                score *= 1f / (1f + dupCount * 0.5f);
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                best = type;
+            }
+        }
+
+        return best;
+    }
+
+    /// <summary>플레이어가 확보한 건물 인접 타일의 핍 합산</summary>
+    static Dictionary<ResourceType, float> CalculateOwnedPips(PlayerState player)
+    {
+        var pips = new Dictionary<ResourceType, float>
+        {
+            { ResourceType.Wood, 0 }, { ResourceType.Brick, 0 },
+            { ResourceType.Wool, 0 }, { ResourceType.Wheat, 0 },
+            { ResourceType.Ore, 0 }
+        };
+
+        var countedTiles = new HashSet<int>(); // 타일 중복 방지
+
+        foreach (var vertex in player.OwnedVertices)
+        {
+            float multiplier = vertex.Building == BuildingType.City ? 2f : 1f;
+            foreach (var tile in vertex.AdjacentTiles)
+            {
+                if (!tile.ProducesResource) continue;
+                int tilePips = AIBoardEvaluator.GetPips(tile.NumberToken);
+                if (tilePips <= 0) continue;
+
+                // 타일이 여러 건물에 인접할 수 있으므로, 건물 수 반영
+                if (pips.ContainsKey(tile.Resource))
+                    pips[tile.Resource] += tilePips * multiplier;
+            }
+        }
+
+        return pips;
+    }
+
+    /// <summary>플레이어가 항구를 보유하고 있는지</summary>
+    static bool PlayerOwnsPort(PlayerState player)
+    {
+        foreach (var vertex in player.OwnedVertices)
+        {
+            if (vertex.Port != PortType.None) return true;
+        }
+        return false;
+    }
+
     // ========================
     // 전략 적합도 계산
     // ========================
@@ -353,7 +446,7 @@ public static class AIStrategySelector
         return false;
     }
 
-    /// <summary>전략별 적합도 점수</summary>
+    /// <summary>전략별 적합도 점수 (보드 전체 핍 OR 확보 핍 모두 호환)</summary>
     static float ScoreStrategyFit(AIStrategyType type, Dictionary<ResourceType, float> pips,
         HexGrid grid, bool hasPort)
     {
@@ -362,6 +455,12 @@ public static class AIStrategySelector
 
         float score = 0f;
 
+        // 총 핍 규모 파악 (보드 전체 vs 확보 타일 판별)
+        float totalPips = 0f;
+        foreach (var kv in pips) totalPips += kv.Value;
+        // owned 핍은 보통 10~25, 보드 전체는 50~80
+        bool isOwnedContext = totalPips < 35f;
+
         // 1. 핵심 자원 가용량 × 전략 가중치
         foreach (var kv in profile.ResourceWeights)
         {
@@ -369,49 +468,50 @@ public static class AIStrategySelector
                 score += available * kv.Value;
         }
 
-        // 2. 전략별 특수 조건
+        // 2. 전략별 특수 조건 (owned 핍 기준일 때 임계값 낮춤)
         switch (type)
         {
             case AIStrategyType.HybridOWS:
-                // 게이트 체크: Ore≥4핍, Wheat≥4핍, Wool≥2핍
-                if (pips[ResourceType.Ore] < 4f || pips[ResourceType.Wheat] < 4f ||
-                    pips[ResourceType.Wool] < 2f)
+                float oreGate = isOwnedContext ? 2f : 4f;
+                float wheatGate = isOwnedContext ? 2f : 4f;
+                float woolGate = isOwnedContext ? 1f : 2f;
+                if (pips[ResourceType.Ore] < oreGate || pips[ResourceType.Wheat] < wheatGate ||
+                    pips[ResourceType.Wool] < woolGate)
                     return 0f;
-                score += 5f; // 조건 충족 보너스
+                score += 5f;
                 break;
 
             case AIStrategyType.FullOWS:
-                // Ore+Wheat 합산이 낮으면 불리
-                if (pips[ResourceType.Ore] + pips[ResourceType.Wheat] < 8f)
+                float owsThreshold = isOwnedContext ? 4f : 8f;
+                if (pips[ResourceType.Ore] + pips[ResourceType.Wheat] < owsThreshold)
                     score *= 0.5f;
                 break;
 
             case AIStrategyType.RoadBuilder:
-                // Wood+Brick 합산이 높아야
-                if (pips[ResourceType.Wood] + pips[ResourceType.Brick] < 8f)
+                float roadThreshold = isOwnedContext ? 4f : 8f;
+                if (pips[ResourceType.Wood] + pips[ResourceType.Brick] < roadThreshold)
                     score *= 0.5f;
                 break;
 
             case AIStrategyType.CityRoad:
-                // 4종(Ore+Wheat+Wood+Brick) 모두 필요
-                if (pips[ResourceType.Ore] < 3f || pips[ResourceType.Wheat] < 3f ||
-                    pips[ResourceType.Wood] < 3f || pips[ResourceType.Brick] < 3f)
+                float cityRoadMin = isOwnedContext ? 1.5f : 3f;
+                if (pips[ResourceType.Ore] < cityRoadMin || pips[ResourceType.Wheat] < cityRoadMin ||
+                    pips[ResourceType.Wood] < cityRoadMin || pips[ResourceType.Brick] < cityRoadMin)
                     score *= 0.6f;
                 break;
 
             case AIStrategyType.Port:
                 if (!hasPort) return 0f;
-                // 특정 자원이 매우 풍부하고 해당 2:1 항구가 있으면 보너스
+                float portResourceThreshold = isOwnedContext ? 4f : 8f;
                 foreach (var kv in pips)
                 {
                     PortType pt = ResourceToPort(kv.Key);
-                    if (kv.Value >= 8f && HasAccessibleSpecificPort(grid, pt))
+                    if (kv.Value >= portResourceThreshold && HasAccessibleSpecificPort(grid, pt))
                         score += 10f;
                 }
                 break;
 
             case AIStrategyType.FiveResource:
-                // 최소 자원 핍이 높을수록 유리
                 float minPips = float.MaxValue;
                 foreach (var kv in pips)
                 {

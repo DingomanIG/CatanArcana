@@ -251,14 +251,8 @@ public class AIController : MonoBehaviour
         var diff = GetDifficulty(playerIndex);
         yield return new WaitForSeconds(thinkDelay);
 
-        // 전략 선택 (첫 마을 배치 전, Lv3+)
-        if (playerStrategies[playerIndex] == AIStrategyType.None && AIDifficultySettings.UsesStrategy(diff))
-        {
-            var allPlayers = GetAllPlayerStates();
-            playerStrategies[playerIndex] = AIStrategySelector.SelectStrategy(
-                gm.GetGrid(), playerIndex, diff, allPlayers, playerStrategies);
-            Debug.Log($"[AI] P{playerIndex} ({diff}): 전략 선택 → {playerStrategies[playerIndex]}");
-        }
+        // 초기 배치는 전략 없이 순수 핍 기반 평가
+        // (전략은 초기 배치 완료 후 확보한 자원 기반으로 결정)
 
         // 1. 마을 배치
         var validVertices = gm.GetValidSettlementVertices(playerIndex, true);
@@ -296,6 +290,16 @@ public class AIController : MonoBehaviour
     IEnumerator DoFullTurn(int playerIndex)
     {
         var diff = GetDifficulty(playerIndex);
+
+        // 전략 결정 (초기 배치 완료 후 첫 일반 턴에서)
+        // 실제 확보한 자원 타일을 보고 전략 선택
+        if (playerStrategies[playerIndex] == AIStrategyType.None && AIDifficultySettings.UsesStrategy(diff))
+        {
+            var allPlayers = GetAllPlayerStates();
+            playerStrategies[playerIndex] = AIStrategySelector.SelectStrategyFromOwnedTiles(
+                gm.GetGrid(), playerIndex, diff, allPlayers, playerStrategies);
+            Debug.Log($"[AI] P{playerIndex} ({diff}): 확보 자원 기반 전략 → {playerStrategies[playerIndex]}");
+        }
 
         // 1. 주사위
         yield return new WaitForSeconds(thinkDelay);
