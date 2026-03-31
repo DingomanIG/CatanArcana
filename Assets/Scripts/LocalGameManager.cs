@@ -89,6 +89,17 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     public event Action<int, int, ResourceType> OnRobberSteal;
     public event Action<int, ResourceType, ResourceType, int> OnBankTrade;
     public event Action<int, int> OnPlayerTrade;
+    public event Action<int, Dictionary<ResourceType, int>, Dictionary<ResourceType, int>> OnIncomingTradeProposal;
+
+    // 수신 대기 중인 거래 제안 (AI→인간)
+    class PendingTrade
+    {
+        public int proposer;
+        public int target;
+        public Dictionary<ResourceType, int> offer;   // 제안자가 주는 것 (인간이 받는 것)
+        public Dictionary<ResourceType, int> request; // 제안자가 원하는 것 (인간이 줘야 하는 것)
+    }
+    PendingTrade pendingIncomingTrade;
 
     // ========================
     // LIFECYCLE
@@ -942,15 +953,52 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
         // 양쪽 자원 충분한지 확인
         foreach (var kv in offer)
-        {
             if (me.Resources[kv.Key] < kv.Value) return false;
-        }
         foreach (var kv in request)
-        {
             if (them.Resources[kv.Key] < kv.Value) return false;
+
+        // AI가 인간 플레이어에게 거래 시: 즉시 실행 대신 제안으로 전환
+        if (IsPlayerAI(currentPlayerIndex) && !IsPlayerAI(otherPlayer))
+        {
+            pendingIncomingTrade = new PendingTrade
+            {
+                proposer = currentPlayerIndex,
+                target = otherPlayer,
+                offer = new Dictionary<ResourceType, int>(offer),
+                request = new Dictionary<ResourceType, int>(request)
+            };
+            OnIncomingTradeProposal?.Invoke(currentPlayerIndex, offer, request);
+            return false; // 실제 실행은 RespondToIncomingTrade에서
         }
 
-        // 교환 실행
+        ExecuteTrade(currentPlayerIndex, otherPlayer, offer, request);
+        return true;
+    }
+
+    public void RespondToIncomingTrade(bool accept)
+    {
+        if (pendingIncomingTrade == null) return;
+        var trade = pendingIncomingTrade;
+        pendingIncomingTrade = null;
+
+        if (!accept) return;
+
+        // 재검증 (자원 상황이 바뀔 수 있음)
+        var proposer = players[trade.proposer];
+        var target = players[trade.target];
+        foreach (var kv in trade.offer)
+            if (proposer.Resources[kv.Key] < kv.Value) return;
+        foreach (var kv in trade.request)
+            if (target.Resources[kv.Key] < kv.Value) return;
+
+        ExecuteTrade(trade.proposer, trade.target, trade.offer, trade.request);
+    }
+
+    void ExecuteTrade(int p1, int p2, Dictionary<ResourceType, int> offer, Dictionary<ResourceType, int> request)
+    {
+        var me = players[p1];
+        var them = players[p2];
+
         foreach (var kv in offer)
         {
             me.Resources[kv.Key] -= kv.Value;
@@ -962,12 +1010,10 @@ public class LocalGameManager : MonoBehaviour, IGameManager
             me.AddResource(kv.Key, kv.Value);
         }
 
-        NotifyAllResources(currentPlayerIndex);
-        NotifyAllResources(otherPlayer);
-        OnPlayerTrade?.Invoke(currentPlayerIndex, otherPlayer);
-
-        Debug.Log($"[Local] {GetPlayerName(currentPlayerIndex)} ↔ {GetPlayerName(otherPlayer)} 거래 성사!");
-        return true;
+        NotifyAllResources(p1);
+        NotifyAllResources(p2);
+        OnPlayerTrade?.Invoke(p1, p2);
+        Debug.Log($"[Local] {GetPlayerName(p1)} ↔ {GetPlayerName(p2)} 거래 성사!");
     }
 
     static bool PortMatchesResource(PortType port, ResourceType resource) => port switch

@@ -133,6 +133,14 @@ public class GameHUDController : MonoBehaviour
     Dictionary<ResourceType, int> pendingOffer;
     Dictionary<ResourceType, int> pendingRequest;
 
+    // Incoming Trade Overlay (AI → 인간 수신)
+    VisualElement incomingTradeOverlay;
+    Label incomingTradeFrom;
+    VisualElement incomingTradeOfferGrid;
+    VisualElement incomingTradeRequestGrid;
+    Button btnIncomingAccept;
+    Button btnIncomingDecline;
+
     // Steal Overlay
     VisualElement stealOverlay;
     VisualElement stealPlayerList;
@@ -378,6 +386,13 @@ public class GameHUDController : MonoBehaviour
         btnSendProposal = root.Q<Button>("btn-send-proposal");
         btnCancelProposal = root.Q<Button>("btn-cancel-proposal");
 
+        incomingTradeOverlay = root.Q<VisualElement>("incoming-trade-overlay");
+        incomingTradeFrom = root.Q<Label>("incoming-trade-from");
+        incomingTradeOfferGrid = root.Q<VisualElement>("incoming-trade-offer-grid");
+        incomingTradeRequestGrid = root.Q<VisualElement>("incoming-trade-request-grid");
+        btnIncomingAccept = root.Q<Button>("btn-incoming-accept");
+        btnIncomingDecline = root.Q<Button>("btn-incoming-decline");
+
         stealOverlay = root.Q<VisualElement>("steal-overlay");
         stealPlayerList = root.Q<VisualElement>("steal-player-list");
 
@@ -451,6 +466,7 @@ public class GameHUDController : MonoBehaviour
             GM.OnPlayerTrade += HandlePlayerTrade;
             GM.OnBuildingPlaced += HandleBuildingPlaced;
             GM.OnRoadPlaced += HandleRoadPlaced;
+            GM.OnIncomingTradeProposal += HandleIncomingTradeProposal;
         }
     }
 
@@ -474,6 +490,7 @@ public class GameHUDController : MonoBehaviour
             GM.OnPlayerTrade -= HandlePlayerTrade;
             GM.OnBuildingPlaced -= HandleBuildingPlaced;
             GM.OnRoadPlaced -= HandleRoadPlaced;
+            GM.OnIncomingTradeProposal -= HandleIncomingTradeProposal;
         }
     }
 
@@ -508,6 +525,16 @@ public class GameHUDController : MonoBehaviour
         btnExecuteBankTrade.clicked += OnExecuteBankTrade;
         btnSendProposal.clicked += OnSendProposalClicked;
         btnCancelProposal.clicked += OnCancelProposalClicked;
+        btnIncomingAccept.clicked += () =>
+        {
+            GM?.RespondToIncomingTrade(true);
+            incomingTradeOverlay.AddToClassList("overlay--hidden");
+        };
+        btnIncomingDecline.clicked += () =>
+        {
+            GM?.RespondToIncomingTrade(false);
+            incomingTradeOverlay.AddToClassList("overlay--hidden");
+        };
 
         // 자원 선택 버튼
         btnSelectWood.clicked += () => OnResourceSelected(ResourceType.Wood);
@@ -762,6 +789,32 @@ public class GameHUDController : MonoBehaviour
         ShowToast("trade", $"{name1} ↔ {name2} 거래 성사!");
         AddEventLog($"{name1} <-> {name2} 거래 성사", "trade");
         tradeOverlay.AddToClassList("overlay--hidden");
+    }
+
+    void HandleIncomingTradeProposal(int proposer, Dictionary<ResourceType, int> offerToHuman, Dictionary<ResourceType, int> requestFromHuman)
+    {
+        if (incomingTradeOverlay == null) return;
+
+        incomingTradeFrom.text = $"{GM?.GetPlayerName(proposer) ?? "?"}의 제안";
+
+        BuildIncomingResourceDisplay(incomingTradeOfferGrid, offerToHuman);
+        BuildIncomingResourceDisplay(incomingTradeRequestGrid, requestFromHuman);
+
+        incomingTradeOverlay.RemoveFromClassList("overlay--hidden");
+    }
+
+    void BuildIncomingResourceDisplay(VisualElement grid, Dictionary<ResourceType, int> amounts)
+    {
+        grid.Clear();
+        foreach (var kv in amounts)
+        {
+            if (kv.Value <= 0) continue;
+            var btn = new Button { text = $"{GetResourceName(kv.Key)}\n×{kv.Value}" };
+            btn.AddToClassList("trade-res-btn");
+            btn.AddToClassList("trade-res-btn--selected");
+            btn.SetEnabled(false);
+            grid.Add(btn);
+        }
     }
 
     // ========================

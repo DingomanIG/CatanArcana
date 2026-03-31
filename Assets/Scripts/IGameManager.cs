@@ -74,6 +74,9 @@ public interface IGameManager
     // 거래 이벤트
     event Action<int, ResourceType, ResourceType, int> OnBankTrade; // (player, gave, received, rate)
     event Action<int, int> OnPlayerTrade; // (player1, player2)
+    // AI→인간 거래 제안 수신 (proposer, offerToHuman, requestFromHuman)
+    event Action<int, Dictionary<ResourceType, int>, Dictionary<ResourceType, int>> OnIncomingTradeProposal;
+    void RespondToIncomingTrade(bool accept);
 
     // 조회
     PlayerState GetPlayerState(int playerIndex);

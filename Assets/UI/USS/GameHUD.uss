@@ -1374,3 +1374,22 @@
     color: rgb(200, 188, 168);
     -unity-font-style: italic;
 }
+
+.incoming-trade-panel {
+    max-width: 380px;
+}
+
+.incoming-trade-buttons {
+    flex-direction: row;
+    margin-top: 12px;
+}
+
+.incoming-trade-buttons > .trade-execute-btn {
+    flex-grow: 1;
+    margin-right: 3px;
+}
+
+.incoming-trade-buttons > .action-btn {
+    flex-grow: 1;
+    margin-left: 3px;
+}

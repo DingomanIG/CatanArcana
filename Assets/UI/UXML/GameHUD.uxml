@@ -297,6 +297,21 @@
                 <ui:Button name="btn-close-turn-order" text="게임 시작!" class="action-btn action-btn--primary turn-order-btn"/>
             </ui:VisualElement>
         </ui:VisualElement>
+        <ui:VisualElement name="incoming-trade-overlay" class="overlay overlay--hidden">
+            <ui:VisualElement class="overlay-panel incoming-trade-panel">
+                <ui:Label text="거래 제안" class="overlay-title"/>
+                <ui:Label name="incoming-trade-from" text="" class="trade-subtitle" style="-unity-text-align: middle-center; margin-bottom: 8px;"/>
+                <ui:Label text="내가 받을 자원" class="trade-subtitle"/>
+                <ui:VisualElement name="incoming-trade-offer-grid" class="trade-resource-grid"/>
+                <ui:Label text="↕" class="trade-arrow"/>
+                <ui:Label text="내가 줄 자원" class="trade-subtitle"/>
+                <ui:VisualElement name="incoming-trade-request-grid" class="trade-resource-grid"/>
+                <ui:VisualElement class="incoming-trade-buttons">
+                    <ui:Button name="btn-incoming-accept" text="✓ 수락" class="trade-execute-btn"/>
+                    <ui:Button name="btn-incoming-decline" text="✗ 거절" class="action-btn action-btn--warning"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
         <ui:VisualElement name="result-overlay" class="overlay overlay--hidden">
             <ui:VisualElement class="overlay-panel result-panel">
                 <ui:Label name="result-title" text="게임 종료!" class="result-title"/>
