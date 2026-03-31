@@ -104,30 +104,30 @@ public static class AIDifficultySettings
     /// <summary>AI 레벨별 캐릭터 이름</summary>
     public static string GetAIName(AIDifficulty d) => (int)d switch
     {
-        1 => "감자",       // Gamja - 완전 랜덤
+        1 => "덕",         // Duck
         2 => "잼민",       // Jaemin - 꼬꼬마
         3 => "또리",       // Ddori - 기초 전략
-        4 => "지피",       // GPT
+        4 => "지피",       // Gipy
         5 => "수리",       // Suri - 중급
-        6 => "그룩",       // Grok
-        7 => "아르카",     // Arka - 고급 + 정밀 거래
-        8 => "세이지",     // Sage - 현자
-        9 => "클로디",     // Claude - 마스터
+        6 => "그룩",       // Grook
+        7 => "아르카",     // Arka
+        8 => "페이큰",     // Faken
+        9 => "클로디",     // Cloudi - 마스터
         _ => "AI"
     };
 
     /// <summary>AI 레벨별 영문 이름</summary>
     public static string GetAINameEN(AIDifficulty d) => (int)d switch
     {
-        1 => "Gamja",
+        1 => "Duck",
         2 => "Jaemin",
         3 => "Ddori",
-        4 => "GPT",
+        4 => "Gipy",
         5 => "Suri",
-        6 => "Grok",
+        6 => "Grook",
         7 => "Arka",
-        8 => "Sage",
-        9 => "Claude",
+        8 => "Faken",
+        9 => "Cloudi",
         _ => "AI"
     };
 }
