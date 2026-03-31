@@ -40,6 +40,7 @@ public interface IGameManager
     event Action<int, int, ResourceType> OnRobberSteal; // (thief, victim, resource)
 
     // 기본 액션
+    void PrepareGame();
     void StartGame();
     void RollDice();
     void EndTurn();

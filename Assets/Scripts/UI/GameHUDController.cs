@@ -274,9 +274,12 @@ public class GameHUDController : MonoBehaviour
         RefreshAllUI();
         InvokeRepeating(nameof(UpdateNowPlaying), 0.5f, 1f);
 
-        // WaitingForPlayers는 초기값이라 SetPhase 이벤트 안 발생 → 여기서 자동 시작
+        // 게임 준비 (턴 순서 결정) → 턴 순서 오버레이 표시
         if (GM != null && GM.CurrentPhase == GamePhase.WaitingForPlayers)
-            StartCoroutine(AutoStartGame());
+        {
+            GM.PrepareGame();
+            ShowTurnOrderOverlay();
+        }
     }
 
     void OnDisable()
@@ -666,9 +669,6 @@ public class GameHUDController : MonoBehaviour
         UpdateOpponentHighlight();
         RefreshDevCardQuickSlots();
 
-        if (newPhase == GamePhase.InitialPlacement)
-            ShowTurnOrderOverlay();
-
         if (newPhase == GamePhase.StealResource)
             ShowStealOverlay();
         else
@@ -676,12 +676,6 @@ public class GameHUDController : MonoBehaviour
 
         if (newPhase == GamePhase.GameOver)
             ShowResultScreen();
-    }
-
-    IEnumerator AutoStartGame()
-    {
-        yield return null; // 1프레임 대기 (초기화 완료 보장)
-        GM?.StartGame();
     }
 
     void HandleDiceRolled(int die1, int die2, int total)
@@ -2263,6 +2257,10 @@ public class GameHUDController : MonoBehaviour
             StopCoroutine(turnOrderCountdown);
             turnOrderCountdown = null;
         }
+
+        // 오버레이 닫힐 때 게임 시작 (InitialPlacement 진입)
+        if (GM != null && GM.CurrentPhase == GamePhase.WaitingForPlayers)
+            GM.StartGame();
     }
 
     // ========================
@@ -2359,6 +2357,8 @@ public class GameHUDController : MonoBehaviour
         // 이벤트 로그 클리어
         eventLogScroll?.Clear();
 
-        GM?.StartGame();
+        // 게임 준비 → 턴 순서 오버레이 → 카운트다운 후 시작
+        GM?.PrepareGame();
+        ShowTurnOrderOverlay();
     }
 }

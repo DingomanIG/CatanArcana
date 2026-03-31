@@ -147,7 +147,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     // 기본 액션
     // ========================
 
-    public void StartGame()
+    public void PrepareGame()
     {
         // 보드 데이터 리셋 (건물/도로/도적 초기화)
         grid.ResetBoardState();
@@ -187,6 +187,11 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         initialWaitingForRoad = false;
 
         OnPlayerListChanged?.Invoke();
+        Debug.Log($"[Local] 게임 준비 완료! 선플레이어: {GetPlayerName(firstPlayerIndex)}");
+    }
+
+    public void StartGame()
+    {
         SetPhase(GamePhase.InitialPlacement);
         OnTurnChanged?.Invoke(currentPlayerIndex);
         Debug.Log($"[Local] 초기 배치 시작! 선플레이어: {GetPlayerName(firstPlayerIndex)} - 마을을 배치하세요");
