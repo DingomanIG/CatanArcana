@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 /// <summary>
 /// 헥스 그리드 비주얼 컨트롤러
@@ -143,8 +144,8 @@ public class HexGridView : MonoBehaviour
         tm.fontSize = 64;
         tm.fontStyle = FontStyle.Bold;
         tm.color = isHot ? Color.red : Color.black;
-        // Geometry 큐로 내려서 다른 오브젝트에 가려지도록
-        label.GetComponent<MeshRenderer>().material.renderQueue = 2001;
+        // depth test 활성화 → 건물/도적 뒤로 가려지도록
+        SetTextMeshDepthTest(label);
 
         // 확률 도트 (타일 직접 자식)
         int dotCount = GetProbabilityDots(tile.NumberToken);
@@ -162,8 +163,16 @@ public class HexGridView : MonoBehaviour
             dotTm.alignment = TextAlignment.Center;
             dotTm.fontSize = 48;
             dotTm.color = isHot ? Color.red : Color.black;
-            dots.GetComponent<MeshRenderer>().material.renderQueue = 2001;
+            SetTextMeshDepthTest(dots);
         }
+    }
+
+    static void SetTextMeshDepthTest(GameObject go)
+    {
+        var mat = go.GetComponent<MeshRenderer>().material;
+        mat.renderQueue = 2001;
+        // GUI/Text Shader의 depth test 강제 활성화
+        mat.SetInt("unity_GUIZTestMode", (int)UnityEngine.Rendering.CompareFunction.LessEqual);
     }
 
     static int GetProbabilityDots(int number) => number switch
