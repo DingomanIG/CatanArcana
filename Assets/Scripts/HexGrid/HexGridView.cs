@@ -143,6 +143,8 @@ public class HexGridView : MonoBehaviour
         tm.fontSize = 64;
         tm.fontStyle = FontStyle.Bold;
         tm.color = isHot ? Color.red : Color.black;
+        // Geometry 큐로 내려서 다른 오브젝트에 가려지도록
+        label.GetComponent<MeshRenderer>().material.renderQueue = 2001;
 
         // 확률 도트 (타일 직접 자식)
         int dotCount = GetProbabilityDots(tile.NumberToken);
@@ -160,6 +162,7 @@ public class HexGridView : MonoBehaviour
             dotTm.alignment = TextAlignment.Center;
             dotTm.fontSize = 48;
             dotTm.color = isHot ? Color.red : Color.black;
+            dots.GetComponent<MeshRenderer>().material.renderQueue = 2001;
         }
     }
 
