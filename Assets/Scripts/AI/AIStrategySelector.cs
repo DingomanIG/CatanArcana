@@ -216,12 +216,12 @@ public static class AIStrategySelector
         { AIStrategyType.HybridOWS,    ProfileHybridOWS }
     };
 
-    // Medium 난이도용 전략 후보 (간단한 3개)
-    static readonly AIStrategyType[] MediumCandidates =
+    // Lv3~5 중급용 전략 후보 (간단한 3개)
+    static readonly AIStrategyType[] BasicCandidates =
         { AIStrategyType.FiveResource, AIStrategyType.HybridOWS, AIStrategyType.RoadBuilder };
 
-    // Hard 난이도용 전략 후보 (전체 6개)
-    static readonly AIStrategyType[] HardCandidates =
+    // Lv6+ 고급용 전략 후보 (전체 6개)
+    static readonly AIStrategyType[] FullCandidates =
         { AIStrategyType.FullOWS, AIStrategyType.RoadBuilder, AIStrategyType.FiveResource,
           AIStrategyType.CityRoad, AIStrategyType.Port, AIStrategyType.HybridOWS };
 
@@ -248,10 +248,10 @@ public static class AIStrategySelector
     public static AIStrategyType SelectStrategy(HexGrid grid, int playerIndex,
         AIDifficulty difficulty, PlayerState[] allPlayers)
     {
-        if (difficulty == AIDifficulty.Easy) return AIStrategyType.None;
+        if (!AIDifficultySettings.UsesStrategy(difficulty)) return AIStrategyType.None;
 
-        var candidates = difficulty >= AIDifficulty.Hard ? HardCandidates : MediumCandidates;
-        float noiseRange = difficulty >= AIDifficulty.Hard ? 0.05f : 0.2f;
+        var candidates = AIDifficultySettings.UsesFullStrategy(difficulty) ? FullCandidates : BasicCandidates;
+        float noiseRange = AIDifficultySettings.StrategyNoise(difficulty);
 
         // 보드 자원별 가용 핍 계산
         var availablePips = CalculateAvailablePips(grid);

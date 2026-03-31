@@ -44,9 +44,10 @@
 - [x] 발전카드 퀵슬롯 바 (하단 HUD VP 오른쪽 인라인, 클릭 즉시 사용)
 
 ### AI
-- [x] AIController + AIBoardEvaluator (3난이도)
+- [x] AIController + AIBoardEvaluator (Lv1~9 난이도 시스템)
 - [x] 초기 배치 / 일반 턴 / 도적 / 발전카드 / 은행 거래
 - [x] AI 전략 시스템 (6가지 전략 기반 의사결정: FullOWS/RoadBuilder/FiveResource/CityRoad/Port/HybridOWS)
+- [x] AI 난이도 1~9 레벨 시스템 (AIDifficultySettings 헬퍼, 레벨별 세분화 파라미터)
 
 ### 네트워크 기반
 - [x] Authentication + Relay + Lobby + Netcode 기본 동기화

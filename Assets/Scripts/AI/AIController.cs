@@ -2,13 +2,104 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>AI 난이도</summary>
+/// <summary>AI 난이도 (0=인간, 1~9=AI 레벨)</summary>
 public enum AIDifficulty
 {
-    None,   // 인간 플레이어
-    Easy,   // 랜덤 행동
-    Medium, // 확률 기반 + 전략 (3개 중 택1)
-    Hard    // 전략적 판단 (6개 전략 전체 평가)
+    None = 0,  // 인간 플레이어
+    Lv1 = 1,   // 완전 랜덤
+    Lv2 = 2,   // 약간의 판단
+    Lv3 = 3,   // 기초 전략 (3개 중 택1)
+    Lv4 = 4,   // 기초 전략 + 거래
+    Lv5 = 5,   // 중급 전략
+    Lv6 = 6,   // 고급 전략 (6개 전체 평가)
+    Lv7 = 7,   // 고급 전략 + 정밀 거래
+    Lv8 = 8,   // 최상위 전략
+    Lv9 = 9    // 마스터
+}
+
+/// <summary>
+/// 레벨별 AI 파라미터 헬퍼
+/// Lv1~2: 초급 (구 Easy), Lv3~5: 중급 (구 Medium), Lv6~9: 고급 (구 Hard)
+/// </summary>
+public static class AIDifficultySettings
+{
+    /// <summary>전략을 사용하는 레벨인가? (Lv3+)</summary>
+    public static bool UsesStrategy(AIDifficulty d) => (int)d >= 3;
+
+    /// <summary>거래를 사용하는 레벨인가? (Lv4+)</summary>
+    public static bool UsesTrade(AIDifficulty d) => (int)d >= 4;
+
+    /// <summary>전체 6개 전략을 평가하는 레벨인가? (Lv6+)</summary>
+    public static bool UsesFullStrategy(AIDifficulty d) => (int)d >= 6;
+
+    /// <summary>완전 랜덤 레벨인가? (Lv1~2)</summary>
+    public static bool IsRandom(AIDifficulty d) => (int)d >= 1 && (int)d <= 2;
+
+    /// <summary>교차점 평가 시 노이즈 (높을수록 랜덤)</summary>
+    public static float EvalNoise(AIDifficulty d) => (int)d switch
+    {
+        1 => 3.0f,
+        2 => 2.5f,
+        3 => 1.5f,
+        4 => 1.2f,
+        5 => 0.8f,
+        6 => 0.5f,
+        7 => 0.35f,
+        8 => 0.2f,
+        9 => 0.15f,
+        _ => 3.0f
+    };
+
+    /// <summary>전략 선택 시 노이즈 범위 (높을수록 최적 전략에서 벗어남)</summary>
+    public static float StrategyNoise(AIDifficulty d) => (int)d switch
+    {
+        3 => 0.3f,
+        4 => 0.25f,
+        5 => 0.15f,
+        6 => 0.08f,
+        7 => 0.05f,
+        8 => 0.04f,
+        9 => 0.03f,
+        _ => 0.3f
+    };
+
+    /// <summary>발전카드 사용 최소 레벨 (Lv3+)</summary>
+    public static bool UsesDevCards(AIDifficulty d) => (int)d >= 3;
+
+    /// <summary>독점 카드 사용 최소 레벨 (Lv4+)</summary>
+    public static bool UsesMonopoly(AIDifficulty d) => (int)d >= 4;
+
+    /// <summary>상대 VP 추적 (선두 타겟팅) 레벨 (Lv6+)</summary>
+    public static bool TracksOpponentVP(AIDifficulty d) => (int)d >= 6;
+
+    /// <summary>기사 카드 적극 사용 (방어 외 공격) 레벨 (Lv5+)</summary>
+    public static bool UsesKnightOffensively(AIDifficulty d) => (int)d >= 5;
+
+    /// <summary>자원 다양성 보너스 사용 레벨 (Lv3+)</summary>
+    public static bool UsesDiversityBonus(AIDifficulty d) => (int)d >= 3;
+
+    /// <summary>항구 보너스 사용 레벨 (Lv5+)</summary>
+    public static bool UsesPortBonus(AIDifficulty d) => (int)d >= 5;
+
+    /// <summary>도로/발전카드 구매 시 랜덤 확률 (Lv1~2용)</summary>
+    public static float RandomActionChance(AIDifficulty d) => (int)d switch
+    {
+        1 => 0.3f,  // 30% 확률로 행동
+        2 => 0.4f,
+        _ => 1.0f   // Lv3+ 는 전략 기반이라 별도 처리
+    };
+
+    /// <summary>거래 수락/제안 판단 임계값 (낮을수록 쉽게 수락)</summary>
+    public static float TradeThreshold(AIDifficulty d) => (int)d switch
+    {
+        4 => 1.5f,
+        5 => 2.0f,
+        6 => 2.5f,
+        7 => 3.0f,
+        8 => 3.0f,
+        9 => 3.5f,
+        _ => 2.0f
+    };
 }
 
 /// <summary>
@@ -17,11 +108,11 @@ public enum AIDifficulty
 /// </summary>
 public class AIController : MonoBehaviour
 {
-    [Header("AI 설정")]
+    [Header("AI 설정 (0=인간, 1~9=AI 레벨)")]
     [SerializeField] AIDifficulty player0AI = AIDifficulty.None;
-    [SerializeField] AIDifficulty player1AI = AIDifficulty.Medium;
-    [SerializeField] AIDifficulty player2AI = AIDifficulty.Medium;
-    [SerializeField] AIDifficulty player3AI = AIDifficulty.Medium;
+    [SerializeField] AIDifficulty player1AI = AIDifficulty.Lv5;
+    [SerializeField] AIDifficulty player2AI = AIDifficulty.Lv5;
+    [SerializeField] AIDifficulty player3AI = AIDifficulty.Lv5;
 
     [Header("타이밍 (초)")]
     [SerializeField, Range(0.2f, 3f)] float thinkDelay = 0.8f;
@@ -160,8 +251,8 @@ public class AIController : MonoBehaviour
         var diff = GetDifficulty(playerIndex);
         yield return new WaitForSeconds(thinkDelay);
 
-        // 전략 선택 (첫 마을 배치 전, Medium+ 난이도)
-        if (playerStrategies[playerIndex] == AIStrategyType.None && diff >= AIDifficulty.Medium)
+        // 전략 선택 (첫 마을 배치 전, Lv3+)
+        if (playerStrategies[playerIndex] == AIStrategyType.None && AIDifficultySettings.UsesStrategy(diff))
         {
             var allPlayers = GetAllPlayerStates();
             playerStrategies[playerIndex] = AIStrategySelector.SelectStrategy(
@@ -269,14 +360,14 @@ public class AIController : MonoBehaviour
             if (tile.Coord.Equals(currentRobber)) continue;
 
             float score;
-            if (diff == AIDifficulty.Easy)
+            if (AIDifficultySettings.IsRandom(diff))
             {
                 score = Random.value;
             }
             else
             {
                 score = AIBoardEvaluator.EvaluateRobberTarget(tile, playerIndex, allPlayers, diff);
-                score += Random.Range(0f, 0.5f); // 약간의 랜덤성
+                score += Random.Range(0f, AIDifficultySettings.EvalNoise(diff));
             }
 
             if (score > bestScore)
@@ -304,7 +395,7 @@ public class AIController : MonoBehaviour
         var diff = GetDifficulty(playerIndex);
         int victim;
 
-        if (diff == AIDifficulty.Easy)
+        if (AIDifficultySettings.IsRandom(diff))
         {
             victim = candidates[Random.Range(0, candidates.Count)];
         }
@@ -316,7 +407,9 @@ public class AIController : MonoBehaviour
             foreach (int c in candidates)
             {
                 var state = gm.GetPlayerState(c);
-                int score = state.VictoryPoints * 10 + state.TotalResourceCount;
+                // Lv6+ 는 VP 가중치 높게
+                int vpWeight = AIDifficultySettings.TracksOpponentVP(diff) ? 10 : 3;
+                int score = state.VictoryPoints * vpWeight + state.TotalResourceCount;
                 if (score > bestScore)
                 {
                     bestScore = score;
@@ -395,12 +488,12 @@ public class AIController : MonoBehaviour
                         break;
 
                     case AIActionType.PlayerTrade:
-                        if (diff >= AIDifficulty.Medium && TryPlayerTrade(playerIndex, diff))
+                        if (AIDifficultySettings.UsesTrade(diff) && TryPlayerTrade(playerIndex, diff))
                             acted = true;
                         break;
 
                     case AIActionType.BankTrade:
-                        if (diff >= AIDifficulty.Medium && TryBankTrade(playerIndex, diff))
+                        if (AIDifficultySettings.UsesTrade(diff) && TryBankTrade(playerIndex, diff))
                             acted = true;
                         break;
 
@@ -455,13 +548,14 @@ public class AIController : MonoBehaviour
         var strategy = GetStrategy(playerIndex);
         int turn = gm.TurnNumber;
 
-        // 기사 카드 (Medium+ / 전략이 기사단 추구하면 더 적극적)
+        // 기사 카드 (Lv3+ / 전략이 기사단 추구하면 더 적극적)
         var knight = player.FindUsableCard(DevCardType.Knight, turn);
-        if (knight != null && diff >= AIDifficulty.Medium)
+        if (knight != null && AIDifficultySettings.UsesDevCards(diff))
         {
             bool shouldUse = true;
-            // 전략이 기사단 비추구이고, 도적이 자기 타일에 없으면 보류 (Medium)
-            if (strategy != null && !strategy.PursuesLargestArmy && diff == AIDifficulty.Medium)
+            // 공격적 사용 레벨 미달이고, 전략이 기사단 비추구면 → 방어적으로만 사용
+            if (!AIDifficultySettings.UsesKnightOffensively(diff) &&
+                (strategy == null || !strategy.PursuesLargestArmy))
             {
                 shouldUse = IsRobberOnMyTile(playerIndex);
             }
@@ -536,9 +630,9 @@ public class AIController : MonoBehaviour
             }
         }
 
-        // 독점 카드
+        // 독점 카드 (Lv4+)
         var monopoly = player.FindUsableCard(DevCardType.Monopoly, turn);
-        if (monopoly != null && diff >= AIDifficulty.Medium)
+        if (monopoly != null && AIDifficultySettings.UsesMonopoly(diff))
         {
             var allPlayers = GetAllPlayerStates();
             var monopolyTarget = AIBoardEvaluator.PickBestMonopolyTarget(
@@ -611,12 +705,12 @@ public class AIController : MonoBehaviour
 
     int PickBestVertex(List<int> validIds, int playerIndex, AIDifficulty diff)
     {
-        if (diff == AIDifficulty.Easy)
+        if (AIDifficultySettings.IsRandom(diff))
             return validIds[Random.Range(0, validIds.Count)];
 
         var grid = gm.GetGrid();
         var strategy = GetStrategy(playerIndex);
-        float noise = diff >= AIDifficulty.Hard ? 0.5f : 1f;
+        float noise = AIDifficultySettings.EvalNoise(diff);
         int best = validIds[0];
         float bestScore = -1f;
 
@@ -636,18 +730,19 @@ public class AIController : MonoBehaviour
 
     int PickBestEdge(List<int> validIds, int playerIndex, AIDifficulty diff)
     {
-        if (diff == AIDifficulty.Easy)
+        if (AIDifficultySettings.IsRandom(diff))
             return validIds[Random.Range(0, validIds.Count)];
 
         var grid = gm.GetGrid();
         var strategy = GetStrategy(playerIndex);
+        float noise = AIDifficultySettings.EvalNoise(diff);
         int best = validIds[0];
         float bestScore = -1f;
 
         foreach (int id in validIds)
         {
             float score = AIBoardEvaluator.EvaluateRoadEdge(grid.Edges[id], playerIndex, diff, strategy);
-            score += Random.Range(0f, 0.5f);
+            score += Random.Range(0f, noise);
             if (score > bestScore)
             {
                 bestScore = score;
@@ -660,7 +755,7 @@ public class AIController : MonoBehaviour
 
     int PickBestCityUpgrade(List<int> validIds, int playerIndex, AIDifficulty diff)
     {
-        if (diff == AIDifficulty.Easy || validIds.Count == 1)
+        if (AIDifficultySettings.IsRandom(diff) || validIds.Count == 1)
             return validIds[Random.Range(0, validIds.Count)];
 
         var grid = gm.GetGrid();
@@ -709,9 +804,9 @@ public class AIController : MonoBehaviour
             if (tile.Resource == ResourceType.Sea) continue;
             if (tile.Coord.Equals(currentRobber)) continue;
 
-            float score = diff == AIDifficulty.Easy
+            float score = AIDifficultySettings.IsRandom(diff)
                 ? Random.value
-                : AIBoardEvaluator.EvaluateRobberTarget(tile, playerIndex, allPlayers, diff) + Random.Range(0f, 0.5f);
+                : AIBoardEvaluator.EvaluateRobberTarget(tile, playerIndex, allPlayers, diff) + Random.Range(0f, AIDifficultySettings.EvalNoise(diff));
 
             if (score > bestScore)
             {
@@ -725,8 +820,8 @@ public class AIController : MonoBehaviour
 
     bool ShouldBuildRoad(int playerIndex, AIDifficulty diff)
     {
-        if (diff == AIDifficulty.Easy)
-            return Random.value > 0.6f;
+        if (AIDifficultySettings.IsRandom(diff))
+            return Random.value < AIDifficultySettings.RandomActionChance(diff);
 
         var player = gm.GetPlayerState(playerIndex);
         var strategy = GetStrategy(playerIndex);
@@ -739,16 +834,11 @@ public class AIController : MonoBehaviour
         if (strategy != null && strategy.RoadPriority >= 1.5f)
             return true;
 
-        // 최장도로 추구 전략
-        if (strategy != null && strategy.PursuesLongestRoad)
-        {
-            int myRoad = gm.GetLongestRoadLength(playerIndex);
-            int holder = gm.GetLongestRoadHolder();
-            if (holder < 0 && myRoad >= 3) return true;
-            if (holder != playerIndex && myRoad >= 4) return true;
-        }
-        // 전략 없는 Hard (레거시)
-        else if (strategy == null && diff == AIDifficulty.Hard)
+        // 최장도로 추구 전략 또는 Lv6+ 전략 없는 경우
+        bool pursuesRoad = strategy != null && strategy.PursuesLongestRoad;
+        bool highLevelNoStrategy = strategy == null && AIDifficultySettings.UsesFullStrategy(diff);
+
+        if (pursuesRoad || highLevelNoStrategy)
         {
             int myRoad = gm.GetLongestRoadLength(playerIndex);
             int holder = gm.GetLongestRoadHolder();
@@ -761,8 +851,8 @@ public class AIController : MonoBehaviour
 
     bool ShouldBuyDevCard(int playerIndex, AIDifficulty diff)
     {
-        if (diff == AIDifficulty.Easy)
-            return Random.value > 0.7f;
+        if (AIDifficultySettings.IsRandom(diff))
+            return Random.value < AIDifficultySettings.RandomActionChance(diff);
 
         var player = gm.GetPlayerState(playerIndex);
         var strategy = GetStrategy(playerIndex);
@@ -775,14 +865,10 @@ public class AIController : MonoBehaviour
             return Random.value > 0.85f;
 
         // 전략이 기사단 추구이면 적극 구매
-        if (strategy != null && strategy.PursuesLargestArmy)
-        {
-            int armyHolder = gm.GetLargestArmyHolder();
-            if (armyHolder < 0 && player.KnightsPlayed >= 1) return true;
-            if (armyHolder != playerIndex && player.KnightsPlayed >= 2) return true;
-        }
-        // 전략 없는 Hard (레거시)
-        else if (strategy == null && diff == AIDifficulty.Hard)
+        bool pursuesArmy = strategy != null && strategy.PursuesLargestArmy;
+        bool highLevelNoStrategy = strategy == null && AIDifficultySettings.UsesFullStrategy(diff);
+
+        if (pursuesArmy || highLevelNoStrategy)
         {
             int armyHolder = gm.GetLargestArmyHolder();
             if (armyHolder < 0 && player.KnightsPlayed >= 1) return true;

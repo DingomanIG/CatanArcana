@@ -43,8 +43,8 @@ public static class AIBoardEvaluator
             else
             {
                 score += pips;
-                // 전략 없을 때 기존 Hard 로직
-                if (difficulty >= AIDifficulty.Hard)
+                // 전략 없을 때 Lv6+ → 광석/밀 가중
+                if (AIDifficultySettings.UsesFullStrategy(difficulty))
                 {
                     if (tile.Resource == ResourceType.Ore || tile.Resource == ResourceType.Wheat)
                         score += pips * 0.3f;
@@ -54,21 +54,21 @@ public static class AIBoardEvaluator
             resourceTypes.Add(tile.Resource);
         }
 
-        // 자원 다양성 보너스
-        if (difficulty >= AIDifficulty.Medium)
+        // 자원 다양성 보너스 (Lv3+)
+        if (AIDifficultySettings.UsesDiversityBonus(difficulty))
         {
             float diversityMul = strategy?.DiversityMultiplier ?? 1f;
             score += resourceTypes.Count * 1.5f * diversityMul;
         }
 
-        // 항구 보너스
+        // 항구 보너스 (전략 있으면 전략 가중치, 없으면 Lv5+)
         if (vertex.Port != PortType.None)
         {
             if (strategy != null && strategy.PortWeights.TryGetValue(vertex.Port, out float portScore))
             {
                 score += portScore;
             }
-            else if (difficulty >= AIDifficulty.Hard)
+            else if (AIDifficultySettings.UsesPortBonus(difficulty))
             {
                 score += vertex.Port == PortType.Generic ? 1f : 2f;
             }
@@ -94,8 +94,8 @@ public static class AIBoardEvaluator
             float buildingValue = vertex.Building == BuildingType.City ? 2f : 1f;
             score += tilePips * buildingValue;
 
-            // Hard: 선두 플레이어 우선 타겟
-            if (difficulty >= AIDifficulty.Hard)
+            // Lv6+: 선두 플레이어 우선 타겟
+            if (AIDifficultySettings.TracksOpponentVP(difficulty))
                 score += players[owner].VictoryPoints * 0.5f;
         }
 
@@ -301,9 +301,9 @@ public static class AIBoardEvaluator
         }
         if (surplus.Count == 0) return false;
 
-        // Hard: VP 최고점 파악 (선두와 거래 회피용)
+        // Lv6+: VP 최고점 파악 (선두와 거래 회피용)
         int maxVP = 0;
-        if (diff >= AIDifficulty.Hard)
+        if (AIDifficultySettings.TracksOpponentVP(diff))
         {
             for (int i = 0; i < gm.PlayerCount; i++)
                 maxVP = System.Math.Max(maxVP, gm.GetPlayerState(i).VictoryPoints);
@@ -316,8 +316,8 @@ public static class AIBoardEvaluator
             if (i == myIndex) continue;
             var other = gm.GetPlayerState(i);
 
-            // Hard: 선두 주자와 거래 회피
-            if (diff >= AIDifficulty.Hard &&
+            // Lv6+: 선두 주자와 거래 회피
+            if (AIDifficultySettings.TracksOpponentVP(diff) &&
                 other.VictoryPoints >= maxVP &&
                 other.VictoryPoints > myState.VictoryPoints)
                 continue;
@@ -353,8 +353,8 @@ public static class AIBoardEvaluator
             }
         }
 
-        // Medium: 낮은 기준, Hard: 높은 기준
-        float threshold = diff >= AIDifficulty.Hard ? 3f : 2f;
+        // 레벨 기반 거래 임계값
+        float threshold = AIDifficultySettings.TradeThreshold(diff);
         return targetPlayer >= 0 && bestScore >= threshold;
     }
 

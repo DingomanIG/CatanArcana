@@ -27,7 +27,10 @@ public class MainMenuController : MonoBehaviour
     // AI 난이도 드롭다운
     DropdownField[] aiDropdowns = new DropdownField[3];
 
-    static readonly List<string> DifficultyChoices = new() { "없음", "쉬움", "보통", "어려움" };
+    static readonly List<string> DifficultyChoices = new()
+    {
+        "없음", "Lv1", "Lv2", "Lv3", "Lv4", "Lv5", "Lv6", "Lv7", "Lv8", "Lv9"
+    };
 
     bool networkReady;
 
@@ -54,7 +57,7 @@ public class MainMenuController : MonoBehaviour
             if (aiDropdowns[i] != null)
             {
                 aiDropdowns[i].choices = DifficultyChoices;
-                aiDropdowns[i].index = 2; // 기본: 보통(Medium)
+                aiDropdowns[i].index = 5; // 기본: Lv5 (중급)
             }
         }
 
