@@ -1507,7 +1507,7 @@ public class GameHUDController : MonoBehaviour
     {
         if (!opponentCards.TryGetValue(playerIndex, out var ui)) return;
 
-        // 기존 타이머 취소 (같은 프레임에 여러 자원 변동 합산)
+        // 기존 타이머 취소
         if (opponentStatusTimers.TryGetValue(playerIndex, out var existing) && existing != null)
             StopCoroutine(existing);
 
@@ -1515,30 +1515,48 @@ public class GameHUDController : MonoBehaviour
             pendingDeltas[playerIndex] = new List<(string, int)>();
         pendingDeltas[playerIndex].Add((resName, delta));
 
-        // 합산 텍스트 생성
-        var parts = new List<string>();
-        bool hasGain = false, hasLoss = false;
-        foreach (var (name, d) in pendingDeltas[playerIndex])
-        {
-            string sign = d > 0 ? "+" : "";
-            parts.Add($"{sign}{d} {name}");
-            if (d > 0) hasGain = true; else hasLoss = true;
-        }
-
-        ui.statusText.text = string.Join(", ", parts);
-        ui.statusBar.style.backgroundColor = hasLoss ? StatusRed : StatusGreen;
-        ui.statusBar.style.display = DisplayStyle.Flex;
-
-        opponentStatusTimers[playerIndex] = StartCoroutine(RevertOpponentStatus(playerIndex, 1.5f));
+        // +와 -를 분리해서 순차 표시
+        opponentStatusTimers[playerIndex] = StartCoroutine(ShowDeltaSequence(playerIndex));
     }
 
-    IEnumerator RevertOpponentStatus(int playerIndex, float delay)
+    IEnumerator ShowDeltaSequence(int playerIndex)
     {
-        yield return new WaitForSeconds(delay);
-
-        pendingDeltas.Remove(playerIndex);
-
         if (!opponentCards.TryGetValue(playerIndex, out var ui)) yield break;
+
+        // 한 프레임 대기 (같은 프레임 델타 합산)
+        yield return null;
+
+        var deltas = pendingDeltas.GetValueOrDefault(playerIndex);
+        if (deltas == null || deltas.Count == 0) yield break;
+
+        var gains = new List<string>();
+        var losses = new List<string>();
+        foreach (var (name, d) in deltas)
+        {
+            if (d > 0) gains.Add($"+{d} {name}");
+            else losses.Add($"{d} {name}");
+        }
+
+        // 획득 먼저 표시
+        if (gains.Count > 0)
+        {
+            ui.statusText.text = string.Join(", ", gains);
+            ui.statusBar.style.backgroundColor = StatusGreen;
+            ui.statusBar.style.display = DisplayStyle.Flex;
+            yield return new WaitForSeconds(1f);
+        }
+
+        // 손실 표시
+        if (losses.Count > 0)
+        {
+            ui.statusText.text = string.Join(", ", losses);
+            ui.statusBar.style.backgroundColor = StatusRed;
+            ui.statusBar.style.display = DisplayStyle.Flex;
+            yield return new WaitForSeconds(1f);
+        }
+
+        // 원래 상태로 복귀
+        pendingDeltas.Remove(playerIndex);
 
         bool isActive = GM != null && GM.CurrentPlayerIndex == playerIndex;
         if (isActive)
