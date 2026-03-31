@@ -10,7 +10,7 @@ Claude Code + Unity 워크플로우 검증용 기본 카탄 구현.
 
 - [x] 헥스 그리드 (19타일, 큐브 좌표, pointy-top)
 - [x] 건설/거래/발전카드/도적 — 카탄 풀 룰셋
-- [x] AI 3난이도 (Easy/Medium/Hard) 대전
+- [x] AI 3난이도 (Easy/Medium/Hard) 대전 + 6가지 전략 기반 의사결정
 - [x] UI Toolkit 기반 전체 UI (메뉴/로비/HUD/거래/결과)
 - [x] Netcode + Relay + Lobby 네트워크 기반 구축
 

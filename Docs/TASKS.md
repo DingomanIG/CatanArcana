@@ -46,6 +46,7 @@
 ### AI
 - [x] AIController + AIBoardEvaluator (3난이도)
 - [x] 초기 배치 / 일반 턴 / 도적 / 발전카드 / 은행 거래
+- [x] AI 전략 시스템 (6가지 전략 기반 의사결정: FullOWS/RoadBuilder/FiveResource/CityRoad/Port/HybridOWS)
 
 ### 네트워크 기반
 - [x] Authentication + Relay + Lobby + Netcode 기본 동기화

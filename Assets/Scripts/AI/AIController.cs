@@ -7,8 +7,8 @@ public enum AIDifficulty
 {
     None,   // 인간 플레이어
     Easy,   // 랜덤 행동
-    Medium, // 확률 기반
-    Hard    // 전략적 판단
+    Medium, // 확률 기반 + 전략 (3개 중 택1)
+    Hard    // 전략적 판단 (6개 전략 전체 평가)
 }
 
 /// <summary>
@@ -28,6 +28,7 @@ public class AIController : MonoBehaviour
     [SerializeField, Range(0.1f, 1f)] float actionDelay = 0.3f;
 
     AIDifficulty[] difficulties;
+    AIStrategyType[] playerStrategies; // 플레이어별 선택된 전략
     IGameManager gm;
     Coroutine currentCoroutine;
     bool devCardUsedThisAction; // 코루틴 결과 전달용
@@ -39,6 +40,7 @@ public class AIController : MonoBehaviour
     void Awake()
     {
         difficulties = new[] { player0AI, player1AI, player2AI, player3AI };
+        playerStrategies = new AIStrategyType[4];
     }
 
     /// <summary>외부에서 난이도 설정 (메인 메뉴 → SceneFlowManager 경유)</summary>
@@ -46,6 +48,7 @@ public class AIController : MonoBehaviour
     {
         // Awake보다 먼저 호출될 수 있음 (LocalGameManager DefaultExecutionOrder -100)
         difficulties ??= new[] { player0AI, player1AI, player2AI, player3AI };
+        playerStrategies ??= new AIStrategyType[4];
         if (diffs == null) return;
         for (int i = 0; i < Mathf.Min(diffs.Length, 4); i++)
             difficulties[i] = diffs[i];
@@ -102,6 +105,13 @@ public class AIController : MonoBehaviour
             ? difficulties[playerIndex]
             : AIDifficulty.None;
 
+    /// <summary>플레이어의 선택된 전략 프로필 (None이면 null)</summary>
+    AIStrategyProfile GetStrategy(int playerIndex)
+    {
+        if (playerIndex < 0 || playerIndex >= playerStrategies.Length) return null;
+        return AIStrategySelector.GetProfile(playerStrategies[playerIndex]);
+    }
+
     // ========================
     // EVENT HANDLERS
     // ========================
@@ -149,6 +159,15 @@ public class AIController : MonoBehaviour
     {
         var diff = GetDifficulty(playerIndex);
         yield return new WaitForSeconds(thinkDelay);
+
+        // 전략 선택 (첫 마을 배치 전, Medium+ 난이도)
+        if (playerStrategies[playerIndex] == AIStrategyType.None && diff >= AIDifficulty.Medium)
+        {
+            var allPlayers = GetAllPlayerStates();
+            playerStrategies[playerIndex] = AIStrategySelector.SelectStrategy(
+                gm.GetGrid(), playerIndex, diff, allPlayers);
+            Debug.Log($"[AI] P{playerIndex} ({diff}): 전략 선택 → {playerStrategies[playerIndex]}");
+        }
 
         // 1. 마을 배치
         var validVertices = gm.GetValidSettlementVertices(playerIndex, true);
@@ -313,7 +332,7 @@ public class AIController : MonoBehaviour
     }
 
     // ========================
-    // 액션 페이즈 (건설/카드/거래)
+    // 액션 페이즈 (전략 기반 순서)
     // ========================
 
     IEnumerator DoActionPhase(int playerIndex, AIDifficulty diff)
@@ -321,118 +340,107 @@ public class AIController : MonoBehaviour
         yield return new WaitForSeconds(thinkDelay * 0.5f);
 
         var player = gm.GetPlayerState(playerIndex);
+        var strategy = GetStrategy(playerIndex);
+        var actionOrder = AIStrategySelector.GetActionOrder(strategy);
         int actions = 0;
         int maxActions = 8;
 
         while (actions < maxActions && gm.CurrentPhase == GamePhase.Action)
         {
-            // --- 발전카드 사용 ---
-            if (!player.HasUsedDevCardThisTurn && player.HasUsableDevCard(gm.TurnNumber))
-            {
-                devCardUsedThisAction = false;
-                yield return TryUseDevCards(playerIndex, diff);
-                if (devCardUsedThisAction)
-                {
-                    yield return new WaitForSeconds(actionDelay);
-                    actions++;
-                    continue;
-                }
-            }
+            bool acted = false;
 
-            // --- 도시 업그레이드 (VP 효율 최고) ---
-            if (player.CanAfford(BuildingCosts.City))
+            foreach (var actionType in actionOrder)
             {
-                var cityVertices = gm.GetValidCityVertices(playerIndex);
-                if (cityVertices.Count > 0)
+                switch (actionType)
                 {
-                    int best = PickBestCityUpgrade(cityVertices, playerIndex, diff);
-                    if (gm.TryBuildCity(best))
-                    {
-                        Debug.Log($"[AI] P{playerIndex}: 도시 업그레이드 → V{best}");
-                        yield return new WaitForSeconds(actionDelay);
-                        actions++;
-                        continue;
-                    }
-                }
-            }
-
-            // --- 마을 건설 ---
-            if (player.CanAfford(BuildingCosts.Settlement))
-            {
-                var settlementVertices = gm.GetValidSettlementVertices(playerIndex, false);
-                if (settlementVertices.Count > 0)
-                {
-                    int best = PickBestVertex(settlementVertices, playerIndex, diff);
-                    if (gm.TryBuildSettlement(best))
-                    {
-                        Debug.Log($"[AI] P{playerIndex}: 마을 건설 → V{best}");
-                        yield return new WaitForSeconds(actionDelay);
-                        actions++;
-                        continue;
-                    }
-                }
-            }
-
-            // --- 플레이어 간 거래 (Medium+, 1:1 교환) ---
-            if (diff >= AIDifficulty.Medium)
-            {
-                bool playerTraded = TryPlayerTrade(playerIndex, diff);
-                if (playerTraded)
-                {
-                    yield return new WaitForSeconds(actionDelay);
-                    actions++;
-                    continue;
-                }
-            }
-
-            // --- 은행 거래 (Medium+, 4:1~2:1) ---
-            if (diff >= AIDifficulty.Medium)
-            {
-                bool traded = TryBankTrade(playerIndex, diff);
-                if (traded)
-                {
-                    yield return new WaitForSeconds(actionDelay);
-                    actions++;
-                    continue;
-                }
-            }
-
-            // --- 발전카드 구매 ---
-            if (player.CanAfford(BuildingCosts.DevelopmentCard))
-            {
-                bool shouldBuy = ShouldBuyDevCard(playerIndex, diff);
-                if (shouldBuy && gm.TryBuyDevCard())
-                {
-                    Debug.Log($"[AI] P{playerIndex}: 발전카드 구매");
-                    yield return new WaitForSeconds(actionDelay);
-                    actions++;
-                    continue;
-                }
-            }
-
-            // --- 도로 건설 ---
-            if (player.CanAfford(BuildingCosts.Road))
-            {
-                bool shouldBuild = ShouldBuildRoad(playerIndex, diff);
-                if (shouldBuild)
-                {
-                    var roadEdges = gm.GetValidRoadEdges(playerIndex, false);
-                    if (roadEdges.Count > 0)
-                    {
-                        int best = PickBestEdge(roadEdges, playerIndex, diff);
-                        if (gm.TryBuildRoad(best))
+                    case AIActionType.UseDevCard:
+                        if (!player.HasUsedDevCardThisTurn && player.HasUsableDevCard(gm.TurnNumber))
                         {
-                            Debug.Log($"[AI] P{playerIndex}: 도로 건설 → E{best}");
-                            yield return new WaitForSeconds(actionDelay);
-                            actions++;
-                            continue;
+                            devCardUsedThisAction = false;
+                            yield return TryUseDevCards(playerIndex, diff);
+                            if (devCardUsedThisAction) acted = true;
                         }
-                    }
+                        break;
+
+                    case AIActionType.BuildCity:
+                        if (player.CanAfford(BuildingCosts.City))
+                        {
+                            var cityVertices = gm.GetValidCityVertices(playerIndex);
+                            if (cityVertices.Count > 0)
+                            {
+                                int best = PickBestCityUpgrade(cityVertices, playerIndex, diff);
+                                if (gm.TryBuildCity(best))
+                                {
+                                    Debug.Log($"[AI] P{playerIndex}: 도시 업그레이드 → V{best}");
+                                    acted = true;
+                                }
+                            }
+                        }
+                        break;
+
+                    case AIActionType.BuildSettlement:
+                        if (player.CanAfford(BuildingCosts.Settlement))
+                        {
+                            var vertices = gm.GetValidSettlementVertices(playerIndex, false);
+                            if (vertices.Count > 0)
+                            {
+                                int best = PickBestVertex(vertices, playerIndex, diff);
+                                if (gm.TryBuildSettlement(best))
+                                {
+                                    Debug.Log($"[AI] P{playerIndex}: 마을 건설 → V{best}");
+                                    acted = true;
+                                }
+                            }
+                        }
+                        break;
+
+                    case AIActionType.PlayerTrade:
+                        if (diff >= AIDifficulty.Medium && TryPlayerTrade(playerIndex, diff))
+                            acted = true;
+                        break;
+
+                    case AIActionType.BankTrade:
+                        if (diff >= AIDifficulty.Medium && TryBankTrade(playerIndex, diff))
+                            acted = true;
+                        break;
+
+                    case AIActionType.BuyDevCard:
+                        if (player.CanAfford(BuildingCosts.DevelopmentCard))
+                        {
+                            if (ShouldBuyDevCard(playerIndex, diff) && gm.TryBuyDevCard())
+                            {
+                                Debug.Log($"[AI] P{playerIndex}: 발전카드 구매");
+                                acted = true;
+                            }
+                        }
+                        break;
+
+                    case AIActionType.BuildRoad:
+                        if (player.CanAfford(BuildingCosts.Road) && ShouldBuildRoad(playerIndex, diff))
+                        {
+                            var roadEdges = gm.GetValidRoadEdges(playerIndex, false);
+                            if (roadEdges.Count > 0)
+                            {
+                                int best = PickBestEdge(roadEdges, playerIndex, diff);
+                                if (gm.TryBuildRoad(best))
+                                {
+                                    Debug.Log($"[AI] P{playerIndex}: 도로 건설 → E{best}");
+                                    acted = true;
+                                }
+                            }
+                        }
+                        break;
+                }
+
+                if (acted)
+                {
+                    yield return new WaitForSeconds(actionDelay);
+                    actions++;
+                    break; // foreach 탈출 → while 루프 다시
                 }
             }
 
-            // 더 이상 할 게 없음
-            break;
+            if (!acted) break; // 모든 액션 시도 실패 → 턴 종료
         }
     }
 
@@ -444,25 +452,32 @@ public class AIController : MonoBehaviour
     {
         devCardUsedThisAction = false;
         var player = gm.GetPlayerState(playerIndex);
+        var strategy = GetStrategy(playerIndex);
         int turn = gm.TurnNumber;
 
-        // 기사 카드 (항상 유용 - 도적 이동 + 기사단 진행)
+        // 기사 카드 (Medium+ / 전략이 기사단 추구하면 더 적극적)
         var knight = player.FindUsableCard(DevCardType.Knight, turn);
         if (knight != null && diff >= AIDifficulty.Medium)
         {
-            // 1단계: 기사 카드 활성화
-            if (gm.TryUseKnight(default))
+            bool shouldUse = true;
+            // 전략이 기사단 비추구이고, 도적이 자기 타일에 없으면 보류 (Medium)
+            if (strategy != null && !strategy.PursuesLargestArmy && diff == AIDifficulty.Medium)
+            {
+                shouldUse = IsRobberOnMyTile(playerIndex);
+            }
+
+            if (shouldUse && gm.TryUseKnight(default))
             {
                 Debug.Log($"[AI] P{playerIndex}: 기사 카드 사용");
                 yield return new WaitForSeconds(actionDelay);
 
-                // 2단계: 도적 이동 타겟 선정 후 실행
+                // 도적 이동 타겟 선정
                 var grid = gm.GetGrid();
                 HexCoord target = PickRobberTarget(playerIndex, diff, grid);
                 gm.TryUseKnight(target);
                 yield return new WaitForSeconds(actionDelay);
 
-                // 3단계: 약탈 처리
+                // 약탈 처리
                 if (gm.CurrentPhase == GamePhase.StealResource)
                 {
                     yield return DoStealResource(playerIndex);
@@ -508,11 +523,11 @@ public class AIController : MonoBehaviour
             }
         }
 
-        // 풍년 카드
+        // 풍년 카드 (전략 기반 자원 선택)
         var yop = player.FindUsableCard(DevCardType.YearOfPlenty, turn);
         if (yop != null)
         {
-            AIBoardEvaluator.PickNeededResources(player, out var res1, out var res2);
+            AIBoardEvaluator.PickNeededResources(player, strategy, out var res1, out var res2);
             if (gm.TryUseYearOfPlenty(res1, res2))
             {
                 Debug.Log($"[AI] P{playerIndex}: 풍년 카드 → {res1} + {res2}");
@@ -562,39 +577,23 @@ public class AIController : MonoBehaviour
     bool TryBankTrade(int playerIndex, AIDifficulty diff)
     {
         var player = gm.GetPlayerState(playerIndex);
+        var strategy = GetStrategy(playerIndex);
+        float aggression = strategy?.TradeAggression ?? 1f;
 
-        // 건설에 필요한 자원이 부족할 때만 거래
-        bool needsTrade = false;
-
-        // 마을 짓고 싶은데 자원 부족?
-        if (player.SettlementsRemaining > 0)
+        // 전략 빌드 목표 기반 부족 자원 확인
+        var buildGoal = AIStrategySelector.GetPrimaryBuildGoal(strategy);
+        int missingCount = 0;
+        foreach (var kv in buildGoal)
         {
-            int missing = 0;
-            foreach (var kv in BuildingCosts.Settlement)
-            {
-                if (player.Resources[kv.Key] < kv.Value) missing++;
-            }
-            if (missing == 1) needsTrade = true; // 1종류만 부족하면 거래 가치 있음
+            if (player.Resources.ContainsKey(kv.Key) && player.Resources[kv.Key] < kv.Value)
+                missingCount++;
         }
 
-        // 도시 짓고 싶은데 자원 부족?
-        if (!needsTrade && player.CitiesRemaining > 0)
-        {
-            var cityVertices = gm.GetValidCityVertices(playerIndex);
-            if (cityVertices.Count > 0)
-            {
-                int missing = 0;
-                foreach (var kv in BuildingCosts.City)
-                {
-                    if (player.Resources[kv.Key] < kv.Value) missing++;
-                }
-                if (missing == 1) needsTrade = true;
-            }
-        }
+        // 기본: 1종류 부족하면 거래, 적극적 전략(Port 등): 2종류도 OK
+        int maxMissing = aggression >= 1.3f ? 2 : 1;
+        if (missingCount == 0 || missingCount > maxMissing) return false;
 
-        if (!needsTrade) return false;
-
-        if (AIBoardEvaluator.FindBestBankTrade(player, gm, out var give, out var receive))
+        if (AIBoardEvaluator.FindBestBankTrade(player, gm, strategy, out var give, out var receive))
         {
             if (gm.TryBankTrade(give, receive))
             {
@@ -616,13 +615,15 @@ public class AIController : MonoBehaviour
             return validIds[Random.Range(0, validIds.Count)];
 
         var grid = gm.GetGrid();
+        var strategy = GetStrategy(playerIndex);
+        float noise = diff >= AIDifficulty.Hard ? 0.5f : 1f;
         int best = validIds[0];
         float bestScore = -1f;
 
         foreach (int id in validIds)
         {
-            float score = AIBoardEvaluator.EvaluateVertex(grid.Vertices[id], playerIndex, diff);
-            score += Random.Range(0f, 1f); // 자연스러운 변동
+            float score = AIBoardEvaluator.EvaluateVertex(grid.Vertices[id], playerIndex, diff, strategy);
+            score += Random.Range(0f, noise);
             if (score > bestScore)
             {
                 bestScore = score;
@@ -639,12 +640,13 @@ public class AIController : MonoBehaviour
             return validIds[Random.Range(0, validIds.Count)];
 
         var grid = gm.GetGrid();
+        var strategy = GetStrategy(playerIndex);
         int best = validIds[0];
         float bestScore = -1f;
 
         foreach (int id in validIds)
         {
-            float score = AIBoardEvaluator.EvaluateRoadEdge(grid.Edges[id], playerIndex, diff);
+            float score = AIBoardEvaluator.EvaluateRoadEdge(grid.Edges[id], playerIndex, diff, strategy);
             score += Random.Range(0f, 0.5f);
             if (score > bestScore)
             {
@@ -662,6 +664,7 @@ public class AIController : MonoBehaviour
             return validIds[Random.Range(0, validIds.Count)];
 
         var grid = gm.GetGrid();
+        var strategy = GetStrategy(playerIndex);
         int best = validIds[0];
         float bestScore = -1f;
 
@@ -670,8 +673,13 @@ public class AIController : MonoBehaviour
             float score = 0f;
             foreach (var tile in grid.Vertices[id].AdjacentTiles)
             {
-                if (tile.ProducesResource)
-                    score += AIBoardEvaluator.GetPips(tile.NumberToken);
+                if (!tile.ProducesResource) continue;
+                int pips = AIBoardEvaluator.GetPips(tile.NumberToken);
+                // 전략 가중치 적용
+                if (strategy != null && strategy.ResourceWeights.TryGetValue(tile.Resource, out float w))
+                    score += pips * w;
+                else
+                    score += pips;
             }
             score += Random.Range(0f, 0.5f);
             if (score > bestScore)
@@ -721,13 +729,26 @@ public class AIController : MonoBehaviour
             return Random.value > 0.6f;
 
         var player = gm.GetPlayerState(playerIndex);
+        var strategy = GetStrategy(playerIndex);
 
         // 마을 배치 가능한 곳이 없으면 도로로 확장
         var settlements = gm.GetValidSettlementVertices(playerIndex, false);
         if (settlements.Count == 0) return true;
 
-        // Hard: 최장교역로 추격
-        if (diff == AIDifficulty.Hard)
+        // 전략이 도로 우선이면 적극 건설
+        if (strategy != null && strategy.RoadPriority >= 1.5f)
+            return true;
+
+        // 최장도로 추구 전략
+        if (strategy != null && strategy.PursuesLongestRoad)
+        {
+            int myRoad = gm.GetLongestRoadLength(playerIndex);
+            int holder = gm.GetLongestRoadHolder();
+            if (holder < 0 && myRoad >= 3) return true;
+            if (holder != playerIndex && myRoad >= 4) return true;
+        }
+        // 전략 없는 Hard (레거시)
+        else if (strategy == null && diff == AIDifficulty.Hard)
         {
             int myRoad = gm.GetLongestRoadLength(playerIndex);
             int holder = gm.GetLongestRoadHolder();
@@ -744,24 +765,52 @@ public class AIController : MonoBehaviour
             return Random.value > 0.7f;
 
         var player = gm.GetPlayerState(playerIndex);
+        var strategy = GetStrategy(playerIndex);
 
         // 승리 직전이면 건물 우선
         if (player.VictoryPoints >= 8) return false;
 
-        // 기사단 추격
-        if (diff == AIDifficulty.Hard)
+        // 전략이 발전카드 비추구이면 확률 대폭 감소
+        if (strategy != null && strategy.DevCardPriority < 0.5f)
+            return Random.value > 0.85f;
+
+        // 전략이 기사단 추구이면 적극 구매
+        if (strategy != null && strategy.PursuesLargestArmy)
+        {
+            int armyHolder = gm.GetLargestArmyHolder();
+            if (armyHolder < 0 && player.KnightsPlayed >= 1) return true;
+            if (armyHolder != playerIndex && player.KnightsPlayed >= 2) return true;
+        }
+        // 전략 없는 Hard (레거시)
+        else if (strategy == null && diff == AIDifficulty.Hard)
         {
             int armyHolder = gm.GetLargestArmyHolder();
             if (armyHolder < 0 && player.KnightsPlayed >= 1) return true;
             if (armyHolder != playerIndex && player.KnightsPlayed >= 2) return true;
         }
 
-        return Random.value > 0.5f;
+        // 전략의 발전카드 우선도에 따른 확률
+        float buyChance = strategy != null ? 0.3f + strategy.DevCardPriority * 0.15f : 0.5f;
+        return Random.value > (1f - buyChance);
     }
 
     // ========================
     // 유틸리티
     // ========================
+
+    /// <summary>도적이 자기 타일(건물 인접) 위에 있는지</summary>
+    bool IsRobberOnMyTile(int playerIndex)
+    {
+        var player = gm.GetPlayerState(playerIndex);
+        foreach (var vertex in player.OwnedVertices)
+        {
+            foreach (var tile in vertex.AdjacentTiles)
+            {
+                if (tile.HasRobber) return true;
+            }
+        }
+        return false;
+    }
 
     PlayerState[] GetAllPlayerStates()
     {

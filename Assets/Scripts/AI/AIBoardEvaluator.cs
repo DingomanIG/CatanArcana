@@ -15,8 +15,15 @@ public static class AIBoardEvaluator
         return PipTable[number];
     }
 
-    /// <summary>교차점 평가 (마을 배치용)</summary>
+    /// <summary>교차점 평가 (마을 배치용) - 기존 호환</summary>
     public static float EvaluateVertex(HexVertex vertex, int playerIndex, AIDifficulty difficulty)
+    {
+        return EvaluateVertex(vertex, playerIndex, difficulty, null);
+    }
+
+    /// <summary>교차점 평가 (전략 기반)</summary>
+    public static float EvaluateVertex(HexVertex vertex, int playerIndex, AIDifficulty difficulty,
+        AIStrategyProfile strategy)
     {
         if (vertex.Building != BuildingType.None) return -1f;
 
@@ -28,24 +35,44 @@ public static class AIBoardEvaluator
             if (!tile.ProducesResource) continue;
 
             int pips = GetPips(tile.NumberToken);
-            score += pips;
-            resourceTypes.Add(tile.Resource);
 
-            // Hard: 밀/광석 가중치 (도시 건설에 필수)
-            if (difficulty >= AIDifficulty.Hard)
+            if (strategy != null && strategy.ResourceWeights.TryGetValue(tile.Resource, out float weight))
             {
-                if (tile.Resource == ResourceType.Ore || tile.Resource == ResourceType.Wheat)
-                    score += pips * 0.3f;
+                score += pips * weight;
             }
+            else
+            {
+                score += pips;
+                // 전략 없을 때 기존 Hard 로직
+                if (difficulty >= AIDifficulty.Hard)
+                {
+                    if (tile.Resource == ResourceType.Ore || tile.Resource == ResourceType.Wheat)
+                        score += pips * 0.3f;
+                }
+            }
+
+            resourceTypes.Add(tile.Resource);
         }
 
-        // Medium+: 자원 다양성 보너스
+        // 자원 다양성 보너스
         if (difficulty >= AIDifficulty.Medium)
-            score += resourceTypes.Count * 1.5f;
+        {
+            float diversityMul = strategy?.DiversityMultiplier ?? 1f;
+            score += resourceTypes.Count * 1.5f * diversityMul;
+        }
 
-        // Hard: 항구 보너스
-        if (difficulty >= AIDifficulty.Hard && vertex.Port != PortType.None)
-            score += vertex.Port == PortType.Generic ? 1f : 2f;
+        // 항구 보너스
+        if (vertex.Port != PortType.None)
+        {
+            if (strategy != null && strategy.PortWeights.TryGetValue(vertex.Port, out float portScore))
+            {
+                score += portScore;
+            }
+            else if (difficulty >= AIDifficulty.Hard)
+            {
+                score += vertex.Port == PortType.Generic ? 1f : 2f;
+            }
+        }
 
         return score;
     }
@@ -75,8 +102,15 @@ public static class AIBoardEvaluator
         return score;
     }
 
-    /// <summary>도로 변 평가 (확장 가치)</summary>
+    /// <summary>도로 변 평가 (확장 가치) - 기존 호환</summary>
     public static float EvaluateRoadEdge(HexEdge edge, int playerIndex, AIDifficulty difficulty)
+    {
+        return EvaluateRoadEdge(edge, playerIndex, difficulty, null);
+    }
+
+    /// <summary>도로 변 평가 (전략 기반)</summary>
+    public static float EvaluateRoadEdge(HexEdge edge, int playerIndex, AIDifficulty difficulty,
+        AIStrategyProfile strategy)
     {
         float score = 0f;
 
@@ -99,16 +133,56 @@ public static class AIBoardEvaluator
             }
 
             if (!hasAdjacentBuilding)
-                score += EvaluateVertex(vertex, playerIndex, difficulty) * 0.5f;
+                score += EvaluateVertex(vertex, playerIndex, difficulty, strategy) * 0.5f;
+        }
+
+        // 해안 선호: 인접 타일이 적은 엣지 = 보드 가장자리
+        if (strategy != null && strategy.CoastalPreference > 0f)
+        {
+            foreach (var vertex in endpoints)
+            {
+                if (vertex.AdjacentTiles.Count < 3)
+                {
+                    score += strategy.CoastalPreference * 2f;
+                    break;
+                }
+            }
+        }
+
+        // 최장도로 추구: 기존 도로 네트워크 연장 보너스
+        if (strategy != null && strategy.PursuesLongestRoad)
+        {
+            bool connectsToOwn = false;
+            foreach (var adjEdge in edge.VertexA.AdjacentEdges)
+            {
+                if (adjEdge.OwnerPlayerIndex == playerIndex) { connectsToOwn = true; break; }
+            }
+            if (!connectsToOwn)
+            {
+                foreach (var adjEdge in edge.VertexB.AdjacentEdges)
+                {
+                    if (adjEdge.OwnerPlayerIndex == playerIndex) { connectsToOwn = true; break; }
+                }
+            }
+            if (connectsToOwn) score += 3f;
         }
 
         return score;
     }
 
-    /// <summary>AI가 가장 필요한 자원 2개 선택 (풍년 카드용)</summary>
+    /// <summary>AI가 가장 필요한 자원 2개 선택 (풍년 카드용) - 기존 호환</summary>
     public static void PickNeededResources(PlayerState player, out ResourceType res1, out ResourceType res2)
     {
-        // 건설 비용 기반으로 부족한 자원 파악
+        PickNeededResources(player, null, out res1, out res2);
+    }
+
+    /// <summary>AI가 가장 필요한 자원 2개 선택 (전략 기반)</summary>
+    public static void PickNeededResources(PlayerState player, AIStrategyProfile strategy,
+        out ResourceType res1, out ResourceType res2)
+    {
+        // 전략의 우선 빌드 목표 기반
+        var buildGoal = AIStrategySelector.GetPrimaryBuildGoal(strategy);
+
         var needs = new Dictionary<ResourceType, int>
         {
             { ResourceType.Wood, 0 },
@@ -118,9 +192,11 @@ public static class AIBoardEvaluator
             { ResourceType.Ore, 0 }
         };
 
-        // 마을 비용 우선
-        foreach (var kv in BuildingCosts.Settlement)
-            needs[kv.Key] += kv.Value;
+        foreach (var kv in buildGoal)
+        {
+            if (needs.ContainsKey(kv.Key))
+                needs[kv.Key] += kv.Value;
+        }
 
         // 보유량 대비 부족분
         ResourceType best1 = ResourceType.Wheat, best2 = ResourceType.Ore;
@@ -282,42 +358,58 @@ public static class AIBoardEvaluator
         return targetPlayer >= 0 && bestScore >= threshold;
     }
 
-    /// <summary>은행 거래 평가: 남는 자원 → 필요한 자원</summary>
+    /// <summary>은행 거래 평가: 남는 자원 → 필요한 자원 - 기존 호환</summary>
     public static bool FindBestBankTrade(PlayerState player, IGameManager gm,
         out ResourceType give, out ResourceType receive)
+    {
+        return FindBestBankTrade(player, gm, null, out give, out receive);
+    }
+
+    /// <summary>은행 거래 평가 (전략 기반): 전략 빌드 목표에 맞춰 부족/잉여 판단</summary>
+    public static bool FindBestBankTrade(PlayerState player, IGameManager gm,
+        AIStrategyProfile strategy, out ResourceType give, out ResourceType receive)
     {
         give = ResourceType.None;
         receive = ResourceType.None;
 
-        // 가장 많이 보유한 자원 찾기
+        var buildGoal = AIStrategySelector.GetPrimaryBuildGoal(strategy);
+
+        // 전략 기반: 빌드 목표에 필요한 자원 중 가장 부족한 것
+        ResourceType deficit = ResourceType.None;
+        int maxDeficit = 0;
+        foreach (var kv in buildGoal)
+        {
+            int have = player.Resources.ContainsKey(kv.Key) ? player.Resources[kv.Key] : 0;
+            int need = kv.Value - have;
+            if (need > maxDeficit)
+            {
+                maxDeficit = need;
+                deficit = kv.Key;
+            }
+        }
+        if (deficit == ResourceType.None) return false;
+
+        // 빌드 목표에 불필요하거나 초과 보유한 자원 중 거래 가능한 것
         ResourceType surplus = ResourceType.None;
-        int maxCount = 0;
+        int maxSurplus = 0;
         foreach (var kv in player.Resources)
         {
+            if (kv.Key == ResourceType.None || kv.Key == ResourceType.Sea) continue;
+            if (kv.Key == deficit) continue;
+
             int rate = gm.GetTradeRate(kv.Key);
-            if (kv.Value >= rate && kv.Value > maxCount)
+            if (kv.Value < rate) continue;
+
+            int needed = buildGoal.ContainsKey(kv.Key) ? buildGoal[kv.Key] : 0;
+            int excess = kv.Value - needed;
+            if (excess > maxSurplus)
             {
-                maxCount = kv.Value;
+                maxSurplus = excess;
                 surplus = kv.Key;
             }
         }
 
         if (surplus == ResourceType.None) return false;
-
-        // 가장 부족한 자원 찾기
-        ResourceType deficit = ResourceType.None;
-        int minCount = int.MaxValue;
-        foreach (var kv in player.Resources)
-        {
-            if (kv.Key == surplus) continue;
-            if (kv.Value < minCount)
-            {
-                minCount = kv.Value;
-                deficit = kv.Key;
-            }
-        }
-
-        if (deficit == ResourceType.None) return false;
 
         give = surplus;
         receive = deficit;

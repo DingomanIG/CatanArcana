@@ -52,6 +52,7 @@ Assets/
     AI/
       AIController.cs             # AI 컨트롤러 (난이도별 자동 플레이)
       AIBoardEvaluator.cs         # 보드 평가 (타일/교차점/도로 스코어링)
+      AIStrategySelector.cs       # 전략 선택 (6가지 전략 프로필 + 보드 평가)
     UI/
       SceneFlowManager.cs       # 씬 전환 관리 (DontDestroyOnLoad)
       MainMenuController.cs     # 메인 메뉴 UI
