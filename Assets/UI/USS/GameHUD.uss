@@ -1201,8 +1201,8 @@
 }
 
 .event-log-entry {
-    padding: 3px 4px;
-    margin-bottom: 2px;
+    padding: 2px 4px;
+    margin-bottom: 0;
     border-radius: 3px;
 }
 
@@ -1211,41 +1211,41 @@
 }
 
 .event-log__text {
-    color: rgb(200, 188, 168);
-    font-size: 11px;
+    color: rgb(230, 222, 208);
+    font-size: 13px;
     white-space: normal;
 }
 
 .event-log__text--dice {
-    color: rgb(212, 168, 69);
+    color: rgb(240, 200, 90);
 }
 
 .event-log__text--resource {
-    color: rgb(168, 200, 122);
+    color: rgb(190, 225, 150);
 }
 
 .event-log__text--build {
-    color: rgb(107, 180, 210);
+    color: rgb(135, 200, 235);
 }
 
 .event-log__text--trade {
-    color: rgb(90, 158, 75);
+    color: rgb(120, 200, 110);
 }
 
 .event-log__text--robber {
-    color: rgb(196, 92, 62);
+    color: rgb(230, 120, 90);
 }
 
 .event-log__text--devcard {
-    color: rgb(180, 140, 210);
+    color: rgb(210, 170, 240);
 }
 
 .event-log__text--bonus {
-    color: rgb(212, 168, 69);
+    color: rgb(240, 200, 90);
     -unity-font-style: bold;
 }
 
 .event-log__text--system {
-    color: rgb(168, 152, 128);
+    color: rgb(200, 188, 168);
     -unity-font-style: italic;
 }
