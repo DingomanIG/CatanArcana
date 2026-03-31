@@ -1386,10 +1386,14 @@
 
 .incoming-trade-buttons > .trade-execute-btn {
     flex-grow: 1;
+    margin-top: 0;
+    margin-bottom: 0;
     margin-right: 3px;
 }
 
 .incoming-trade-buttons > .action-btn {
     flex-grow: 1;
+    margin-top: 0;
+    margin-bottom: 0;
     margin-left: 3px;
 }
