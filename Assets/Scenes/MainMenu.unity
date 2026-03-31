@@ -439,6 +439,7 @@ GameObject:
   m_Component:
   - component: {fileID: 209822278}
   - component: {fileID: 209822277}
+  - component: {fileID: 209822279}
   m_Layer: 0
   m_Name: BGMManager
   m_TagString: Untagged
@@ -479,6 +480,73 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &209822279
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 209822276}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95701962b04131d42be11bd944f1bebd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SFXManager
+  entries:
+  - type: 0
+    clip: {fileID: 8300000, guid: 7b27863d254b64b43a78a2b21773bad2, type: 3}
+  - type: 1
+    clip: {fileID: 8300000, guid: 7b27863d254b64b43a78a2b21773bad2, type: 3}
+  - type: 2
+    clip: {fileID: 8300000, guid: 7b27863d254b64b43a78a2b21773bad2, type: 3}
+  - type: 3
+    clip: {fileID: 8300000, guid: 6d520839b7deb4c459ba85fd74cf2c18, type: 3}
+  - type: 4
+    clip: {fileID: 0}
+  - type: 5
+    clip: {fileID: 0}
+  - type: 6
+    clip: {fileID: 8300000, guid: d60ddf9cac3b248c4953a4ba37dd6c59, type: 3}
+  - type: 7
+    clip: {fileID: 8300000, guid: d60ddf9cac3b248c4953a4ba37dd6c59, type: 3}
+  - type: 8
+    clip: {fileID: 8300000, guid: d60ddf9cac3b248c4953a4ba37dd6c59, type: 3}
+  - type: 9
+    clip: {fileID: 8300000, guid: cc685207a46826746af448ba3a0eaa07, type: 3}
+  - type: 10
+    clip: {fileID: 8300000, guid: d9eb08a69941e416e9dfe63c5b987148, type: 3}
+  - type: 11
+    clip: {fileID: 8300000, guid: d761cbd3d012843919eaa563a15a4a91, type: 3}
+  - type: 12
+    clip: {fileID: 8300000, guid: 0cc8b736879e846a19b851eb815591a8, type: 3}
+  - type: 13
+    clip: {fileID: 8300000, guid: 8378807d371fc264f9628946390df8d1, type: 3}
+  - type: 14
+    clip: {fileID: 8300000, guid: 9009cd0a06f43ad47a0b254215838855, type: 3}
+  - type: 15
+    clip: {fileID: 8300000, guid: f21b8aa019c25474fb2e94a55d49fe6f, type: 3}
+  - type: 16
+    clip: {fileID: 8300000, guid: e99b6c5ad04e7474d98b5d3425dd7f82, type: 3}
+  - type: 17
+    clip: {fileID: 8300000, guid: ae7e74295b743cb4ea17c6a29d1549f1, type: 3}
+  - type: 18
+    clip: {fileID: 8300000, guid: 47ec73b19b157514d83a7c49f9b95463, type: 3}
+  - type: 19
+    clip: {fileID: 8300000, guid: 0cc8b736879e846a19b851eb815591a8, type: 3}
+  - type: 20
+    clip: {fileID: 8300000, guid: ba4b0190b4835eb44b595b6d27c48e2e, type: 3}
+  - type: 21
+    clip: {fileID: 8300000, guid: f557b7818486b4ee3be6cd8dd2aa01bb, type: 3}
+  - type: 22
+    clip: {fileID: 8300000, guid: 7336cd5e6e4f74693ac6c4b607b671ef, type: 3}
+  - type: 23
+    clip: {fileID: 8300000, guid: 7336cd5e6e4f74693ac6c4b607b671ef, type: 3}
+  - type: 24
+    clip: {fileID: 8300000, guid: d60ddf9cac3b248c4953a4ba37dd6c59, type: 3}
+  - type: 25
+    clip: {fileID: 8300000, guid: f557b7818486b4ee3be6cd8dd2aa01bb, type: 3}
+  volume: 0.4
+  poolSize: 8
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
