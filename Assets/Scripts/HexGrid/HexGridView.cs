@@ -142,7 +142,7 @@ public class HexGridView : MonoBehaviour
         tm.alignment = TextAlignment.Center;
         tm.fontSize = 64;
         tm.fontStyle = FontStyle.Bold;
-        tm.color = isHot ? new Color(0.85f, 0.1f, 0.1f) : new Color(0.15f, 0.15f, 0.15f);
+        tm.color = isHot ? Color.red : Color.black;
 
         // 확률 도트 (타일 직접 자식)
         int dotCount = GetProbabilityDots(tile.NumberToken);
@@ -150,7 +150,7 @@ public class HexGridView : MonoBehaviour
         {
             var dots = new GameObject("Dots");
             dots.transform.SetParent(parent.transform);
-            dots.transform.localPosition = new Vector3(0f, 0.03f, -hexSize * 0.12f);
+            dots.transform.localPosition = new Vector3(0f, 0.03f, -hexSize * 0.18f);
             dots.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
 
             var dotTm = dots.AddComponent<TextMesh>();
@@ -159,7 +159,7 @@ public class HexGridView : MonoBehaviour
             dotTm.anchor = TextAnchor.MiddleCenter;
             dotTm.alignment = TextAlignment.Center;
             dotTm.fontSize = 48;
-            dotTm.color = isHot ? new Color(0.85f, 0.1f, 0.1f) : new Color(0.4f, 0.4f, 0.4f);
+            dotTm.color = isHot ? Color.red : Color.black;
         }
     }
 
