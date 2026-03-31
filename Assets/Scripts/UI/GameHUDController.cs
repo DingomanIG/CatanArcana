@@ -607,6 +607,9 @@ public class GameHUDController : MonoBehaviour
                 AddEventLog($"{who} +{delta} {resName}", "resource");
             else
                 AddEventLog($"{who} {delta} {resName}", "robber");
+
+            // 상대 카드 status bar에 자원 증감 표시
+            ShowOpponentResourceDelta(playerIndex, resName, delta);
         }
 
         if (playerIndex == GM.LocalPlayerIndex)
@@ -1484,6 +1487,48 @@ public class GameHUDController : MonoBehaviour
             if (isActive)
                 kvp.Value.statusText.text = GetStatusText(GM.CurrentPhase);
         }
+    }
+
+    static readonly Color StatusGreen = new(0.2f, 0.6f, 0.2f);
+    static readonly Color StatusRed = new(0.7f, 0.2f, 0.15f);
+    static readonly Color StatusYellow = new(1f, 0.7f, 0f);
+    readonly Dictionary<int, Coroutine> opponentStatusTimers = new();
+
+    void ShowOpponentResourceDelta(int playerIndex, string resName, int delta)
+    {
+        if (!opponentCards.TryGetValue(playerIndex, out var ui)) return;
+
+        // 기존 타이머 취소
+        if (opponentStatusTimers.TryGetValue(playerIndex, out var existing) && existing != null)
+            StopCoroutine(existing);
+
+        bool gained = delta > 0;
+        string sign = gained ? "+" : "";
+        ui.statusText.text = $"{sign}{delta} {resName}";
+        ui.statusBar.style.backgroundColor = gained ? StatusGreen : StatusRed;
+        ui.statusBar.style.display = DisplayStyle.Flex;
+
+        opponentStatusTimers[playerIndex] = StartCoroutine(RevertOpponentStatus(playerIndex, 2f));
+    }
+
+    IEnumerator RevertOpponentStatus(int playerIndex, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        if (!opponentCards.TryGetValue(playerIndex, out var ui)) yield break;
+
+        bool isActive = GM != null && GM.CurrentPlayerIndex == playerIndex;
+        if (isActive)
+        {
+            ui.statusBar.style.backgroundColor = StatusYellow;
+            ui.statusText.text = GetStatusText(GM.CurrentPhase);
+        }
+        else
+        {
+            ui.statusBar.style.display = DisplayStyle.None;
+        }
+
+        opponentStatusTimers.Remove(playerIndex);
     }
 
     static string GetStatusText(GamePhase phase) => phase switch
