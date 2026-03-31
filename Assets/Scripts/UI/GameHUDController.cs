@@ -688,7 +688,7 @@ public class GameHUDController : MonoBehaviour
 
         if (total == 7)
         {
-            ShowToast("robber", "도적 출현! 자원 7장 이상 보유자는 절반 폐기");
+            ShowToast("robber", "도적 출현! 자원 8장 이상 보유자는 절반 폐기");
             AddEventLog("도적 출현!", "robber");
         }
     }
@@ -876,7 +876,14 @@ public class GameHUDController : MonoBehaviour
         var state = GM.GetPlayerState(GM.LocalPlayerIndex);
         if (state == null) return;
 
-        if (statResTotalLabel != null) statResTotalLabel.text = state.TotalResourceCount.ToString();
+        if (statResTotalLabel != null)
+        {
+            int resTotal = state.TotalResourceCount;
+            statResTotalLabel.text = resTotal.ToString();
+            statResTotalLabel.style.color = resTotal >= 8
+                ? new Color(0.77f, 0.36f, 0.24f)  // 빨간색 경고
+                : new Color(0.91f, 0.86f, 0.78f);
+        }
         if (statDevTotalLabel != null) statDevTotalLabel.text = state.DevCards.Count.ToString();
 
         int roadLen = GM.GetLongestRoadLength(GM.LocalPlayerIndex);
@@ -1824,7 +1831,7 @@ public class GameHUDController : MonoBehaviour
 
         int resCount = state.TotalResourceCount;
         ui.resCountLabel.text = resCount.ToString();
-        ui.resCountLabel.style.color = resCount >= 7 ? colorRed : colorNormal;
+        ui.resCountLabel.style.color = resCount >= 8 ? colorRed : colorNormal;
 
         ui.devCountLabel.text = state.DevCards.Count.ToString();
 
