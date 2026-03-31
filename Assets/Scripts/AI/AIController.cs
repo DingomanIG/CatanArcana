@@ -169,8 +169,10 @@ public class AIController : MonoBehaviour
 
     void Awake()
     {
-        difficulties = new[] { player0AI, player1AI, player2AI, player3AI };
-        playerStrategies = new AIStrategyType[4];
+        // SetDifficulties()가 먼저 호출됐으면 덮어쓰지 않음
+        // (LocalGameManager.Awake [-100] → SetDifficulties → AIController.Awake [0])
+        difficulties ??= new[] { player0AI, player1AI, player2AI, player3AI };
+        playerStrategies ??= new AIStrategyType[4];
     }
 
     /// <summary>외부에서 난이도 설정 (메인 메뉴 → SceneFlowManager 경유)</summary>

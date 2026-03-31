@@ -29,7 +29,16 @@ public class MainMenuController : MonoBehaviour
 
     static readonly List<string> DifficultyChoices = new()
     {
-        "없음", "Lv1", "Lv2", "Lv3", "Lv4", "Lv5", "Lv6", "Lv7", "Lv8", "Lv9"
+        "없음",
+        "Lv1 덕",
+        "Lv2 잼미니",
+        "Lv3 또리",
+        "Lv4 지피",
+        "Lv5 수리",
+        "Lv6 그룩",
+        "Lv7 아르카",
+        "Lv8 페이큰",
+        "Lv9 클로디"
     };
 
     bool networkReady;
