@@ -273,6 +273,10 @@ public class GameHUDController : MonoBehaviour
         SubscribeToEvents();
         RefreshAllUI();
         InvokeRepeating(nameof(UpdateNowPlaying), 0.5f, 1f);
+
+        // WaitingForPlayers는 초기값이라 SetPhase 이벤트 안 발생 → 여기서 자동 시작
+        if (GM != null && GM.CurrentPhase == GamePhase.WaitingForPlayers)
+            StartCoroutine(AutoStartGame());
     }
 
     void OnDisable()
@@ -661,9 +665,6 @@ public class GameHUDController : MonoBehaviour
         UpdateActionButtons();
         UpdateOpponentHighlight();
         RefreshDevCardQuickSlots();
-
-        if (newPhase == GamePhase.WaitingForPlayers)
-            StartCoroutine(AutoStartGame());
 
         if (newPhase == GamePhase.InitialPlacement)
             ShowTurnOrderOverlay();
