@@ -98,23 +98,81 @@ public class HexGridView : MonoBehaviour
 
     void CreateNumberLabel(GameObject parent, HexTile tile)
     {
-        var label = new GameObject("NumberToken");
-        label.transform.SetParent(parent.transform);
-        label.transform.localPosition = new Vector3(0f, 0.01f, 0f);
+        bool isHot = tile.NumberToken == 6 || tile.NumberToken == 8;
+        float tokenRadius = hexSize * 0.28f;
+
+        // 토큰 배경 (납작한 실린더)
+        var token = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        token.name = "NumberToken";
+        token.transform.SetParent(parent.transform);
+        token.transform.localPosition = new Vector3(0f, 0.02f, 0f);
+        token.transform.localScale = new Vector3(tokenRadius, 0.01f, tokenRadius);
+
+        // 콜라이더 제거 (타일 클릭 방해 방지)
+        var col = token.GetComponent<Collider>();
+        if (col != null) Destroy(col);
+
+        var tokenMr = token.GetComponent<MeshRenderer>();
+        tokenMr.material = new Material(defaultMaterial);
+        tokenMr.material.color = new Color(0.95f, 0.92f, 0.85f); // 크림색
+
+        // 테두리 링 (약간 더 큰 실린더)
+        var ring = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        ring.name = "TokenRing";
+        ring.transform.SetParent(token.transform);
+        ring.transform.localPosition = new Vector3(0f, -0.5f, 0f);
+        ring.transform.localScale = new Vector3(1.12f, 0.5f, 1.12f);
+
+        var ringCol = ring.GetComponent<Collider>();
+        if (ringCol != null) Destroy(ringCol);
+
+        var ringMr = ring.GetComponent<MeshRenderer>();
+        ringMr.material = new Material(defaultMaterial);
+        ringMr.material.color = new Color(0.35f, 0.25f, 0.15f); // 다크 브라운
+
+        // 숫자 텍스트
+        var label = new GameObject("NumberText");
+        label.transform.SetParent(token.transform);
+        label.transform.localPosition = new Vector3(0f, 1.5f, 0f);
         label.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
 
         var tm = label.AddComponent<TextMesh>();
         tm.text = tile.NumberToken.ToString();
-        tm.characterSize = hexSize * 0.15f;
+        tm.characterSize = hexSize * 0.12f;
         tm.anchor = TextAnchor.MiddleCenter;
         tm.alignment = TextAlignment.Center;
-        tm.fontSize = 48;
+        tm.fontSize = 64;
+        tm.fontStyle = FontStyle.Bold;
+        tm.color = isHot ? new Color(0.85f, 0.1f, 0.1f) : new Color(0.15f, 0.15f, 0.15f);
 
-        // 6, 8은 빨간색 (높은 확률)
-        tm.color = (tile.NumberToken == 6 || tile.NumberToken == 8)
-            ? Color.red
-            : Color.black;
+        // 확률 도트
+        int dotCount = GetProbabilityDots(tile.NumberToken);
+        if (dotCount > 0)
+        {
+            var dots = new GameObject("Dots");
+            dots.transform.SetParent(token.transform);
+            dots.transform.localPosition = new Vector3(0f, 1.5f, 0.25f);
+            dots.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+
+            var dotTm = dots.AddComponent<TextMesh>();
+            dotTm.text = new string('\u2022', dotCount); // bullet dots
+            dotTm.characterSize = hexSize * 0.06f;
+            dotTm.anchor = TextAnchor.MiddleCenter;
+            dotTm.alignment = TextAlignment.Center;
+            dotTm.fontSize = 48;
+            dotTm.color = isHot ? new Color(0.85f, 0.1f, 0.1f) : new Color(0.4f, 0.4f, 0.4f);
+        }
     }
+
+    static int GetProbabilityDots(int number) => number switch
+    {
+        2 or 12 => 1,
+        3 or 11 => 2,
+        4 or 10 => 3,
+        5 or 9 => 4,
+        6 or 8 => 5,
+        _ => 0
+    };
 
     void CreateRobberMarker(GameObject parent)
     {
