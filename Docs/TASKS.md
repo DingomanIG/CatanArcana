@@ -39,6 +39,9 @@
 - [x] 거래창 / 건설 메뉴 / 발전카드 목록
 - [x] 결과 화면 / 유틸리티 바 / 음량 설정 / 옵션
 - [x] 인게임 규칙 뷰어
+- [x] 이벤트 로그 + 토스트 알림
+- [x] BGM/SFX 시스템 (BGMManager + SFXManager, 현재 곡 표시)
+- [x] 발전카드 퀵슬롯 바 (하단 HUD VP 오른쪽 인라인, 클릭 즉시 사용)
 
 ### AI
 - [x] AIController + AIBoardEvaluator (3난이도)
