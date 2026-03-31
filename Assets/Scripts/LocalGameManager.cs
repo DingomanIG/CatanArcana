@@ -562,6 +562,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         if (currentBuildMode == BuildMode.None) return;
         currentBuildMode = BuildMode.None;
         OnBuildModeChanged?.Invoke(BuildMode.None);
+        BuildModeController.Instance?.CancelBuildMode();
     }
 
     public bool TryBuildSettlement(int vertexId)
