@@ -20,12 +20,12 @@ Claude Code + Unity 워크플로우 검증용 기본 카탄 구현.
 
 개발은 로컬 모드, 온라인은 WebGL 빌드를 GitHub Pages로 자동 배포.
 
-- [ ] GitHub Actions 워크플로우 작성 (GameCI/unity-builder)
+- [x] GitHub Actions 워크플로우 작성 (GameCI/unity-builder)
 - [ ] Unity 라이선스 활성화 (CI용 시크릿 설정)
-- [ ] WebGL 빌드 설정 (Player Settings, URP WebGL 호환)
-- [ ] GitHub Pages 배포 자동화 (gh-pages 브랜치)
-- [ ] 빌드 트리거 설정 (main push 시 자동 or 수동 dispatch)
-- [ ] WebGL 템플릿 커스텀 (로딩 화면, 반응형)
+- [x] WebGL 빌드 설정 (Player Settings, URP WebGL 호환)
+- [x] GitHub Pages 배포 자동화 (deploy-pages)
+- [x] 빌드 트리거 설정 (main push 시 자동 + 수동 dispatch)
+- [x] WebGL 템플릿 커스텀 (로딩 화면, 반응형)
 - [ ] 빌드 테스트 및 동작 확인
 
 ---

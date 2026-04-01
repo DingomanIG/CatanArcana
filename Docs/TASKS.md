@@ -59,12 +59,12 @@
 ## Phase 1_2: WebGL 빌드 & 자동 배포 (현재) ⬅️ NOW
 
 ### CI/CD 파이프라인
-- [ ] P0: GitHub Actions 워크플로우 작성 (GameCI/unity-builder WebGL)
+- [x] P0: GitHub Actions 워크플로우 작성 (GameCI/unity-builder WebGL)
 - [ ] P0: Unity 라이선스 시크릿 설정 (UNITY_LICENSE, UNITY_EMAIL, UNITY_PASSWORD)
-- [ ] P0: WebGL Player Settings 확인 (압축, 메모리, URP 호환)
-- [ ] P0: gh-pages 브랜치 자동 배포 (peaceiris/actions-gh-pages)
-- [ ] P1: 빌드 트리거 설정 (main push 자동 + workflow_dispatch 수동)
-- [ ] P1: WebGL 템플릿 커스텀 (로딩 화면, 반응형 캔버스)
+- [x] P0: WebGL Player Settings 확인 (Gzip 압축, 디컴프레션 폴백, 커스텀 템플릿)
+- [x] P0: GitHub Pages 자동 배포 (deploy-pages action)
+- [x] P1: 빌드 트리거 설정 (main push 자동 + workflow_dispatch 수동)
+- [x] P1: WebGL 템플릿 커스텀 (ArcanaCatan 테마 로딩, 반응형 풀스크린)
 - [ ] P1: 빌드 결과 URL 확인 (https://dingomanig.github.io/CatanArcana/)
 
 ### 온라인 멀티 준비 (Phase 1_3 선행)
