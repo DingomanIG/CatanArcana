@@ -1495,3 +1495,10 @@
 .discard-info--ready {
     color: rgb(90, 200, 90);
 }
+
+.player-color-bar {
+    width: 4px;
+    border-radius: 2px;
+    margin-right: 8px;
+    align-self: stretch;
+}

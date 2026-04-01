@@ -849,6 +849,16 @@ public class GameHUDController : MonoBehaviour
         if (incomingTradeOverlay == null) return;
 
         incomingTradeFrom.text = $"{GM?.GetPlayerName(proposer) ?? "?"}의 제안";
+        incomingTradeFrom.style.backgroundColor = PlayerColors[proposer % PlayerColors.Length];
+        incomingTradeFrom.style.color = Color.white;
+        incomingTradeFrom.style.borderTopLeftRadius = 4;
+        incomingTradeFrom.style.borderTopRightRadius = 4;
+        incomingTradeFrom.style.borderBottomLeftRadius = 4;
+        incomingTradeFrom.style.borderBottomRightRadius = 4;
+        incomingTradeFrom.style.paddingLeft = 8;
+        incomingTradeFrom.style.paddingRight = 8;
+        incomingTradeFrom.style.paddingTop = 4;
+        incomingTradeFrom.style.paddingBottom = 4;
 
         BuildIncomingResourceDisplay(incomingTradeOfferGrid, offerToHuman);
         BuildIncomingResourceDisplay(incomingTradeRequestGrid, requestFromHuman);
@@ -1275,6 +1285,8 @@ public class GameHUDController : MonoBehaviour
             var btn = new Button();
             btn.text = $"{GM.GetPlayerName(playerIndex)} (자원 {state.TotalResourceCount}장)";
             btn.AddToClassList("steal-player-btn");
+            btn.style.borderLeftWidth = 4;
+            btn.style.borderLeftColor = PlayerColors[playerIndex % PlayerColors.Length];
 
             int captured = playerIndex;
             btn.clicked += () =>
@@ -1712,6 +1724,7 @@ public class GameHUDController : MonoBehaviour
 
             var row = new VisualElement();
             row.AddToClassList("trade-response-row");
+            row.style.borderLeftWidth = 4;
             row.style.borderLeftColor = PlayerColors[playerIndex % PlayerColors.Length];
 
             var nameLabel = new Label(GM.GetPlayerName(playerIndex));
@@ -2366,12 +2379,18 @@ public class GameHUDController : MonoBehaviour
             entry.AddToClassList("turn-order-entry");
             if (i == 0) entry.AddToClassList("turn-order-entry--first");
 
+            // 플레이어 컬러 바
+            var colorBar = new VisualElement();
+            colorBar.AddToClassList("player-color-bar");
+            colorBar.style.backgroundColor = PlayerColors[playerIndex % PlayerColors.Length];
+
             var rank = new Label($"{i + 1}");
             rank.AddToClassList("turn-order-entry__rank");
 
             var nameLabel = new Label(GM.GetPlayerName(playerIndex));
             nameLabel.AddToClassList("turn-order-entry__name");
 
+            entry.Add(colorBar);
             entry.Add(rank);
             entry.Add(nameLabel);
 
