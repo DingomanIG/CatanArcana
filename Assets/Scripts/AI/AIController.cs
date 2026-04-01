@@ -162,6 +162,7 @@ public class AIController : MonoBehaviour
     IGameManager gm;
     Coroutine currentCoroutine;
     bool devCardUsedThisAction; // 코루틴 결과 전달용
+    bool proposedToHumanThisTurn; // 인간에게 거래 제안 중복 방지
 
     // ========================
     // LIFECYCLE
@@ -266,6 +267,15 @@ public class AIController : MonoBehaviour
 
     void OnPhaseChanged(GamePhase phase)
     {
+        // 새 게임 시작 시 전략 리셋 (이전 게임 전략이 남아있으면 안됨)
+        if (phase == GamePhase.InitialPlacement)
+        {
+            StopAI();
+            for (int i = 0; i < playerStrategies.Length; i++)
+                playerStrategies[i] = AIStrategyType.None;
+            return;
+        }
+
         int pi = gm.CurrentPlayerIndex;
         if (!IsAI(pi)) return;
 
@@ -495,6 +505,8 @@ public class AIController : MonoBehaviour
         int maxActions = endgameAccel ? 12 : 8;
         if (endgameAccel) Debug.Log($"[AI] P{playerIndex} 클로디: 🔥 엔드게임 가속 모드! (VP:{player.VictoryPoints})");
 
+        proposedToHumanThisTurn = false;
+
         while (actions < maxActions && gm.CurrentPhase == GamePhase.Action)
         {
             bool acted = false;
@@ -545,8 +557,22 @@ public class AIController : MonoBehaviour
                         break;
 
                     case AIActionType.PlayerTrade:
-                        if (AIDifficultySettings.UsesTrade(diff) && TryPlayerTrade(playerIndex, diff))
-                            acted = true;
+                        if (AIDifficultySettings.UsesTrade(diff) && !proposedToHumanThisTurn)
+                        {
+                            if (TryPlayerTrade(playerIndex, diff))
+                            {
+                                acted = true;
+                            }
+                            else if (gm.HasPendingIncomingTrade)
+                            {
+                                // 인간에게 거래 제안 → 응답까지 대기
+                                proposedToHumanThisTurn = true;
+                                while (gm.HasPendingIncomingTrade)
+                                    yield return null;
+                                yield return new WaitForSeconds(actionDelay);
+                                acted = true;
+                            }
+                        }
                         break;
 
                     case AIActionType.BankTrade:

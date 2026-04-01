@@ -66,6 +66,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     public DevCardUseState DevCardState => devCardUseState;
     public int DevCardDeckRemaining => devCardDeck?.RemainingCount ?? 0;
     public bool IsWaitingForDiscard => waitingForDiscard;
+    public bool HasPendingIncomingTrade => pendingIncomingTrade != null;
 
     // ========================
     // 이벤트
@@ -186,6 +187,11 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         pendingIncomingTrade = null;
         currentBuildMode = BuildMode.None;
 
+        // 디스카드 상태 리셋
+        waitingForDiscard = false;
+        pendingDiscardPlayer = -1;
+        pendingDiscardCount = 0;
+
         // 턴 상태 리셋
         firstPlayerIndex = UnityEngine.Random.Range(0, playerCount);
         currentPlayerIndex = firstPlayerIndex;
@@ -193,6 +199,9 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         initialRound = 0;
         initialStepInRound = 0;
         initialWaitingForRoad = false;
+
+        // 페이즈 리셋 (GameOver → WaitingForPlayers)
+        currentPhase = GamePhase.WaitingForPlayers;
 
         OnPlayerListChanged?.Invoke();
         Debug.Log($"[Local] 게임 준비 완료! 선플레이어: {GetPlayerName(firstPlayerIndex)}");
