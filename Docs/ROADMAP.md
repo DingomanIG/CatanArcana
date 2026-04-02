@@ -31,11 +31,11 @@ Claude Code + Unity 워크플로우 검증용 기본 카탄 구현.
 
 P2P Relay 기반 온라인 대전. 프록시 패턴으로 로컬 로직 재활용. 설계서: `Docs/Design/MULTIPLAYER_DESIGN.md`
 
-- [ ] 기반 인프라 (직렬화 타입, GameBootstrapper, LGM 리팩토링)
-- [ ] NetworkGameManager 코어 (스켈레톤 + 핵심 RPC: 주사위/턴/건설)
-- [ ] 보드 동기화 (SyncFullBoardState + 초기 배치)
-- [ ] 발전카드/거래/도적 RPC
-- [ ] 로비 통합 (씬 전환, 연결/재접속, 이름 동기화)
+- [x] 기반 인프라 (직렬화 타입, GameBootstrapper, LGM 리팩토링, ParrelSync)
+- [x] NetworkGameManager 코어 (스켈레톤 + 전체 RPC + 보드 동기화)
+- [x] 발전카드/거래/도적 RPC
+- [x] 초기 배치 네트워크 동기화 (스네이크 드래프트)
+- [x] 로비 통합 (네트워크 씬 전환, 이름 동기화, 연결 해제)
 - [ ] 온라인 대전 테스트 (ParrelSync 2인)
 
 ---

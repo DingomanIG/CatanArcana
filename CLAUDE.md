@@ -37,7 +37,10 @@ Assets/
     Network/
       GameNetworkManager.cs     # DontDestroyOnLoad 싱글톤
       LobbyManager.cs           # DontDestroyOnLoad 싱글톤
-      TurnManager.cs            # 네트워크 턴 매니저 (향후 IGameManager 구현)
+      NetworkGameManager.cs     # IGameManager 네트워크 프록시 (핵심)
+      NetworkSerializables.cs   # 직렬화 타입 (HexCoordNet, ResArray, BoardSnapshot 등)
+      GameBootstrapper.cs       # 모드별 GameManager 생성 (로컬/네트워크 분기)
+      TurnManager.cs            # (레거시 — NGM에 흡수 예정)
       NetworkTestUI.cs          # 임시 OnGUI (비활성화 예정)
     HexGrid/
       HexCoord.cs, HexTile.cs, HexVertex.cs, HexEdge.cs
@@ -75,7 +78,7 @@ Docs/
 
 ## Rules
 - UI/코드/문서에 "카탄(Catan)" 명칭 사용 금지 (라이센스 이슈)
-- 커밋 시 항상 push까지 수행
+- 커밋 후 push는 유저에게 확인 후 수행
 - Unity .meta 파일 포함하여 커밋
 - Library/, Temp/, Logs/, UserSettings/ 는 gitignore 처리됨
 - 작업 완료 시 `Docs/ROADMAP.md`, `Docs/TASKS.md` 체크박스 업데이트

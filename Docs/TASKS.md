@@ -73,29 +73,37 @@
 
 ### 1단계: 기반 인프라
 - [x] P0: 멀티플레이 설계서 작성
-- [ ] P0: NetworkSerializables.cs (HexCoordSerialized, ResArray, BoardSnapshot)
-- [ ] P0: GameBootstrapper.cs (모드별 GameManager 생성/분기)
-- [ ] P0: LocalGameManager 리팩토링 (Awake GameServices 등록 제거, 외부 주입)
+- [x] P0: NetworkSerializables.cs (HexCoordNet, ResArray, TileSnapshot, VertexSnapshot, EdgeSnapshot, BoardSnapshot)
+- [x] P0: GameBootstrapper.cs (모드별 GameManager 생성/분기)
+- [x] P0: LocalGameManager 리팩토링 (GameServices 조건부 등록, InitializePlayers 공개, HexGridView 외부 주입)
+- [x] P0: ParrelSync 패키지 설치 (에디터 2인 테스트용)
 
 ### 2단계: NetworkGameManager 코어
-- [ ] P0: NGM 스켈레톤 (NetworkBehaviour + IGameManager, NetworkVariable, 이벤트)
-- [ ] P0: 호스트 로직 (내부 LGM + 이벤트 → NetworkVariable/ClientRpc)
-- [ ] P0: ServerRpc 구현 (주사위/턴/건설 — 턴 검증 포함)
-- [ ] P0: ClientRpc 구현 (이벤트 발행 + 보드 미러)
+- [x] P0: NGM 스켈레톤 (NetworkBehaviour + IGameManager, NetworkVariable, 이벤트)
+- [x] P0: 호스트 로직 (내부 LGM + 이벤트 → NetworkVariable/ClientRpc)
+- [x] P0: ServerRpc 구현 (전체 액션: 주사위/턴/건설/발전카드/거래/도적 — 턴 검증 포함)
+- [x] P0: ClientRpc 구현 (이벤트 발행 + 보드 미러 갱신 + TargetedClientRpc 자원 은닉)
+- [x] P0: PlayerIndex 매핑 (NGM 내부 통합 — 셔플 + TargetedClientRpc 할당)
 
 ### 3단계: 보드 동기화
-- [ ] P0: 보드 초기 동기화 (SyncFullBoardState)
-- [ ] P0: 초기 배치 동기화 (스네이크 드래프트)
+- [x] P0: 보드 초기 동기화 (SyncFullBoardState — BoardSnapshot 직렬화/역직렬화)
+- [x] P0: 초기 배치 동기화 (스네이크 드래프트 네트워크 플로우)
+  - LGM.OnInitialPlacementTurn 이벤트 → NGM ClientRpc로 릴레이
+  - SuppressUICommands 플래그로 hostLGM의 BuildModeController 직접호출 억제
+  - NotifyInitialPlacementBuildModeClientRpc → 해당 클라이언트 BuildMode 진입
+  - NotifyInitialPlacementFinishedClientRpc → 초기 배치 완료 알림
 
 ### 4단계: 발전카드/거래/도적
-- [ ] P1: 발전카드 RPC (구매/기사/도로건설/풍년/독점)
-- [ ] P1: 거래 RPC (은행 + 플레이어)
-- [ ] P1: 도적/디스카드 RPC
+- [x] P1: 발전카드 RPC (구매/기사/도로건설/풍년/독점)
+- [x] P1: 거래 RPC (은행 + 플레이어 + 거래 응답)
+- [x] P1: 도적/디스카드 RPC (이동/약탈후보/약탈/디스카드확인)
 
 ### 5단계: 로비 통합
-- [ ] P1: LobbyController 확장 (NetworkManager.SceneManager 씬 전환)
-- [ ] P1: 연결/재접속 처리
-- [ ] P1: 플레이어 이름 동기화
+- [x] P1: SceneFlowManager 네트워크 씬 전환 (NetworkManager.SceneManager, 호스트만 호출)
+- [x] P1: LobbyController 네트워크 게임 시작 (동기화된 씬 전환)
+- [x] P1: 플레이어 이름 동기화 (NetworkList<FixedString64Bytes> + RegisterPlayerNameServerRpc)
+- [x] P1: 연결 해제/퇴장 처리 (OnClientDisconnectCallback, GoToMainMenu 네트워크 정리)
+- [ ] P2: 재접속 처리 (SyncFullBoardState + 자원 재전송)
 
 ### 6단계: 테스트
 - [ ] P1: 로컬 회귀 테스트 (기존 AI 대전)

@@ -15,6 +15,16 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     [Header("참조")]
     [SerializeField] HexGridView hexGridView;
 
+    /// <summary>외부에서 HexGridView 주입 (NetworkGameManager 호스트용)</summary>
+    public void SetHexGridView(HexGridView view) => hexGridView = view;
+
+    /// <summary>
+    /// true면 BuildModeController 직접 호출 억제
+    /// NetworkGameManager 내부 인스턴스로 사용될 때 활성화
+    /// (NGM이 ClientRpc로 각 클라이언트에게 별도 알림)
+    /// </summary>
+    public bool SuppressUICommands { get; set; }
+
     // AI 모드 (-1 = 핫시트/전원 인간)
     int humanPlayerIndex = -1;
 
@@ -95,6 +105,10 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     public event Action OnIncomingTradeCancelled;
     public event Action<int, int> OnDiscardRequired;
 
+    // 초기 배치 진행 이벤트 (NetworkGameManager가 구독)
+    // (playerIndex, isRoadPhase) — isRoadPhase=false: 마을 배치, true: 도로 배치
+    public event Action<int, bool> OnInitialPlacementTurn;
+
     // 디스카드 대기 상태
     bool waitingForDiscard;
     int pendingDiscardPlayer;
@@ -116,7 +130,10 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
     void Awake()
     {
-        GameServices.GameManager = this;
+        // GameBootstrapper 경유가 아닌 경우(에디터 직접 실행 등) 자동 등록
+        // 네트워크 모드에서는 NetworkGameManager가 GameServices에 등록
+        if (GameServices.GameManager == null)
+            GameServices.GameManager = this;
 
         // SceneFlowManager에서 로컬 플레이 설정 적용
         if (SceneFlowManager.Instance != null && SceneFlowManager.Instance.IsLocalPlay)
@@ -133,7 +150,15 @@ public class LocalGameManager : MonoBehaviour, IGameManager
             ai.SetDifficulties(SceneFlowManager.Instance.AIDifficulties);
         }
 
-        // players는 Awake에서 초기화 (Start 전에 접근될 수 있음)
+        InitializePlayers();
+    }
+
+    /// <summary>플레이어 상태 초기화 (외부 호출 가능 — NetworkGameManager 호스트용)</summary>
+    public void InitializePlayers(int overridePlayerCount = -1)
+    {
+        if (overridePlayerCount > 0)
+            playerCount = overridePlayerCount;
+
         players = new PlayerState[playerCount];
         for (int i = 0; i < playerCount; i++)
             players[i] = new PlayerState(i);
@@ -245,6 +270,8 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         if (currentPhase != GamePhase.Action) return;
 
         CancelBuildMode();
+        // 안전장치: AI가 간접적으로 생성한 하이라이트도 확실히 정리
+        if (!SuppressUICommands) BuildModeController.Instance?.CancelBuildMode();
         devCardUseState = DevCardUseState.None;
         freeRoadsRemaining = 0;
         players[currentPlayerIndex].HasUsedDevCardThisTurn = false;
@@ -293,17 +320,27 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
     void StartInitialSettlementMode()
     {
+        OnInitialPlacementTurn?.Invoke(currentPlayerIndex, false);
+
         // AI 턴에서는 BuildModeController 생략 (AI가 직접 TryBuildSettlement 호출)
         if (humanPlayerIndex >= 0 && currentPlayerIndex != humanPlayerIndex) return;
-        BuildModeController.Instance?.SetInitialPlacement(true);
-        BuildModeController.Instance?.EnterBuildMode(BuildMode.PlacingSettlement);
+        if (!SuppressUICommands)
+        {
+            BuildModeController.Instance?.SetInitialPlacement(true);
+            BuildModeController.Instance?.EnterBuildMode(BuildMode.PlacingSettlement);
+        }
     }
 
     void StartInitialRoadMode()
     {
+        OnInitialPlacementTurn?.Invoke(currentPlayerIndex, true);
+
         if (humanPlayerIndex >= 0 && currentPlayerIndex != humanPlayerIndex) return;
-        BuildModeController.Instance?.SetInitialPlacement(true);
-        BuildModeController.Instance?.EnterBuildMode(BuildMode.PlacingRoad);
+        if (!SuppressUICommands)
+        {
+            BuildModeController.Instance?.SetInitialPlacement(true);
+            BuildModeController.Instance?.EnterBuildMode(BuildMode.PlacingRoad);
+        }
     }
 
     void OnInitialSettlementPlaced(int vertexId)
@@ -379,7 +416,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
     void FinishInitialPlacement()
     {
-        BuildModeController.Instance?.SetInitialPlacement(false);
+        if (!SuppressUICommands) BuildModeController.Instance?.SetInitialPlacement(false);
         currentPlayerIndex = firstPlayerIndex;
         turnNumber = 1;
 
@@ -652,7 +689,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         currentBuildMode = mode;
         OnBuildModeChanged?.Invoke(mode);
 
-        BuildModeController.Instance?.EnterBuildMode(mode);
+        if (!SuppressUICommands) BuildModeController.Instance?.EnterBuildMode(mode);
     }
 
     public void CancelBuildMode()
@@ -660,7 +697,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         if (currentBuildMode == BuildMode.None) return;
         currentBuildMode = BuildMode.None;
         OnBuildModeChanged?.Invoke(BuildMode.None);
-        BuildModeController.Instance?.CancelBuildMode();
+        if (!SuppressUICommands) BuildModeController.Instance?.CancelBuildMode();
     }
 
     public bool TryBuildSettlement(int vertexId)
@@ -756,12 +793,15 @@ public class LocalGameManager : MonoBehaviour, IGameManager
             if (freeRoadsRemaining <= 0)
             {
                 devCardUseState = DevCardUseState.None;
+                if (!SuppressUICommands) BuildModeController.Instance?.CancelBuildMode();
                 Debug.Log("[Local] 도로건설 카드 완료");
             }
             else
             {
                 devCardUseState = DevCardUseState.PlacingFreeRoad2;
-                BuildModeController.Instance?.EnterBuildMode(BuildMode.PlacingRoad);
+                // AI는 BuildModeController 불필요 (하이라이트 잔류 방지)
+                if (!SuppressUICommands && !IsPlayerAI(currentPlayerIndex))
+                    BuildModeController.Instance?.EnterBuildMode(BuildMode.PlacingRoad);
                 Debug.Log("[Local] 도로건설 카드: 두 번째 도로를 배치하세요");
             }
         }
@@ -866,9 +906,12 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         OnDevCardUsed?.Invoke(currentPlayerIndex, DevCardType.RoadBuilding);
         SFXManager.Instance?.Play(SFXType.DevCardUse);
 
-        // 무료 도로 건설 모드 진입
-        BuildModeController.Instance?.SetInitialPlacement(false);
-        BuildModeController.Instance?.EnterBuildMode(BuildMode.PlacingRoad);
+        // 무료 도로 건설 모드 진입 (AI는 BuildModeController 불필요)
+        if (!SuppressUICommands && !IsPlayerAI(currentPlayerIndex))
+        {
+            BuildModeController.Instance?.SetInitialPlacement(false);
+            BuildModeController.Instance?.EnterBuildMode(BuildMode.PlacingRoad);
+        }
 
         Debug.Log($"[Local] {GetPlayerName(currentPlayerIndex)} 도로건설 카드 사용 → 무료 도로 {freeRoadsRemaining}개");
         return true;
@@ -1035,6 +1078,18 @@ public class LocalGameManager : MonoBehaviour, IGameManager
             SetPhase(GamePhase.GameOver);
             Debug.Log($"[Local] {GetPlayerName(playerIndex)} 승리! ({vp}점)");
         }
+    }
+
+    // ========================
+    // 치트 (디버그용)
+    // ========================
+
+    /// <summary>즉시 게임 종료 (결과 화면 테스트용)</summary>
+    public void CheatForceVictory()
+    {
+        SFXManager.Instance?.Play(SFXType.Victory);
+        SetPhase(GamePhase.GameOver);
+        Debug.Log($"[Cheat] {GetPlayerName(currentPlayerIndex)} 강제 승리!");
     }
 
     // ========================
