@@ -1221,6 +1221,10 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         hexGridView.RebuildVisuals();
 
         // 건물 적용
+        // 먼저 모든 vertex의 Port 초기화 (호스트 데이터로 덮어쓰기 위해)
+        foreach (var v in clientGrid.Vertices)
+            v.Port = PortType.None;
+
         foreach (var vs in snapshot.Vertices)
         {
             if (vs.Id >= 0 && vs.Id < clientGrid.Vertices.Count)
@@ -1228,7 +1232,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
                 var v = clientGrid.Vertices[vs.Id];
                 v.OwnerPlayerIndex = vs.OwnerPlayerIndex;
                 v.Building = vs.Building;
-                // Port는 로컬 보드 생성 시 이미 설정됨
+                v.Port = vs.Port; // 호스트의 항구 데이터 적용
             }
         }
 
