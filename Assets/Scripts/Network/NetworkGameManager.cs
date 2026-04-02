@@ -593,7 +593,8 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         var mode = (BuildMode)buildMode;
         Debug.Log($"[NGM] 초기 배치 BuildMode 수신: {mode} (isRoad={isRoad})");
 
-        // 로컬 BuildModeController 진입
+        // 이전 모드 정리 후 새 모드 진입 (라운드 전환 시 연속 배치 대응)
+        BuildModeController.Instance?.CancelBuildMode();
         BuildModeController.Instance?.SetInitialPlacement(true);
         BuildModeController.Instance?.EnterBuildMode(mode);
     }

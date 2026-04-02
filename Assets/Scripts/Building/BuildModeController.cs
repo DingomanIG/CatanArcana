@@ -225,11 +225,18 @@ public class BuildModeController : MonoBehaviour
                 if (vertexId < 0) return;
 
                 var modeBefore = currentMode;
-                if (gm != null && gm.TryBuildSettlement(vertexId))
+                bool result = gm != null && gm.TryBuildSettlement(vertexId);
+                if (result)
                 {
-                    // 비주얼은 OnBuildingPlaced 이벤트에서 생성
+                    // 로컬: 즉시 성공 → 모드 정리
                     if (currentMode == modeBefore)
                         CancelBuildMode();
+                }
+                else if (gm != null && !gm.IsHost)
+                {
+                    // 네트워크 클라이언트: ServerRpc 전송됨, 결과는 ClientRpc로 수신
+                    // 하이라이트 정리 (초기 배치 모드는 ClientRpc에서 재설정)
+                    CancelBuildMode();
                 }
                 else
                     SFXManager.Instance?.Play(SFXType.BuildFailed);
@@ -242,11 +249,15 @@ public class BuildModeController : MonoBehaviour
                 if (edgeId < 0) return;
 
                 var modeBefore = currentMode;
-                if (gm != null && gm.TryBuildRoad(edgeId))
+                bool result = gm != null && gm.TryBuildRoad(edgeId);
+                if (result)
                 {
-                    // 비주얼은 OnRoadPlaced 이벤트에서 생성
                     if (currentMode == modeBefore)
                         CancelBuildMode();
+                }
+                else if (gm != null && !gm.IsHost)
+                {
+                    CancelBuildMode();
                 }
                 else
                     SFXManager.Instance?.Play(SFXType.BuildFailed);
@@ -259,11 +270,15 @@ public class BuildModeController : MonoBehaviour
                 if (vertexId < 0) return;
 
                 var modeBefore = currentMode;
-                if (gm != null && gm.TryBuildCity(vertexId))
+                bool cityResult = gm != null && gm.TryBuildCity(vertexId);
+                if (cityResult)
                 {
-                    // 비주얼은 OnBuildingPlaced 이벤트에서 생성
                     if (currentMode == modeBefore)
                         CancelBuildMode();
+                }
+                else if (gm != null && !gm.IsHost)
+                {
+                    CancelBuildMode();
                 }
                 else
                     SFXManager.Instance?.Play(SFXType.BuildFailed);
