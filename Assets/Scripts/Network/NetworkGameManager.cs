@@ -424,6 +424,10 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
             var ps = hostLGM.GetPlayerState(pi);
             if (ps != null && pi < netPlayerTotalResCount.Count)
                 netPlayerTotalResCount[pi] = ps.TotalResourceCount;
+            // 호스트 UI: 상대 자원 변동 시 이벤트 전파 (상대 카드 갱신용)
+            // 호스트 본인은 NotifyResourceUpdateClientRpc에서 처리되므로 제외
+            if (pi != localPlayerIndex)
+                OnResourceChanged?.Invoke(pi, rt, count);
         };
 
         hostLGM.OnVPChanged += (pi, vp) =>
@@ -446,11 +450,11 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
 
         hostLGM.OnDevCardPurchased += (pi, ct) =>
         {
-            // 전체에는 구매 사실만 알림 (카드 타입 비공개)
-            NotifyDevCardPurchasedClientRpc(pi, (int)DevCardType.Hidden);
-            // 구매자에게만 카드 타입 전송 → DevCards 리스트에 추가
+            // 구매자에게: 카드 추가 + 구매 알림 (카드 타입 포함)
             var buyerParams = GetTargetedParams(pi);
             NotifyDevCardAddedClientRpc(pi, (int)ct, buyerParams);
+            // 전체에: 구매 사실만 알림 (카드 타입 비공개)
+            NotifyDevCardPurchasedClientRpc(pi, (int)DevCardType.Hidden);
             netDevCardDeckRemaining.Value = hostLGM.DevCardDeckRemaining;
             // 개발카드 수 동기화
             if (pi < netPlayerDevCardCounts.Count)
@@ -658,6 +662,10 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         var card = new DevelopmentCard((DevCardType)cardType, TurnNumber);
         clientPlayers[playerIndex].DevCards.Add(card);
         Debug.Log($"[NGM] 발전카드 추가: {(DevCardType)cardType} (DevCards 수: {clientPlayers[playerIndex].DevCards.Count})");
+
+        // 카드 추가 후 HUD 갱신 (NotifyDevCardPurchasedClientRpc보다 늦게 도착할 수 있으므로)
+        if (playerIndex == localPlayerIndex)
+            OnDevCardPurchased?.Invoke(playerIndex, (DevCardType)cardType);
     }
 
     [ClientRpc]
