@@ -56,20 +56,22 @@
 
 ---
 
-## Phase 1_2: WebGL 빌드 & 자동 배포 (현재) ⬅️ NOW
+## Phase 1_2: WebGL 빌드 & 배포 ✅
 
 ### CI/CD 파이프라인
-- [x] P0: GitHub Actions 워크플로우 작성 (GameCI/unity-builder WebGL)
-- [ ] P0: Unity 라이선스 시크릿 설정 (UNITY_LICENSE, UNITY_EMAIL, UNITY_PASSWORD)
-- [x] P0: WebGL Player Settings 확인 (Gzip 압축, 디컴프레션 폴백, 커스텀 템플릿)
-- [x] P0: GitHub Pages 자동 배포 (deploy-pages action)
-- [x] P1: 빌드 트리거 설정 (main push 자동 + workflow_dispatch 수동)
-- [x] P1: WebGL 템플릿 커스텀 (ArcanaCatan 테마 로딩, 반응형 풀스크린)
-- [ ] P1: 빌드 결과 URL 확인 (https://dingomanig.github.io/CatanArcana/)
+- [x] P0: GitHub Actions 배포 워크플로우 (workflow_dispatch → deploy-pages)
+- [x] P0: WebGL Player Settings (Gzip 압축, 디컴프레션 폴백)
+- [x] P0: GitHub Pages 배포 완료 (https://dingomanig.github.io/CatanArcana/)
+- [x] P1: 로컬 빌드 → Docs/WebGL/ → push → 수동 배포 플로우 확립
+- ~~P0: CI 빌드 (Unity Personal 시리얼 미지원으로 로컬 빌드 전환)~~
 
-### 온라인 멀티 준비 (Phase 1_3 선행)
-- [ ] P2: NetworkGameManager 프록시 패턴 설계
-- [ ] P2: 모드 분기 구조 (로컬/온라인) 설계
+---
+
+## Phase 1_3: 온라인 멀티플레이 ⬅️ NOW
+
+### 네트워크 게임 매니저
+- [ ] P0: NetworkGameManager 프록시 패턴 설계
+- [ ] P0: 모드 분기 구조 (로컬/온라인) 설계
 
 ---
 

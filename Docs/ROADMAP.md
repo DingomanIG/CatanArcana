@@ -16,21 +16,18 @@ Claude Code + Unity 워크플로우 검증용 기본 카탄 구현.
 
 ---
 
-## Phase 1_2: WebGL 빌드 & 자동 배포 ⬅️ NOW
+## Phase 1_2: WebGL 빌드 & 배포 ✅
 
-개발은 로컬 모드, 온라인은 WebGL 빌드를 GitHub Pages로 자동 배포.
+로컬 WebGL 빌드 → GitHub Pages 수동 배포. (Unity Personal은 CI 시리얼 미지원)
 
-- [x] GitHub Actions 워크플로우 작성 (GameCI/unity-builder)
-- [ ] Unity 라이선스 활성화 (CI용 시크릿 설정)
-- [x] WebGL 빌드 설정 (Player Settings, URP WebGL 호환)
-- [x] GitHub Pages 배포 자동화 (deploy-pages)
-- [x] 빌드 트리거 설정 (main push 시 자동 + 수동 dispatch)
-- [x] WebGL 템플릿 커스텀 (로딩 화면, 반응형)
-- [ ] 빌드 테스트 및 동작 확인
+- [x] GitHub Actions 배포 워크플로우 (workflow_dispatch → deploy-pages)
+- [x] WebGL 빌드 설정 (Player Settings, Gzip 압축, 디컴프레션 폴백)
+- [x] GitHub Pages 배포 완료 (https://dingomanig.github.io/CatanArcana/)
+- [x] 로컬 빌드 → Docs/WebGL/ → push → 수동 배포 플로우 확립
 
 ---
 
-## Phase 1_3: 온라인 멀티플레이
+## Phase 1_3: 온라인 멀티플레이 ⬅️ NOW
 
 P2P Relay 기반 온라인 대전. 로컬 로직 재활용 (프록시 패턴).
 
