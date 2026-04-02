@@ -1239,11 +1239,8 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
             }
         }
 
-        // 타일 비주얼 재생성 (호스트 보드 데이터 반영)
-        hexGridView.RebuildVisuals();
-
-        // 건물 적용
-        // 먼저 모든 vertex의 Port 초기화 (호스트 데이터로 덮어쓰기 위해)
+        // 건물/항구 적용 (비주얼 재생성 전에 데이터 먼저 덮어쓰기)
+        // 먼저 모든 vertex의 Port 초기화
         foreach (var v in clientGrid.Vertices)
             v.Port = PortType.None;
 
@@ -1257,6 +1254,9 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
                 v.Port = vs.Port; // 호스트의 항구 데이터 적용
             }
         }
+
+        // 타일 + 항구 데이터 적용 완료 후 비주얼 재생성
+        hexGridView.RebuildVisuals();
 
         // 도로 적용
         foreach (var es in snapshot.Edges)
