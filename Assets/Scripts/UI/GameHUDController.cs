@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+using UnityEngine.InputSystem;
+#endif
 
 /// <summary>
 /// 인게임 HUD 컨트롤러
@@ -284,9 +287,13 @@ public class GameHUDController : MonoBehaviour
         InvokeRepeating(nameof(UpdateNowPlaying), 0.5f, 1f);
 
         // 게임 준비 (턴 순서 결정) → 턴 순서 오버레이 표시
+        // 네트워크 모드에서는 NGM이 PrepareGame + 보드 동기화를 관리
         if (GM != null && GM.CurrentPhase == GamePhase.WaitingForPlayers)
         {
-            GM.PrepareGame();
+            if (GM.IsHost)
+            {
+                GM.PrepareGame();
+            }
             ShowTurnOrderOverlay();
         }
     }
@@ -296,6 +303,16 @@ public class GameHUDController : MonoBehaviour
         UnsubscribeFromEvents();
         CancelInvoke(nameof(UpdateNowPlaying));
     }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    void Update()
+    {
+        // F12 = 강제 승리 치트
+        if (Keyboard.current != null && Keyboard.current.f12Key.wasPressedThisFrame
+            && GM is LocalGameManager local)
+            local.CheatForceVictory();
+    }
+#endif
 
     void UpdateNowPlaying()
     {
@@ -689,6 +706,13 @@ public class GameHUDController : MonoBehaviour
         UpdateActionButtons();
         UpdateOpponentHighlight();
         RefreshDevCardQuickSlots();
+
+        // 턴 순서 오버레이 닫기 (네트워크 모드: 전원 준비 후 게임 시작 시)
+        if (newPhase == GamePhase.InitialPlacement)
+        {
+            turnOrderOverlay?.AddToClassList("overlay--hidden");
+            if (btnCloseTurnOrder != null) btnCloseTurnOrder.SetEnabled(true);
+        }
 
         if (newPhase == GamePhase.StealResource)
             ShowStealOverlay();
@@ -2406,9 +2430,19 @@ public class GameHUDController : MonoBehaviour
 
         turnOrderOverlay.RemoveFromClassList("overlay--hidden");
 
-        // 카운트다운 시작
-        if (turnOrderCountdown != null) StopCoroutine(turnOrderCountdown);
-        turnOrderCountdown = StartCoroutine(TurnOrderCountdown());
+        bool isNetwork = GM is NetworkGameManager;
+        if (isNetwork)
+        {
+            // 네트워크: 버튼 클릭으로만 준비 완료 (카운트다운 없음)
+            if (btnCloseTurnOrder != null)
+                btnCloseTurnOrder.text = "준비 완료";
+        }
+        else
+        {
+            // 로컬: 카운트다운 시작
+            if (turnOrderCountdown != null) StopCoroutine(turnOrderCountdown);
+            turnOrderCountdown = StartCoroutine(TurnOrderCountdown());
+        }
     }
 
     IEnumerator TurnOrderCountdown()
@@ -2437,9 +2471,27 @@ public class GameHUDController : MonoBehaviour
             turnOrderCountdown = null;
         }
 
-        // 오버레이 닫힐 때 게임 시작 (InitialPlacement 진입)
+        // 오버레이 닫힐 때 게임 시작
         if (GM != null && GM.CurrentPhase == GamePhase.WaitingForPlayers)
-            GM.StartGame();
+        {
+            if (GM is NetworkGameManager ngm)
+            {
+                // 네트워크: "준비 완료" 신호 → 전원 준비 시 호스트가 StartGame
+                if (btnCloseTurnOrder != null)
+                {
+                    btnCloseTurnOrder.text = "대기 중...";
+                    btnCloseTurnOrder.SetEnabled(false);
+                }
+                ngm.RequestPlayerReadyServerRpc();
+                // 오버레이는 StartGame 후 PhaseChanged 이벤트에서 닫힘
+                return; // 오버레이 아직 안 닫음
+            }
+            else
+            {
+                // 로컬: 즉시 시작
+                GM.StartGame();
+            }
+        }
     }
 
     // ========================
@@ -2449,6 +2501,9 @@ public class GameHUDController : MonoBehaviour
     void ShowResultScreen()
     {
         if (GM == null) return;
+
+        // BGM 정지
+        BGMManager.Instance?.Pause();
 
         // 플레이어 VP 수집 + 정렬
         var rankings = new List<(int index, string name, PlayerState state)>();
@@ -2525,6 +2580,9 @@ public class GameHUDController : MonoBehaviour
 
     void OnResultMenuClicked()
     {
+        // 종료창 사운드 정지
+        SFXManager.Instance?.StopAll();
+
         if (SceneFlowManager.Instance != null)
             SceneFlowManager.Instance.GoToMainMenu();
     }

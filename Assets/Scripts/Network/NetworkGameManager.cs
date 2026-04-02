@@ -613,6 +613,29 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     }
 
     // ================================================================
+    // 게임 시작 준비 (턴 순서 확인 후 전원 Ready)
+    // ================================================================
+
+    readonly HashSet<int> readyPlayers = new();
+
+    [ServerRpc(RequireOwnership = false)]
+    public void RequestPlayerReadyServerRpc(ServerRpcParams rpcParams = default)
+    {
+        int pi = GetPlayerIndexFromClientId(rpcParams.Receive.SenderClientId);
+        if (pi < 0) return;
+
+        readyPlayers.Add(pi);
+        Debug.Log($"[NGM] 플레이어 준비 완료: [{pi}] ({readyPlayers.Count}/{netPlayerCount.Value})");
+
+        if (readyPlayers.Count >= netPlayerCount.Value)
+        {
+            Debug.Log("[NGM] 전원 준비 완료 → 게임 시작!");
+            readyPlayers.Clear();
+            StartGame();
+        }
+    }
+
+    // ================================================================
     // ServerRpc — 클라이언트 → 호스트
     // ================================================================
 
@@ -817,13 +840,12 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         if (IsServer)
         {
-            // 1. 보드 준비 + 전체 동기화 먼저
-            hostLGM.PrepareGame();
+            // PrepareGame은 HUD.OnEnable에서 이미 호출됨
+            // 보드 전체 동기화
             var snapshot = CreateBoardSnapshot();
             SyncFullBoardStateClientRpc(snapshot);
 
-            // 2. 게임 시작 (InitialPlacement 진입 → OnInitialPlacementTurn 이벤트 발행)
-            //    → SubscribeHostEvents에서 자동으로 ClientRpc 전송
+            // 게임 시작 (InitialPlacement 진입 → OnInitialPlacementTurn 이벤트 발행)
             hostLGM.StartGame();
         }
     }
