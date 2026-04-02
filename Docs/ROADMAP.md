@@ -29,14 +29,14 @@ Claude Code + Unity 워크플로우 검증용 기본 카탄 구현.
 
 ## Phase 1_3: 온라인 멀티플레이 ⬅️ NOW
 
-P2P Relay 기반 온라인 대전. 로컬 로직 재활용 (프록시 패턴).
+P2P Relay 기반 온라인 대전. 프록시 패턴으로 로컬 로직 재활용. 설계서: `Docs/Design/MULTIPLAYER_DESIGN.md`
 
-- [ ] NetworkGameManager 셸 생성 (IGameManager + LocalGameManager 위임)
-- [ ] 상태 동기화 레이어 (리소스/VP/건물 → NetworkVariable/ClientRpc)
-- [ ] 액션 RPC화 (TryBuild/TryTrade/TryUse → ServerRpc)
-- [ ] 씬 전환 시 모드 분기 (로컬 vs 온라인)
-- [ ] 연결 끊김/재접속 처리
-- [ ] 온라인 대전 테스트
+- [ ] 기반 인프라 (직렬화 타입, GameBootstrapper, LGM 리팩토링)
+- [ ] NetworkGameManager 코어 (스켈레톤 + 핵심 RPC: 주사위/턴/건설)
+- [ ] 보드 동기화 (SyncFullBoardState + 초기 배치)
+- [ ] 발전카드/거래/도적 RPC
+- [ ] 로비 통합 (씬 전환, 연결/재접속, 이름 동기화)
+- [ ] 온라인 대전 테스트 (ParrelSync 2인)
 
 ---
 

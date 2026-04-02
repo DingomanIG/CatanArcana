@@ -69,9 +69,37 @@
 
 ## Phase 1_3: 온라인 멀티플레이 ⬅️ NOW
 
-### 네트워크 게임 매니저
-- [ ] P0: NetworkGameManager 프록시 패턴 설계
-- [ ] P0: 모드 분기 구조 (로컬/온라인) 설계
+> 설계서: `Docs/Design/MULTIPLAYER_DESIGN.md`
+
+### 1단계: 기반 인프라
+- [x] P0: 멀티플레이 설계서 작성
+- [ ] P0: NetworkSerializables.cs (HexCoordSerialized, ResArray, BoardSnapshot)
+- [ ] P0: GameBootstrapper.cs (모드별 GameManager 생성/분기)
+- [ ] P0: LocalGameManager 리팩토링 (Awake GameServices 등록 제거, 외부 주입)
+
+### 2단계: NetworkGameManager 코어
+- [ ] P0: NGM 스켈레톤 (NetworkBehaviour + IGameManager, NetworkVariable, 이벤트)
+- [ ] P0: 호스트 로직 (내부 LGM + 이벤트 → NetworkVariable/ClientRpc)
+- [ ] P0: ServerRpc 구현 (주사위/턴/건설 — 턴 검증 포함)
+- [ ] P0: ClientRpc 구현 (이벤트 발행 + 보드 미러)
+
+### 3단계: 보드 동기화
+- [ ] P0: 보드 초기 동기화 (SyncFullBoardState)
+- [ ] P0: 초기 배치 동기화 (스네이크 드래프트)
+
+### 4단계: 발전카드/거래/도적
+- [ ] P1: 발전카드 RPC (구매/기사/도로건설/풍년/독점)
+- [ ] P1: 거래 RPC (은행 + 플레이어)
+- [ ] P1: 도적/디스카드 RPC
+
+### 5단계: 로비 통합
+- [ ] P1: LobbyController 확장 (NetworkManager.SceneManager 씬 전환)
+- [ ] P1: 연결/재접속 처리
+- [ ] P1: 플레이어 이름 동기화
+
+### 6단계: 테스트
+- [ ] P1: 로컬 회귀 테스트 (기존 AI 대전)
+- [ ] P1: 네트워크 2인 테스트 (ParrelSync)
 
 ---
 
