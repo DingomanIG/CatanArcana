@@ -836,15 +836,34 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         if (IsServer) hostLGM.PrepareGame();
     }
 
+    /// <summary>호스트: PrepareGame + 보드 동기화 + 턴 순서 오버레이 알림</summary>
+    public void PrepareAndSyncBoard()
+    {
+        if (!IsServer) return;
+
+        hostLGM.PrepareGame();
+
+        // 보드 스냅샷 전송 (타일+항구 동기화)
+        var snapshot = CreateBoardSnapshot();
+        SyncFullBoardStateClientRpc(snapshot);
+
+        // 모든 클라이언트에 턴 순서 오버레이 표시 알림
+        ShowTurnOrderClientRpc();
+    }
+
+    [ClientRpc]
+    void ShowTurnOrderClientRpc()
+    {
+        // GameHUDController의 ShowTurnOrderOverlay 호출
+        var hud = FindFirstObjectByType<GameHUDController>();
+        hud?.ShowTurnOrderOverlay();
+    }
+
     public void StartGame()
     {
         if (IsServer)
         {
-            // PrepareGame은 HUD.OnEnable에서 이미 호출됨
-            // 보드 전체 동기화
-            var snapshot = CreateBoardSnapshot();
-            SyncFullBoardStateClientRpc(snapshot);
-
+            // PrepareAndSyncBoard에서 이미 PrepareGame + 보드 동기화 완료
             // 게임 시작 (InitialPlacement 진입 → OnInitialPlacementTurn 이벤트 발행)
             hostLGM.StartGame();
         }

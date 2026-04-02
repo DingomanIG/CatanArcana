@@ -287,14 +287,21 @@ public class GameHUDController : MonoBehaviour
         InvokeRepeating(nameof(UpdateNowPlaying), 0.5f, 1f);
 
         // 게임 준비 (턴 순서 결정) → 턴 순서 오버레이 표시
-        // 네트워크 모드에서는 NGM이 PrepareGame + 보드 동기화를 관리
         if (GM != null && GM.CurrentPhase == GamePhase.WaitingForPlayers)
         {
-            if (GM.IsHost)
+            if (GM is NetworkGameManager ngm)
             {
-                GM.PrepareGame();
+                // 네트워크: 호스트가 PrepareGame + 보드 동기화 → 클라이언트에 턴순서 알림
+                if (GM.IsHost)
+                    ngm.PrepareAndSyncBoard();
+                // 오버레이는 ClientRpc(ShowTurnOrderClientRpc)에서 표시
             }
-            ShowTurnOrderOverlay();
+            else
+            {
+                // 로컬: 즉시
+                GM.PrepareGame();
+                ShowTurnOrderOverlay();
+            }
         }
     }
 
@@ -2386,7 +2393,7 @@ public class GameHUDController : MonoBehaviour
     // TURN ORDER
     // ========================
 
-    void ShowTurnOrderOverlay()
+    public void ShowTurnOrderOverlay()
     {
         if (turnOrderOverlay == null || turnOrderList == null || GM == null) return;
 
