@@ -126,6 +126,11 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         netCurrentBuildMode.OnValueChanged += (_, newVal) => OnBuildModeChanged?.Invoke((BuildMode)newVal);
         netPlayerCount.OnValueChanged += (_, __) => OnPlayerListChanged?.Invoke();
 
+        // NetworkList 변경 시 클라이언트 미러 데이터 갱신
+        netPlayerVP.OnListChanged += _ => SyncClientPlayerMirror();
+        netPlayerTotalResCount.OnListChanged += _ => SyncClientPlayerMirror();
+        netPlayerKnightsPlayed.OnListChanged += _ => SyncClientPlayerMirror();
+
         if (IsServer)
         {
             SetupHost();
@@ -879,17 +884,28 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     public void EnterBuildMode(BuildMode mode)
     {
         if (IsServer)
+        {
             hostLGM.EnterBuildMode(mode);
+        }
         else
+        {
+            // 클라이언트: 로컬에서 즉시 빌드모드 진입 (하이라이트 표시) + 서버 확인 요청
+            BuildModeController.Instance?.EnterBuildMode(mode);
             RequestEnterBuildModeServerRpc((int)mode);
+        }
     }
 
     public void CancelBuildMode()
     {
         if (IsServer)
+        {
             hostLGM.CancelBuildMode();
+        }
         else
+        {
+            BuildModeController.Instance?.CancelBuildMode();
             RequestCancelBuildModeServerRpc();
+        }
     }
 
     public void ConfirmDiscard(Dictionary<ResourceType, int> toDiscard)
@@ -1015,10 +1031,33 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         if (IsServer)
             return hostLGM.GetPlayerState(playerIndex);
 
-        // 클라이언트: 미러 PlayerState 반환
-        if (clientPlayers != null && playerIndex >= 0 && playerIndex < clientPlayers.Length)
-            return clientPlayers[playerIndex];
-        return null;
+        // 클라이언트: 미러 PlayerState + NetworkList 공개 정보 보강
+        if (clientPlayers == null || playerIndex < 0 || playerIndex >= clientPlayers.Length)
+            return null;
+
+        var ps = clientPlayers[playerIndex];
+
+        if (playerIndex == localPlayerIndex)
+        {
+            // 내 자원: TargetedClientRpc로 수신한 localResources 사용
+            foreach (ResourceType rt in Enum.GetValues(typeof(ResourceType)))
+            {
+                if (rt == ResourceType.None || rt == ResourceType.Sea) continue;
+                ps.Resources[rt] = localResources[rt];
+            }
+        }
+        else
+        {
+            // 상대 자원: 총합만 공개 — Wood에 총합을 넣어 TotalResourceCount가 맞게 함
+            int totalRes = (playerIndex < netPlayerTotalResCount.Count) ? netPlayerTotalResCount[playerIndex] : 0;
+            ps.Resources[ResourceType.Wood] = totalRes;
+            ps.Resources[ResourceType.Brick] = 0;
+            ps.Resources[ResourceType.Wool] = 0;
+            ps.Resources[ResourceType.Wheat] = 0;
+            ps.Resources[ResourceType.Ore] = 0;
+        }
+
+        return ps;
     }
 
     public HexGrid GetGrid()
@@ -1217,6 +1256,50 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     // ================================================================
     // 유틸리티
     // ================================================================
+
+    /// <summary>NetworkList → clientPlayers 미러 동기화 (클라이언트 전용)</summary>
+    void SyncClientPlayerMirror()
+    {
+        if (IsServer) return;
+        if (clientPlayers == null)
+        {
+            // clientPlayers가 아직 없으면 생성
+            int pc = netPlayerCount.Value;
+            if (pc <= 0) return;
+            clientPlayers = new PlayerState[pc];
+            for (int i = 0; i < pc; i++)
+                clientPlayers[i] = new PlayerState(i);
+        }
+
+        for (int i = 0; i < clientPlayers.Length; i++)
+        {
+            // 건물 정보를 보드 미러에서 동기화
+            if (clientGrid != null)
+            {
+                clientPlayers[i].OwnedVertices.Clear();
+                clientPlayers[i].OwnedEdges.Clear();
+                foreach (var v in clientGrid.Vertices)
+                {
+                    if (v.OwnerPlayerIndex == i)
+                        clientPlayers[i].OwnedVertices.Add(v);
+                }
+                foreach (var e in clientGrid.Edges)
+                {
+                    if (e.OwnerPlayerIndex == i)
+                        clientPlayers[i].OwnedEdges.Add(e);
+                }
+            }
+
+            // NetworkList 공개 정보
+            if (i < netPlayerKnightsPlayed.Count)
+                clientPlayers[i].KnightsPlayed = netPlayerKnightsPlayed[i];
+            if (i < netPlayerVP.Count)
+            {
+                clientPlayers[i].HasLongestRoad = (netLongestRoadHolder.Value == i);
+                clientPlayers[i].HasLargestArmy = (netLargestArmyHolder.Value == i);
+            }
+        }
+    }
 
     static bool PortMatchesResource(PortType port, ResourceType resource) => port switch
     {
