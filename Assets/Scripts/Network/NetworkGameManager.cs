@@ -1205,7 +1205,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
             return;
         }
 
-        // 타일 상태 적용
+        // 타일 상태 적용 (호스트의 보드 데이터로 덮어쓰기)
         foreach (var ts in snapshot.Tiles)
         {
             var tile = clientGrid.GetTile(ts.Coord.ToHexCoord());
@@ -1216,6 +1216,9 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
                 tile.HasRobber = ts.HasRobber;
             }
         }
+
+        // 타일 비주얼 재생성 (호스트 보드 데이터 반영)
+        hexGridView.RebuildVisuals();
 
         // 건물 적용
         foreach (var vs in snapshot.Vertices)

@@ -61,6 +61,9 @@ public class HexGridView : MonoBehaviour
         BuildVisuals();
     }
 
+    /// <summary>비주얼 재생성 (네트워크 동기화 후 호출)</summary>
+    public void RebuildVisuals() => BuildVisuals();
+
     void BuildVisuals()
     {
         ClearVisuals();
