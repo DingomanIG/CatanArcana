@@ -233,6 +233,11 @@ public class BuildingVisuals : MonoBehaviour
             go.transform.rotation = Quaternion.LookRotation(dir) * Quaternion.Euler(90f, 0f, 0f);
             go.layer = 0;
 
+            // 기존 콜라이더 제거 후 넓은 BoxCollider로 교체 (WebGL 클릭 정밀도 보정)
+            foreach (var c in go.GetComponents<Collider>()) Destroy(c);
+            var box = go.AddComponent<BoxCollider>();
+            box.size = new Vector3(3f, 1f, 3f);
+
             var mr = go.GetComponent<MeshRenderer>();
             mr.material = new Material(highlightMaterial);
             mr.material.color = HIGHLIGHT_VALID;
