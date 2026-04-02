@@ -388,12 +388,14 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         {
             netCurrentPlayerIndex.Value = pi;
             netTurnNumber.Value = hostLGM.TurnNumber;
+            NetLog.Phase($"턴 전환 → P{pi} (턴#{hostLGM.TurnNumber})");
         };
 
         hostLGM.OnPhaseChanged += phase =>
         {
             var prevPhase = (GamePhase)netCurrentPhase.Value;
             netCurrentPhase.Value = (int)phase;
+            NetLog.Phase($"페이즈 전환: {prevPhase} → {phase}");
 
             // 초기 배치 → 본 게임 전환 시 알림
             if (prevPhase == GamePhase.InitialPlacement && phase == GamePhase.RollDice)
@@ -404,17 +406,20 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
 
         hostLGM.OnDiceRolled += (d1, d2, total) =>
         {
+            NetLog.ClientRpc("DiceRolled", $"{d1}+{d2}={total}");
             NotifyDiceRolledClientRpc(d1, d2, total);
         };
 
         hostLGM.OnBuildingPlaced += (pi, vid, bt) =>
         {
+            NetLog.ClientRpc("BuildingPlaced", $"P{pi} {bt} @v{vid}");
             NotifyBuildingPlacedClientRpc(pi, vid, (int)bt);
             SyncPlayerPublicInfo(pi);
         };
 
         hostLGM.OnRoadPlaced += (pi, eid) =>
         {
+            NetLog.ClientRpc("RoadPlaced", $"P{pi} @e{eid}");
             NotifyRoadPlacedClientRpc(pi, eid);
         };
 
@@ -441,6 +446,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
 
         hostLGM.OnRobberMoved += coord =>
         {
+            NetLog.ClientRpc("RobberMoved", $"({coord.Q},{coord.R})");
             netRobberPosition.Value = new HexCoordNet(coord);
             NotifyRobberMovedClientRpc(new HexCoordNet(coord));
         };
@@ -452,6 +458,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
 
         hostLGM.OnDevCardPurchased += (pi, ct) =>
         {
+            NetLog.ClientRpc("DevCardPurchased", $"P{pi} {ct}");
             // 구매자에게: 카드 추가 + 구매 알림 (카드 타입 포함)
             var buyerParams = GetTargetedParams(pi);
             NotifyDevCardAddedClientRpc(pi, (int)ct, buyerParams);
@@ -465,6 +472,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
 
         hostLGM.OnDevCardUsed += (pi, ct) =>
         {
+            NetLog.ClientRpc("DevCardUsed", $"P{pi} {ct}");
             NotifyDevCardUsedClientRpc(pi, (int)ct);
             netDevCardState.Value = (int)hostLGM.DevCardState;
             // 개발카드 수 동기화
@@ -488,6 +496,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
 
         hostLGM.OnRobberSteal += (thief, victim, res) =>
         {
+            NetLog.ClientRpc("RobberSteal", $"P{thief}→P{victim} {res}");
             NotifyRobberStealClientRpc(thief, victim, (int)res);
             SendResourceToOwner(thief);
             SendResourceToOwner(victim);
@@ -495,11 +504,13 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
 
         hostLGM.OnBankTrade += (pi, gave, recv, rate) =>
         {
+            NetLog.ClientRpc("BankTrade", $"P{pi} {gave}→{recv} ({rate}:1)");
             NotifyBankTradeClientRpc(pi, (int)gave, (int)recv, rate);
         };
 
         hostLGM.OnPlayerTrade += (p1, p2) =>
         {
+            NetLog.ClientRpc("PlayerTrade", $"P{p1}↔P{p2}");
             NotifyPlayerTradeClientRpc(p1, p2);
             SendResourceToOwner(p1);
             SendResourceToOwner(p2);
@@ -523,6 +534,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
 
         hostLGM.OnDiscardRequired += (pi, count) =>
         {
+            NetLog.ClientRpc("DiscardRequired", $"P{pi} {count}장");
             netIsWaitingForDiscard.Value = true;
             var targetParams = GetTargetedParams(pi);
             NotifyDiscardRequiredClientRpc(pi, count, targetParams);
@@ -867,12 +879,19 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     /// <summary>K1/K2: 액션 처리 중 락 + 더블클릭 쿨다운 (0.3초)</summary>
     bool TryAcquireActionLock(ServerRpcParams rpcParams)
     {
-        if (isProcessingAction) return false;
+        if (isProcessingAction)
+        {
+            NetLog.Warn("LOCK", "액션 락 충돌 — 이미 처리 중");
+            return false;
+        }
 
         ulong clientId = rpcParams.Receive.SenderClientId;
         float now = Time.time;
         if (lastActionTime.TryGetValue(clientId, out float last) && now - last < 0.3f)
+        {
+            NetLog.Warn("LOCK", $"더블클릭 쿨다운 (client={clientId})");
             return false;
+        }
 
         isProcessingAction = true;
         lastActionTime[clientId] = now;
@@ -886,6 +905,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
+        NetLog.ServerRpc("RollDice", pi);
         hostLGM.RollDice();
     }
 
@@ -894,6 +914,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
+        NetLog.ServerRpc("EndTurn", pi);
         hostLGM.EndTurn();
     }
 
@@ -903,6 +924,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
         if (!TryAcquireActionLock(rpcParams)) return;
+        NetLog.ServerRpc("BuildSettlement", pi, $"v{vertexId}");
         try { hostLGM.TryBuildSettlement(vertexId); }
         finally { ReleaseActionLock(); }
     }
@@ -913,6 +935,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
         if (!TryAcquireActionLock(rpcParams)) return;
+        NetLog.ServerRpc("BuildCity", pi, $"v{vertexId}");
         try { hostLGM.TryBuildCity(vertexId); }
         finally { ReleaseActionLock(); }
     }
@@ -923,6 +946,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
         if (!TryAcquireActionLock(rpcParams)) return;
+        NetLog.ServerRpc("BuildRoad", pi, $"e{edgeId}");
         try { hostLGM.TryBuildRoad(edgeId); }
         finally { ReleaseActionLock(); }
     }
@@ -932,6 +956,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
+        NetLog.ServerRpc("EnterBuildMode", pi, $"{(BuildMode)mode}");
         hostLGM.EnterBuildMode((BuildMode)mode);
     }
 
@@ -940,6 +965,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
+        NetLog.ServerRpc("CancelBuildMode", pi);
         hostLGM.CancelBuildMode();
     }
 
@@ -949,6 +975,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
         if (!TryAcquireActionLock(rpcParams)) return;
+        NetLog.ServerRpc("BuyDevCard", pi);
         try { hostLGM.TryBuyDevCard(); }
         finally { ReleaseActionLock(); }
     }
@@ -958,6 +985,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
+        NetLog.ServerRpc("UseKnight", pi, $"({target.Q},{target.R})");
         hostLGM.TryUseKnight(target.ToHexCoord());
     }
 
@@ -966,6 +994,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
+        NetLog.ServerRpc("UseRoadBuilding", pi);
         hostLGM.TryUseRoadBuilding();
     }
 
@@ -974,6 +1003,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
+        NetLog.ServerRpc("UseYearOfPlenty", pi, $"{(ResourceType)res1}+{(ResourceType)res2}");
         hostLGM.TryUseYearOfPlenty((ResourceType)res1, (ResourceType)res2);
     }
 
@@ -982,6 +1012,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
+        NetLog.ServerRpc("UseMonopoly", pi, $"{(ResourceType)targetResource}");
         hostLGM.TryUseMonopoly((ResourceType)targetResource);
     }
 
@@ -991,6 +1022,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
         if (!TryAcquireActionLock(rpcParams)) return;
+        NetLog.ServerRpc("BankTrade", pi, $"{(ResourceType)give}→{(ResourceType)receive}");
         try { hostLGM.TryBankTrade((ResourceType)give, (ResourceType)receive); }
         finally { ReleaseActionLock(); }
     }
@@ -1001,12 +1033,15 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
+        NetLog.ServerRpc("PlayerTrade", pi, $"→P{otherPlayer}");
         hostLGM.TryPlayerTrade(otherPlayer, offer.ToDict(), request.ToDict());
     }
 
     [ServerRpc(RequireOwnership = false)]
     public void RequestRespondTradeServerRpc(bool accept, ServerRpcParams rpcParams = default)
     {
+        int pi = ValidateSender(rpcParams);
+        NetLog.ServerRpc("RespondTrade", pi, accept ? "수락" : "거절");
         // 거래 응답은 턴 플레이어가 아닌 제안 대상이 보냄
         hostLGM.RespondToIncomingTrade(accept);
     }
@@ -1016,6 +1051,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
+        NetLog.ServerRpc("MoveRobber", pi, $"({target.Q},{target.R})");
 
         bool success = hostLGM.TryMoveRobber(target.ToHexCoord());
         if (success)
@@ -1035,6 +1071,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
+        NetLog.ServerRpc("StealFromPlayer", pi, $"→P{victimIndex}");
         hostLGM.TryStealFromPlayer(victimIndex);
     }
 
@@ -1054,6 +1091,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
             Debug.LogWarning($"[NGM] 디스카드 발신자 불일치: expected={pending}, sender={pi}");
             return;
         }
+        NetLog.ServerRpc("ConfirmDiscard", pi);
         hostLGM.ConfirmDiscard(toDiscard.ToDict());
         netIsWaitingForDiscard.Value = hostLGM.IsWaitingForDiscard;
     }
