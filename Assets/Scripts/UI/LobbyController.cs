@@ -42,6 +42,18 @@ public class LobbyController : MonoBehaviour
 
         btnStartGame.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); OnStartGame(); };
         btnLeave.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); OnLeave(); };
+
+        // 로비 코드 클릭 시 클립보드 복사
+        lobbyCode.RegisterCallback<ClickEvent>(evt =>
+        {
+            string code = lobbyCode.text;
+            if (!string.IsNullOrEmpty(code) && code != "------" && code != "LOCAL")
+            {
+                GUIUtility.systemCopyBuffer = code;
+                lobbyStatus.text = $"코드 복사됨: {code}";
+                SFXManager.Instance?.Play(SFXType.ButtonClick);
+            }
+        });
     }
 
     void Start()
