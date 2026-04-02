@@ -1,6 +1,10 @@
 name: Deploy WebGL to GitHub Pages
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'Docs/WebGL/**'
   workflow_dispatch:
 
 permissions:
