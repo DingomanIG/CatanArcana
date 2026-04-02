@@ -24,6 +24,7 @@
     background-color: #1a1612;
     align-items: center;
     justify-content: center;
+    -unity-font: resource('Fonts/NotoSansKR-Regular');
 }
 
 /* === COMMON BUTTON === */

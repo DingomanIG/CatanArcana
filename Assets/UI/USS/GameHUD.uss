@@ -5,6 +5,7 @@
     right: 0;
     bottom: 0;
     picking-mode: ignore;
+    -unity-font: resource('Fonts/NotoSansKR-Regular');
 }
 
 .toast-container {

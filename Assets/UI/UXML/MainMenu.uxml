@@ -1,69 +1,87 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/UI/USS/Common.uss"/>
-    <Style src="project://database/Assets/UI/USS/MainMenu.uss"/>
-    <ui:VisualElement name="menu-root" class="screen-root">
-        <!-- 배경 장식 -->
-        <ui:VisualElement class="menu-bg-decoration"/>
-
-        <!-- 메인 컨테이너 -->
-        <ui:VisualElement name="menu-container" class="menu-container">
-            <!-- 타이틀 -->
-            <ui:Label text="Arcana Board" class="menu-title"/>
-            <ui:Label text="보드게임 프로토타입" class="menu-subtitle"/>
-            <ui:VisualElement class="divider" style="margin: 20px 0;"/>
-
-            <!-- 이름 입력 -->
-            <ui:Label text="플레이어 이름" class="label-text" style="margin-bottom: 4px;"/>
-            <ui:TextField name="input-player-name" value="Player" max-length="16" class="text-input"/>
-
-            <ui:VisualElement style="height: 12px;"/>
-
-            <!-- 로컬 플레이 -->
-            <ui:VisualElement name="ai-settings" class="ai-settings">
-                <ui:VisualElement class="ai-slot-row">
-                    <ui:Label text="P2" class="ai-slot__label"/>
-                    <ui:DropdownField name="ai-diff-1" class="ai-dropdown"/>
-                </ui:VisualElement>
-                <ui:VisualElement class="ai-slot-row">
-                    <ui:Label text="P3" class="ai-slot__label"/>
-                    <ui:DropdownField name="ai-diff-2" class="ai-dropdown"/>
-                </ui:VisualElement>
-                <ui:VisualElement class="ai-slot-row">
-                    <ui:Label text="P4" class="ai-slot__label"/>
-                    <ui:DropdownField name="ai-diff-3" class="ai-dropdown"/>
+    <Style src="project://database/Assets/UI/USS/Common.uss?fileID=7433441132597879392&amp;guid=c1af975a8920b2b4c87ecbc47c071d6f&amp;type=3#Common"/>
+    <Style src="project://database/Assets/UI/USS/MainMenu.uss?fileID=7433441132597879392&amp;guid=724ef31bf97f92b4e999eff901eb4a0b&amp;type=3#MainMenu"/>
+    <ui:VisualElement name="menu-root" class="screen-root" style="flex-direction: row; align-items: stretch; justify-content: flex-start;">
+        <ui:VisualElement name="sidebar" class="sidebar">
+            <ui:Button name="tab-rooms" text="ROOMS" class="sidebar__tab sidebar__tab--active"/>
+            <ui:Button name="tab-play" text="PLAY" class="sidebar__tab"/>
+            <ui:Button name="tab-store" text="STORE" class="sidebar__tab"/>
+            <ui:Button name="tab-profile" text="PROFILE" class="sidebar__tab"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="main-area" class="main-area">
+            <ui:VisualElement name="user-bar" class="user-bar" style="align-self: flex-start;">
+                <ui:VisualElement class="user-bar__avatar"/>
+                <ui:VisualElement class="user-bar__info">
+                    <ui:TextField name="input-player-name" value="Player" max-length="16" class="user-bar__name-input"/>
+                    <ui:Label text="ranked : 00" class="user-bar__rank"/>
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:Button name="btn-local-play" text="로컬 플레이 시작" class="btn btn--gold menu-btn"/>
-
-            <ui:VisualElement style="height: 8px;"/>
-            <ui:Label text="── 온라인 ──" class="label-muted" style="align-self: center;"/>
-            <ui:VisualElement style="height: 8px;"/>
-
-            <!-- 방 만들기 -->
-            <ui:Button name="btn-create-room" text="방 만들기" class="btn btn--primary menu-btn"/>
-
-            <!-- 방 참가 -->
-            <ui:VisualElement class="join-section">
-                <ui:TextField name="input-join-code" max-length="6" class="text-input join-code-input"/>
-                <ui:Button name="btn-join-room" text="참가" class="btn btn--gold join-btn"/>
-            </ui:VisualElement>
-
-            <!-- 방 목록 -->
-            <ui:Button name="btn-browse-rooms" text="방 목록 보기" class="btn menu-btn"/>
-
-            <!-- 상태 메시지 -->
-            <ui:Label name="status-message" class="status-message"/>
-
-            <!-- 방 목록 패널 (숨김) -->
-            <ui:VisualElement name="room-list-panel" class="room-list-panel room-list-panel--hidden">
-                <ui:Label text="열린 방 목록" class="label-title"/>
-                <ui:ScrollView name="room-list-scroll" class="room-list-scroll"/>
-                <ui:Button name="btn-refresh-rooms" text="새로고침" class="btn"/>
-                <ui:Button name="btn-close-rooms" text="닫기" class="btn"/>
+            <ui:VisualElement name="content-area" class="content-area">
+                <ui:VisualElement name="panel-rooms" class="content-panel">
+                    <ui:VisualElement class="sub-tabs">
+                        <ui:Button name="rooms-tab-open" text="Open Rooms" class="sub-tab sub-tab--active"/>
+                        <ui:Button name="rooms-tab-spectate" text="Spectate" class="sub-tab"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="room-table">
+                        <ui:VisualElement class="room-table__header">
+                            <ui:Label text="Mode" class="room-table__col room-table__col--mode"/>
+                            <ui:Label text="Map" class="room-table__col room-table__col--map"/>
+                            <ui:Label text="Turn Timer" class="room-table__col room-table__col--timer"/>
+                            <ui:Label text="" class="room-table__col room-table__col--players"/>
+                        </ui:VisualElement>
+                        <ui:ScrollView name="room-list-scroll" class="room-table__body"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="content-bottom-btns">
+                        <ui:Button name="btn-create-room" text="Create Room" class="btn btn--gold content-bottom-btn"/>
+                        <ui:Button name="btn-join-room" text="Join Room" class="btn btn--gold content-bottom-btn"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="panel-play" class="content-panel content-panel--hidden">
+                    <ui:VisualElement class="sub-tabs">
+                        <ui:Button name="play-tab-ai" text="AI" class="sub-tab sub-tab--active"/>
+                        <ui:Button name="play-tab-casual" text="Casual" class="sub-tab"/>
+                        <ui:Button name="play-tab-ranked" text="Ranked" class="sub-tab"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="player-slots" class="player-slots">
+                        <ui:VisualElement class="player-slot-row">
+                            <ui:VisualElement class="player-color player-color--p1"/>
+                            <ui:Label text="P1" class="player-slot__label"/>
+                            <ui:Label name="play-p1-name" text="user name" class="player-slot__name"/>
+                            <ui:VisualElement class="player-slot__spacer"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="player-slot-row">
+                            <ui:VisualElement class="player-color player-color--p2"/>
+                            <ui:Label text="P2" class="player-slot__label"/>
+                            <ui:Label name="play-p2-name" text="user name" class="player-slot__name"/>
+                            <ui:DropdownField name="ai-diff-1" class="ai-dropdown"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="player-slot-row">
+                            <ui:VisualElement class="player-color player-color--p3"/>
+                            <ui:Label text="P3" class="player-slot__label"/>
+                            <ui:Label name="play-p3-name" text="user name" class="player-slot__name"/>
+                            <ui:DropdownField name="ai-diff-2" class="ai-dropdown"/>
+                        </ui:VisualElement>
+                        <ui:VisualElement class="player-slot-row">
+                            <ui:VisualElement class="player-color player-color--p4"/>
+                            <ui:Label text="P4" class="player-slot__label"/>
+                            <ui:Label name="play-p4-name" text="user name" class="player-slot__name"/>
+                            <ui:DropdownField name="ai-diff-3" class="ai-dropdown"/>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="content-bottom-btns">
+                        <ui:Button name="btn-invite" text="Invite User" class="btn btn--gold content-bottom-btn"/>
+                        <ui:Button name="btn-start-game" text="Start Game" class="btn btn--gold content-bottom-btn"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="panel-store" class="content-panel content-panel--hidden">
+                    <ui:Label text="Coming Soon" class="placeholder-text"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="panel-profile" class="content-panel content-panel--hidden">
+                    <ui:Label text="Coming Soon" class="placeholder-text"/>
+                </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
-
-        <!-- 하단 버전 -->
+        <ui:Label name="status-message" picking-mode="Ignore" class="status-message status-overlay"/>
         <ui:Label text="v0.1 - Prototype" class="version-label"/>
     </ui:VisualElement>
 </ui:UXML>

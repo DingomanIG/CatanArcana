@@ -99,7 +99,18 @@ Phase 2~4 콘텐츠에 맞춘 아트 리소스 보강.
 
 ---
 
-## Phase 6: 서버 & 인프라
+## Phase 6: 수익화 (WebGL 광고)
+
+WebGL 빌드 특성상 Unity Ads/AdMob 사용 불가 → 웹 기반 광고 연동.
+
+- [ ] Google AdSense 연동 (index.html 배너 삽입)
+- [ ] 게임 내 광고 타이밍 설계 (턴 종료, 로비 대기 등)
+- [ ] jslib 플러그인으로 Unity↔JS 광고 브릿지 구현
+- [ ] 게임 배포 플랫폼 검토 (CrazyGames, Poki 등 — 자체 광고 SDK)
+
+---
+
+## Phase 7: 서버 & 인프라
 
 P2P Relay → 서버 기반 아키텍처 전환.
 
@@ -110,7 +121,7 @@ P2P Relay → 서버 기반 아키텍처 전환.
 
 ---
 
-## Phase 7: 아르카나스톡 통합
+## Phase 8: 아르카나스톡 통합
 
 독립 모듈 → 아르카나스톡 메인 프로젝트에 병합.
 

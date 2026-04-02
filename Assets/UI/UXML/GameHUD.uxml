@@ -1,5 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <ui:Template name="dice-display" src="project://database/Assets/UI/UXML/dice-display.uxml?fileID=9197481963319205126&amp;guid=762bc48d0ab804b489c9df1571a9278b&amp;type=3#dice-display"/>
+    <Style src="project://database/Assets/UI/USS/Common.uss?fileID=7433441132597879392&amp;guid=c1af975a8920b2b4c87ecbc47c071d6f&amp;type=3#Common"/>
     <Style src="project://database/Assets/UI/USS/GameHUD.uss?fileID=7433441132597879392&amp;guid=0dc54499dfa709241bb884205f9af73f&amp;type=3#GameHUD"/>
     <Style src="project://database/Assets/UI/USS/OpponentCard.uss?fileID=7433441132597879392&amp;guid=c42b9ae7ca572804cad00a914cfde702&amp;type=3#OpponentCard"/>
     <ui:VisualElement name="hud-root" class="hud-root">
