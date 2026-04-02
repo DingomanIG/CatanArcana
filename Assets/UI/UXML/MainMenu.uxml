@@ -33,6 +33,7 @@
                     </ui:VisualElement>
                     <ui:VisualElement class="content-bottom-btns">
                         <ui:Button name="btn-create-room" text="Create Room" class="btn btn--gold content-bottom-btn"/>
+                        <ui:TextField name="input-room-code" label="" value="" class="input-room-code" />
                         <ui:Button name="btn-join-room" text="Join Room" class="btn btn--gold content-bottom-btn"/>
                     </ui:VisualElement>
                 </ui:VisualElement>

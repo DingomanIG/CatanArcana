@@ -54,13 +54,24 @@ public class BuildModeController : MonoBehaviour
         }
 
         // 모든 배치(인간+AI)에 비주얼 생성
+        SubscribeToGameManager();
+    }
+
+    bool subscribedToGM;
+
+    void SubscribeToGameManager()
+    {
+        if (subscribedToGM) return;
         var gm = GameServices.GameManager;
         if (gm != null)
         {
             gm.OnBuildingPlaced += OnBuildingPlacedEvent;
             gm.OnRoadPlaced += OnRoadPlacedEvent;
+            subscribedToGM = true;
         }
     }
+
+    // (Update는 아래 기존 메서드에 통합)
 
     void OnDestroy()
     {
@@ -152,6 +163,9 @@ public class BuildModeController : MonoBehaviour
 
     void Update()
     {
+        // GameManager가 늦게 등록될 수 있음 (네트워크 모드)
+        if (!subscribedToGM) SubscribeToGameManager();
+
         if (Mouse.current == null) return;
 
         // 도적 이동 모드 (주사위 7 또는 기사 카드)
@@ -180,24 +194,9 @@ public class BuildModeController : MonoBehaviour
         // UI 위에 있으면 무시
         if (IsPointerOverUI()) return;
 
-        // RaycastAll로 모든 히트 수집 → 하이라이트 오브젝트 우선
-        var ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-        var hits = Physics.RaycastAll(ray, 100f);
-
-        GameObject highlightHit = null;
-        float closestDist = float.MaxValue;
-
-        foreach (var hit in hits)
-        {
-            var go = hit.collider.gameObject;
-            bool isHighlight = buildingVisuals.GetVertexIdFromHighlight(go) >= 0
-                            || buildingVisuals.GetEdgeIdFromHighlight(go) >= 0;
-            if (isHighlight && hit.distance < closestDist)
-            {
-                highlightHit = go;
-                closestDist = hit.distance;
-            }
-        }
+        // 화면 좌표 거리 기반 하이라이트 감지 (콜라이더/해상도 무관)
+        var mousePos = Mouse.current.position.ReadValue();
+        var highlightHit = buildingVisuals.FindClosestHighlight(mousePos, Camera.main);
 
         if (highlightHit != null)
         {

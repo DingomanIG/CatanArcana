@@ -5,27 +5,37 @@ using Unity.Services.Lobbies.Models;
 
 /// <summary>
 /// 메인 메뉴 UI 컨트롤러
-/// 로컬 플레이 (AI 난이도 선택), 방 생성, 코드 참가, 방 목록 브라우징
+/// 사이드바 탭 (ROOMS / PLAY / STORE / PROFILE) 전환
 /// </summary>
 public class MainMenuController : MonoBehaviour
 {
     [SerializeField] UIDocument uiDocument;
 
-    // UI Elements
-    TextField inputPlayerName;
-    TextField inputJoinCode;
-    Button btnLocalPlay;
-    Button btnCreateRoom;
-    Button btnJoinRoom;
-    Button btnBrowseRooms;
-    Button btnRefreshRooms;
-    Button btnCloseRooms;
-    Label statusMessage;
-    VisualElement roomListPanel;
-    ScrollView roomListScroll;
+    // Sidebar tabs
+    Button tabRooms, tabPlay, tabStore, tabProfile;
+    Button[] sidebarTabs;
 
-    // AI 난이도 드롭다운
+    // Content panels
+    VisualElement panelRooms, panelPlay, panelStore, panelProfile;
+    VisualElement[] contentPanels;
+
+    // User bar
+    TextField inputPlayerName;
+
+    // ROOMS panel
+    Button roomsTabOpen, roomsTabSpectate;
+    ScrollView roomListScroll;
+    Button btnCreateRoom, btnJoinRoom;
+    TextField inputRoomCode;
+
+    // PLAY panel
+    Button playTabAI, playTabCasual, playTabRanked;
+    Label playP1Name;
     DropdownField[] aiDropdowns = new DropdownField[3];
+    Button btnInvite, btnStartGame;
+
+    // Status
+    Label statusMessage;
 
     static readonly List<string> DifficultyChoices = new()
     {
@@ -47,41 +57,82 @@ public class MainMenuController : MonoBehaviour
     {
         var root = uiDocument.rootVisualElement;
 
+        // Sidebar
+        tabRooms = root.Q<Button>("tab-rooms");
+        tabPlay = root.Q<Button>("tab-play");
+        tabStore = root.Q<Button>("tab-store");
+        tabProfile = root.Q<Button>("tab-profile");
+        sidebarTabs = new[] { tabRooms, tabPlay, tabStore, tabProfile };
+
+        // Panels
+        panelRooms = root.Q<VisualElement>("panel-rooms");
+        panelPlay = root.Q<VisualElement>("panel-play");
+        panelStore = root.Q<VisualElement>("panel-store");
+        panelProfile = root.Q<VisualElement>("panel-profile");
+        contentPanels = new[] { panelRooms, panelPlay, panelStore, panelProfile };
+
+        // User bar
         inputPlayerName = root.Q<TextField>("input-player-name");
-        inputJoinCode = root.Q<TextField>("input-join-code");
-        btnLocalPlay = root.Q<Button>("btn-local-play");
+
+        // ROOMS panel elements
+        roomsTabOpen = root.Q<Button>("rooms-tab-open");
+        roomsTabSpectate = root.Q<Button>("rooms-tab-spectate");
+        roomListScroll = root.Q<ScrollView>("room-list-scroll");
         btnCreateRoom = root.Q<Button>("btn-create-room");
         btnJoinRoom = root.Q<Button>("btn-join-room");
-        btnBrowseRooms = root.Q<Button>("btn-browse-rooms");
-        btnRefreshRooms = root.Q<Button>("btn-refresh-rooms");
-        btnCloseRooms = root.Q<Button>("btn-close-rooms");
-        statusMessage = root.Q<Label>("status-message");
-        roomListPanel = root.Q<VisualElement>("room-list-panel");
-        roomListScroll = root.Q<ScrollView>("room-list-scroll");
+        inputRoomCode = root.Q<TextField>("input-room-code");
 
-        // AI 난이도 드롭다운 초기화
+        // PLAY panel elements
+        playTabAI = root.Q<Button>("play-tab-ai");
+        playTabCasual = root.Q<Button>("play-tab-casual");
+        playTabRanked = root.Q<Button>("play-tab-ranked");
+        playP1Name = root.Q<Label>("play-p1-name");
+        btnInvite = root.Q<Button>("btn-invite");
+        btnStartGame = root.Q<Button>("btn-start-game");
+
+        // AI dropdowns
         for (int i = 0; i < 3; i++)
         {
             aiDropdowns[i] = root.Q<DropdownField>($"ai-diff-{i + 1}");
             if (aiDropdowns[i] != null)
             {
                 aiDropdowns[i].choices = DifficultyChoices;
-                aiDropdowns[i].index = 5; // 기본: Lv5 (중급)
+                aiDropdowns[i].index = 5;
             }
         }
 
-        btnLocalPlay.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); OnLocalPlay(); };
+        // Status
+        statusMessage = root.Q<Label>("status-message");
+
+        // === SIDEBAR TAB EVENTS ===
+        tabRooms.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); SwitchTab(0); };
+        tabPlay.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); SwitchTab(1); };
+        tabStore.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); SwitchTab(2); };
+        tabProfile.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); SwitchTab(3); };
+
+        // === ROOMS SUB-TAB EVENTS ===
+        roomsTabOpen.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); SetSubTab(roomsTabOpen, roomsTabSpectate); OnRefreshRooms(); };
+        roomsTabSpectate.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); SetSubTab(roomsTabSpectate, roomsTabOpen); };
+
+        // === PLAY SUB-TAB EVENTS ===
+        playTabAI.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); SetPlaySubTab(playTabAI); };
+        playTabCasual.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); SetPlaySubTab(playTabCasual); };
+        playTabRanked.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); SetPlaySubTab(playTabRanked); };
+
+        // === BUTTON EVENTS ===
         btnCreateRoom.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); OnCreateRoom(); };
         btnJoinRoom.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); OnJoinRoom(); };
-        btnBrowseRooms.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); OnBrowseRooms(); };
-        btnRefreshRooms.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); OnRefreshRooms(); };
-        btnCloseRooms.clicked += () => { SFXManager.Instance?.Play(SFXType.MenuClose); OnCloseRooms(); };
+        btnInvite.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); SetStatus("초대 기능은 준비 중입니다"); };
+        btnStartGame.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); OnStartGame(); };
 
-        inputJoinCode.value = "";
-
+        // Load saved name
         string savedName = PlayerPrefs.GetString("PlayerName", "");
         if (!string.IsNullOrEmpty(savedName))
             inputPlayerName.value = savedName;
+
+        // P1 name follows input
+        inputPlayerName.RegisterValueChangedCallback(evt => { if (playP1Name != null) playP1Name.text = evt.newValue; });
+        if (playP1Name != null) playP1Name.text = inputPlayerName.value;
     }
 
     void Start()
@@ -90,6 +141,49 @@ public class MainMenuController : MonoBehaviour
         SetStatus("서비스 연결 중...");
         WaitForServices();
     }
+
+    // ========================
+    // TAB SWITCHING
+    // ========================
+
+    void SwitchTab(int index)
+    {
+        for (int i = 0; i < sidebarTabs.Length; i++)
+        {
+            if (i == index)
+            {
+                sidebarTabs[i].AddToClassList("sidebar__tab--active");
+                contentPanels[i].RemoveFromClassList("content-panel--hidden");
+            }
+            else
+            {
+                sidebarTabs[i].RemoveFromClassList("sidebar__tab--active");
+                contentPanels[i].AddToClassList("content-panel--hidden");
+            }
+        }
+    }
+
+    void SetSubTab(Button active, Button inactive)
+    {
+        active.AddToClassList("sub-tab--active");
+        inactive.RemoveFromClassList("sub-tab--active");
+    }
+
+    void SetPlaySubTab(Button active)
+    {
+        var all = new[] { playTabAI, playTabCasual, playTabRanked };
+        foreach (var tab in all)
+        {
+            if (tab == active)
+                tab.AddToClassList("sub-tab--active");
+            else
+                tab.RemoveFromClassList("sub-tab--active");
+        }
+    }
+
+    // ========================
+    // SERVICES
+    // ========================
 
     async void WaitForServices()
     {
@@ -124,13 +218,12 @@ public class MainMenuController : MonoBehaviour
     // BUTTON HANDLERS
     // ========================
 
-    void OnLocalPlay()
+    void OnStartGame()
     {
         SavePlayerName(GetPlayerName());
 
-        // AI 난이도 수집
         var difficulties = new AIDifficulty[4];
-        difficulties[0] = AIDifficulty.None; // 플레이어 본인
+        difficulties[0] = AIDifficulty.None;
 
         int activeCount = 1;
         for (int i = 0; i < 3; i++)
@@ -151,7 +244,7 @@ public class MainMenuController : MonoBehaviour
         flow.IsLocalPlay = true;
         flow.LocalPlayerCount = activeCount;
         flow.AIDifficulties = difficulties;
-        flow.GoToGame();
+        flow.GoToLobby();
     }
 
     async void OnCreateRoom()
@@ -182,46 +275,24 @@ public class MainMenuController : MonoBehaviour
 
     async void OnJoinRoom()
     {
-        if (!networkReady) return;
-
-        string code = inputJoinCode.value.Trim().ToUpper();
-        if (string.IsNullOrEmpty(code))
+        if (!networkReady)
         {
-            SetStatus("참가 코드를 입력하세요", true);
+            SetStatus("온라인 서비스가 준비되지 않았습니다", true);
             return;
         }
 
-        string playerName = GetPlayerName();
-        SetNetworkButtonsEnabled(false);
-        SetStatus("접속 중...");
-
-        bool success = await LobbyManager.Instance.JoinLobbyByCode(code, playerName);
-        if (success)
+        // 코드 입력이 있으면 직접 참가
+        string code = inputRoomCode?.value?.Trim().ToUpper();
+        if (!string.IsNullOrEmpty(code))
         {
-            SetStatus("접속 성공!");
-            SavePlayerName(playerName);
-
-            SceneFlowManager.Instance.PlayerName = playerName;
-            SceneFlowManager.Instance.IsHosting = false;
-            SceneFlowManager.Instance.IsLocalPlay = false;
-            SceneFlowManager.Instance.GoToLobby();
+            JoinFromList(code);
+            return;
         }
-        else
-        {
-            SetStatus("접속 실패 - 코드를 확인하세요", true);
-            SetNetworkButtonsEnabled(true);
-        }
-    }
 
-    async void OnBrowseRooms()
-    {
-        if (!networkReady) return;
-        roomListPanel.RemoveFromClassList("room-list-panel--hidden");
+        // 코드 없으면 방 목록 조회
         SetStatus("방 목록 조회 중...");
-
         var lobbies = await LobbyManager.Instance.GetLobbyList();
         PopulateRoomList(lobbies);
-        SetStatus("");
     }
 
     async void OnRefreshRooms()
@@ -233,11 +304,6 @@ public class MainMenuController : MonoBehaviour
         SetStatus("");
     }
 
-    void OnCloseRooms()
-    {
-        roomListPanel.AddToClassList("room-list-panel--hidden");
-    }
-
     // ========================
     // ROOM LIST
     // ========================
@@ -245,6 +311,7 @@ public class MainMenuController : MonoBehaviour
     void PopulateRoomList(List<Lobby> lobbies)
     {
         roomListScroll.Clear();
+        SetStatus("");
 
         if (lobbies == null || lobbies.Count == 0)
         {
@@ -256,31 +323,34 @@ public class MainMenuController : MonoBehaviour
 
         foreach (var lobby in lobbies)
         {
-            var entry = new VisualElement();
-            entry.AddToClassList("room-entry");
+            var row = new VisualElement();
+            row.AddToClassList("room-table__row");
 
-            var info = new VisualElement();
-            info.AddToClassList("room-entry__info");
+            var mode = new Label("Base");
+            mode.AddToClassList("room-table__cell");
+            mode.AddToClassList("room-table__cell--mode");
 
-            var nameLabel = new Label(lobby.Name);
-            nameLabel.AddToClassList("room-entry__name");
+            var map = new Label("Base");
+            map.AddToClassList("room-table__cell");
+            map.AddToClassList("room-table__cell--map");
 
-            var playersLabel = new Label($"{lobby.Players.Count}/{lobby.MaxPlayers}명");
-            playersLabel.AddToClassList("room-entry__players");
+            var timer = new Label("60s");
+            timer.AddToClassList("room-table__cell");
+            timer.AddToClassList("room-table__cell--timer");
 
-            info.Add(nameLabel);
-            info.Add(playersLabel);
-            entry.Add(info);
+            var players = new Label($"{lobby.Players.Count}/{lobby.MaxPlayers}");
+            players.AddToClassList("room-table__cell");
+            players.AddToClassList("room-table__cell--players");
 
-            var joinBtn = new Button();
-            joinBtn.text = "참가";
-            joinBtn.AddToClassList("room-entry__join-btn");
+            row.Add(mode);
+            row.Add(map);
+            row.Add(timer);
+            row.Add(players);
 
             string lobbyCode = lobby.LobbyCode;
-            joinBtn.clicked += () => JoinFromList(lobbyCode);
+            row.RegisterCallback<ClickEvent>(evt => JoinFromList(lobbyCode));
 
-            entry.Add(joinBtn);
-            roomListScroll.Add(entry);
+            roomListScroll.Add(row);
         }
     }
 
@@ -324,6 +394,7 @@ public class MainMenuController : MonoBehaviour
 
     void SetStatus(string message, bool isError = false)
     {
+        if (statusMessage == null) return;
         statusMessage.text = message;
         statusMessage.RemoveFromClassList("status-message--error");
         statusMessage.RemoveFromClassList("status-message--success");
@@ -333,8 +404,7 @@ public class MainMenuController : MonoBehaviour
 
     void SetNetworkButtonsEnabled(bool enabled)
     {
-        btnCreateRoom.SetEnabled(enabled);
-        btnJoinRoom.SetEnabled(enabled);
-        btnBrowseRooms.SetEnabled(enabled);
+        btnCreateRoom?.SetEnabled(enabled);
+        btnJoinRoom?.SetEnabled(enabled);
     }
 }

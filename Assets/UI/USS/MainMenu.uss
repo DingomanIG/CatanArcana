@@ -356,6 +356,26 @@
     font-size: 15px;
 }
 
+.input-room-code {
+    width: 160px;
+    height: 44px;
+    margin: 0 4px;
+    font-size: 15px;
+    -unity-text-align: middle-center;
+    background-color: #2a2218;
+    border-width: 1px;
+    border-color: #8b7355;
+    border-radius: 6px;
+    color: #e8d8c0;
+}
+
+.input-room-code TextInput {
+    background-color: transparent;
+    border-width: 0;
+    color: #e8d8c0;
+    -unity-text-align: middle-center;
+}
+
 /* === PLACEHOLDER === */
 .placeholder-text {
     color: #a89880;
