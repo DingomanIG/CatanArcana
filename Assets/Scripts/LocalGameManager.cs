@@ -77,6 +77,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     public int DevCardDeckRemaining => devCardDeck?.RemainingCount ?? 0;
     public bool IsWaitingForDiscard => waitingForDiscard;
     public bool HasPendingIncomingTrade => pendingIncomingTrade != null;
+    public int PendingTradeTarget => pendingIncomingTrade?.target ?? -1;
 
     // ========================
     // 이벤트
@@ -104,6 +105,8 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     public event Action<int, Dictionary<ResourceType, int>, Dictionary<ResourceType, int>> OnIncomingTradeProposal;
     public event Action OnIncomingTradeCancelled;
     public event Action<int, int> OnDiscardRequired;
+    public event Action<int, string> OnPlayerDisconnected;
+    public event Action OnHostDisconnected;
 
     // 초기 배치 진행 이벤트 (NetworkGameManager가 구독)
     // (playerIndex, isRoadPhase) — isRoadPhase=false: 마을 배치, true: 도로 배치
@@ -113,6 +116,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     bool waitingForDiscard;
     int pendingDiscardPlayer;
     int pendingDiscardCount;
+    Queue<(int playerIndex, int count)> discardQueue = new();
 
     // 수신 대기 중인 거래 제안 (AI→인간)
     class PendingTrade
@@ -216,6 +220,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         waitingForDiscard = false;
         pendingDiscardPlayer = -1;
         pendingDiscardCount = 0;
+        discardQueue.Clear();
 
         // 턴 상태 리셋
         firstPlayerIndex = UnityEngine.Random.Range(0, playerCount);
@@ -459,23 +464,39 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
     void HandleSeven()
     {
-        // AI는 즉시 자동 디스카드
+        discardQueue.Clear();
+
         for (int i = 0; i < playerCount; i++)
         {
-            if (players[i].TotalResourceCount > 7 && IsPlayerAI(i))
+            if (players[i].TotalResourceCount <= 7) continue;
+
+            if (IsPlayerAI(i))
+            {
+                // AI는 즉시 자동 디스카드
                 AutoDiscardHalf(i);
+            }
+            else
+            {
+                // 인간/네트워크 플레이어: 큐에 추가
+                int toDiscard = players[i].TotalResourceCount / 2;
+                discardQueue.Enqueue((i, toDiscard));
+            }
         }
 
-        // 인간 플레이어 디스카드 필요 여부 확인
-        if (humanPlayerIndex >= 0 && players[humanPlayerIndex].TotalResourceCount > 7)
+        ProcessNextDiscard();
+    }
+
+    void ProcessNextDiscard()
+    {
+        if (discardQueue.Count > 0)
         {
-            int toDiscard = players[humanPlayerIndex].TotalResourceCount / 2;
+            var (pi, count) = discardQueue.Dequeue();
             waitingForDiscard = true;
-            pendingDiscardPlayer = humanPlayerIndex;
-            pendingDiscardCount = toDiscard;
-            OnDiscardRequired?.Invoke(humanPlayerIndex, toDiscard);
-            Debug.Log($"[Local] {GetPlayerName(humanPlayerIndex)}: 자원 {toDiscard}장 버려야 함 (보유: {players[humanPlayerIndex].TotalResourceCount})");
-            return; // MoveRobber 진입을 디스카드 완료까지 대기
+            pendingDiscardPlayer = pi;
+            pendingDiscardCount = count;
+            OnDiscardRequired?.Invoke(pi, count);
+            Debug.Log($"[Local] {GetPlayerName(pi)}: 자원 {count}장 버려야 함 (보유: {players[pi].TotalResourceCount})");
+            return;
         }
 
         ProceedToMoveRobber();
@@ -521,7 +542,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         Debug.Log($"[Local] {GetPlayerName(pendingDiscardPlayer)}: 자원 {pendingDiscardCount}장 버림 (남은: {player.TotalResourceCount})");
 
         waitingForDiscard = false;
-        ProceedToMoveRobber();
+        ProcessNextDiscard();
     }
 
     void AutoDiscardHalf(int playerIndex)
@@ -1164,8 +1185,8 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         foreach (var kv in request)
             if (them.Resources[kv.Key] < kv.Value) return false;
 
-        // AI가 인간 플레이어에게 거래 시: 즉시 실행 대신 제안으로 전환
-        if (IsPlayerAI(currentPlayerIndex) && !IsPlayerAI(otherPlayer))
+        // 네트워크 모드 또는 AI→인간 거래: 즉시 실행 대신 제안으로 전환 (상대 수락 필요)
+        if (SuppressUICommands || (IsPlayerAI(currentPlayerIndex) && !IsPlayerAI(otherPlayer)))
         {
             pendingIncomingTrade = new PendingTrade
             {
@@ -1175,7 +1196,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
                 request = new Dictionary<ResourceType, int>(request)
             };
             OnIncomingTradeProposal?.Invoke(currentPlayerIndex, offer, request);
-            SFXManager.Instance?.Play(SFXType.TradeOffer);
+            if (!SuppressUICommands) SFXManager.Instance?.Play(SFXType.TradeOffer);
             return false; // 실제 실행은 RespondToIncomingTrade에서
         }
 

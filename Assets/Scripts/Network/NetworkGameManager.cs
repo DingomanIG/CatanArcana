@@ -45,10 +45,11 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     NetworkVariable<int> netPlayerCount = new(0);
     NetworkVariable<HexCoordNet> netRobberPosition = new();
 
-    // 플레이어별 공개 정보 (VP, 총 자원 수, 기사 수)
+    // 플레이어별 공개 정보 (VP, 총 자원 수, 기사 수, 개발카드 수)
     NetworkList<int> netPlayerVP;
     NetworkList<int> netPlayerTotalResCount;
     NetworkList<int> netPlayerKnightsPlayed;
+    NetworkList<int> netPlayerDevCardCounts;
 
     // 플레이어 이름 (FixedString64Bytes — NetworkList 지원)
     NetworkList<FixedString64Bytes> netPlayerNames;
@@ -102,6 +103,8 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     public event Action<int, Dictionary<ResourceType, int>, Dictionary<ResourceType, int>> OnIncomingTradeProposal;
     public event Action OnIncomingTradeCancelled;
     public event Action<int, int> OnDiscardRequired;
+    public event Action<int, string> OnPlayerDisconnected;
+    public event Action OnHostDisconnected;
 
     // ================================================================
     // LIFECYCLE
@@ -113,6 +116,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         netPlayerVP = new NetworkList<int>();
         netPlayerTotalResCount = new NetworkList<int>();
         netPlayerKnightsPlayed = new NetworkList<int>();
+        netPlayerDevCardCounts = new NetworkList<int>();
         netPlayerNames = new NetworkList<FixedString64Bytes>();
     }
 
@@ -130,6 +134,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         netPlayerVP.OnListChanged += _ => SyncClientPlayerMirror();
         netPlayerTotalResCount.OnListChanged += _ => SyncClientPlayerMirror();
         netPlayerKnightsPlayed.OnListChanged += _ => SyncClientPlayerMirror();
+        netPlayerDevCardCounts.OnListChanged += _ => SyncClientPlayerMirror();
 
         if (IsServer)
         {
@@ -145,11 +150,18 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
 
     public override void OnNetworkDespawn()
     {
+        // 클라이언트: 호스트가 나갔을 때 알림
+        if (!IsServer && GameServices.GameManager == (IGameManager)this)
+        {
+            Debug.Log("[NGM] 호스트 연결 끊김 — 게임 종료");
+            OnHostDisconnected?.Invoke();
+        }
+
         if (GameServices.GameManager == (IGameManager)this)
             GameServices.GameManager = null;
 
         // 호스트: 콜백 해제
-        if (IsServer)
+        if (IsServer && NetworkManager.Singleton != null)
         {
             NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
         }
@@ -159,11 +171,26 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     void OnClientDisconnected(ulong clientId)
     {
         int pi = GetPlayerIndexFromClientId(clientId);
-        if (pi >= 0)
+        if (pi < 0) return;
+
+        string playerName = GetPlayerName(pi);
+        Debug.Log($"[NGM] 플레이어 퇴장: [{pi}] {playerName} (clientId={clientId})");
+
+        // 모든 클라이언트에 알림
+        NotifyPlayerDisconnectedClientRpc(pi, playerName);
+
+        // 퇴장한 플레이어 턴이면 자동으로 턴 넘기기
+        if (hostLGM.CurrentPlayerIndex == pi && hostLGM.CurrentPhase != GamePhase.GameOver)
         {
-            Debug.Log($"[NGM] 플레이어 퇴장: [{pi}] {GetPlayerName(pi)} (clientId={clientId})");
-            // TODO: 게임 중 퇴장 시 AI 대체 or 일시 중단 (Phase 7에서 구현)
+            hostLGM.EndTurn();
         }
+    }
+
+    [ClientRpc]
+    void NotifyPlayerDisconnectedClientRpc(int playerIndex, string playerName)
+    {
+        Debug.Log($"[NGM] 플레이어 퇴장 알림: [{playerIndex}] {playerName}");
+        OnPlayerDisconnected?.Invoke(playerIndex, playerName);
     }
 
     // ================================================================
@@ -229,6 +256,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
             netPlayerVP.Add(0);
             netPlayerTotalResCount.Add(0);
             netPlayerKnightsPlayed.Add(0);
+            netPlayerDevCardCounts.Add(0);
             netPlayerNames.Add(new FixedString64Bytes($"플레이어 {i + 1}")); // 기본값, ServerRpc로 덮어씀
         }
 
@@ -337,12 +365,18 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         {
             NotifyDevCardPurchasedClientRpc(pi, (int)ct);
             netDevCardDeckRemaining.Value = hostLGM.DevCardDeckRemaining;
+            // 개발카드 수 동기화
+            if (pi < netPlayerDevCardCounts.Count)
+                netPlayerDevCardCounts[pi] = hostLGM.GetPlayerState(pi).DevCards.Count;
         };
 
         hostLGM.OnDevCardUsed += (pi, ct) =>
         {
             NotifyDevCardUsedClientRpc(pi, (int)ct);
             netDevCardState.Value = (int)hostLGM.DevCardState;
+            // 개발카드 수 동기화
+            if (pi < netPlayerDevCardCounts.Count)
+                netPlayerDevCardCounts[pi] = hostLGM.GetPlayerState(pi).DevCards.Count;
         };
 
         hostLGM.OnLongestRoadChanged += (pi, gained) =>
@@ -374,6 +408,14 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
             NotifyPlayerTradeClientRpc(p1, p2);
             SendResourceToOwner(p1);
             SendResourceToOwner(p2);
+        };
+
+        hostLGM.OnIncomingTradeProposal += (proposer, offer, request) =>
+        {
+            int target = hostLGM.PendingTradeTarget;
+            if (target < 0) return;
+            var targetParams = GetTargetedParams(target);
+            NotifyIncomingTradeProposalClientRpc(proposer, ResArray.FromDict(offer), ResArray.FromDict(request), targetParams);
         };
 
         hostLGM.OnDiscardRequired += (pi, count) =>
@@ -930,6 +972,8 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         if (IsServer)
         {
             hostLGM.EnterBuildMode(mode);
+            // 호스트도 로컬 UI에 빌드모드 진입 (SuppressUICommands로 LGM이 직접 호출 못함)
+            BuildModeController.Instance?.EnterBuildMode(mode);
         }
         else
         {
@@ -944,6 +988,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         if (IsServer)
         {
             hostLGM.CancelBuildMode();
+            BuildModeController.Instance?.CancelBuildMode();
         }
         else
         {
@@ -1348,6 +1393,17 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
             {
                 clientPlayers[i].HasLongestRoad = (netLongestRoadHolder.Value == i);
                 clientPlayers[i].HasLargestArmy = (netLargestArmyHolder.Value == i);
+            }
+
+            // 개발카드 수 동기화 (상대는 수량만 알 수 있음)
+            if (i != localPlayerIndex && i < netPlayerDevCardCounts.Count)
+            {
+                int targetCount = netPlayerDevCardCounts[i];
+                // DevCards 리스트 크기를 맞춤 (타입은 Unknown으로)
+                while (clientPlayers[i].DevCards.Count < targetCount)
+                    clientPlayers[i].DevCards.Add(DevCardType.Hidden);
+                while (clientPlayers[i].DevCards.Count > targetCount)
+                    clientPlayers[i].DevCards.RemoveAt(clientPlayers[i].DevCards.Count - 1);
             }
         }
     }

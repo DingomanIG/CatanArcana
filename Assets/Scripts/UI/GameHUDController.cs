@@ -514,6 +514,8 @@ public class GameHUDController : MonoBehaviour
             GM.OnIncomingTradeProposal += HandleIncomingTradeProposal;
             GM.OnIncomingTradeCancelled += HandleIncomingTradeCancelled;
             GM.OnDiscardRequired += HandleDiscardRequired;
+            GM.OnPlayerDisconnected += HandlePlayerDisconnected;
+            GM.OnHostDisconnected += HandleHostDisconnected;
         }
     }
 
@@ -540,6 +542,8 @@ public class GameHUDController : MonoBehaviour
             GM.OnIncomingTradeProposal -= HandleIncomingTradeProposal;
             GM.OnIncomingTradeCancelled -= HandleIncomingTradeCancelled;
             GM.OnDiscardRequired -= HandleDiscardRequired;
+            GM.OnPlayerDisconnected -= HandlePlayerDisconnected;
+            GM.OnHostDisconnected -= HandleHostDisconnected;
         }
     }
 
@@ -749,11 +753,13 @@ public class GameHUDController : MonoBehaviour
         int delta = newCount - prev;
         if (delta != 0)
         {
-            // 이벤트 로그: 프레임 단위 배치 처리 (같은 자원 합산)
-            BufferResourceLog(playerIndex, type, delta);
+            bool isLocal = playerIndex == GM?.LocalPlayerIndex;
 
-            // 상대 카드 status bar에 자원 증감 표시
-            string resName = GetResourceName(type);
+            // 이벤트 로그: 본인은 상세, 상대는 "자원"으로 표시
+            BufferResourceLog(playerIndex, type, delta, isLocal);
+
+            // 상대 카드 status bar에 자원 증감 표시 (상대는 종류 비공개)
+            string resName = isLocal ? GetResourceName(type) : "자원";
             ShowOpponentResourceDelta(playerIndex, resName, delta);
         }
 
@@ -1339,6 +1345,32 @@ public class GameHUDController : MonoBehaviour
         BuildDiscardGrid();
         UpdateDiscardInfo();
         discardOverlay.RemoveFromClassList("overlay--hidden");
+    }
+
+    void HandlePlayerDisconnected(int playerIndex, string playerName)
+    {
+        AddEventLog($"{playerName} 퇴장", "robber");
+        // 상대 카드에 퇴장 표시
+        if (opponentCards.TryGetValue(playerIndex, out var ui))
+        {
+            ui.statusText.text = "퇴장";
+            ui.statusBar.style.backgroundColor = StatusRed;
+            ui.statusBar.style.display = DisplayStyle.Flex;
+        }
+    }
+
+    void HandleHostDisconnected()
+    {
+        AddEventLog("호스트 연결 끊김 — 게임 종료", "robber");
+        // 짧은 딜레이 후 메인 메뉴로 복귀
+        StartCoroutine(ReturnToMainMenuAfterDelay());
+    }
+
+    IEnumerator ReturnToMainMenuAfterDelay()
+    {
+        yield return new WaitForSeconds(2f);
+        GameNetworkManager.Instance?.Disconnect();
+        SceneFlowManager.Instance?.GoToMainMenu();
     }
 
     void BuildDiscardGrid()
@@ -2273,14 +2305,16 @@ public class GameHUDController : MonoBehaviour
 
     const int MAX_LOG_ENTRIES = 100;
 
-    void BufferResourceLog(int playerIndex, ResourceType type, int delta)
+    void BufferResourceLog(int playerIndex, ResourceType type, int delta, bool showDetail)
     {
         if (!pendingLogDeltas.ContainsKey(playerIndex))
             pendingLogDeltas[playerIndex] = new Dictionary<ResourceType, int>();
 
+        // 상대방은 종류 비공개: ResourceType.None 키로 합산
+        var key = showDetail ? type : ResourceType.None;
         var dict = pendingLogDeltas[playerIndex];
-        if (dict.ContainsKey(type)) dict[type] += delta;
-        else dict[type] = delta;
+        if (dict.ContainsKey(key)) dict[key] += delta;
+        else dict[key] = delta;
 
         if (logFlushCoroutine == null)
             logFlushCoroutine = StartCoroutine(FlushResourceLogs());
@@ -2298,8 +2332,9 @@ public class GameHUDController : MonoBehaviour
             var losses = new List<string>();
             foreach (var res in kv.Value)
             {
-                if (res.Value > 0) gains.Add($"+{res.Value} {GetResourceName(res.Key)}");
-                else if (res.Value < 0) losses.Add($"{res.Value} {GetResourceName(res.Key)}");
+                string resLabel = res.Key == ResourceType.None ? "자원" : GetResourceName(res.Key);
+                if (res.Value > 0) gains.Add($"+{res.Value} {resLabel}");
+                else if (res.Value < 0) losses.Add($"{res.Value} {resLabel}");
             }
 
             if (gains.Count > 0)

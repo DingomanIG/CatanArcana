@@ -18,6 +18,7 @@ public interface IGameManager
     DevCardUseState DevCardState { get; }
     int DevCardDeckRemaining { get; }
     bool IsWaitingForDiscard { get; }
+    bool HasPendingIncomingTrade { get; }
 
     // 기존 이벤트
     event Action<int> OnTurnChanged;
@@ -42,6 +43,10 @@ public interface IGameManager
 
     // 디스카드 이벤트
     event Action<int, int> OnDiscardRequired; // (playerIndex, discardCount) — 인간 플레이어에게 디스카드 UI 표시
+
+    // 연결 이벤트
+    event Action<int, string> OnPlayerDisconnected; // (playerIndex, playerName) — 플레이어 퇴장
+    event Action OnHostDisconnected; // 호스트 퇴장 → 게임 종료
 
     // 기본 액션
     void PrepareGame();

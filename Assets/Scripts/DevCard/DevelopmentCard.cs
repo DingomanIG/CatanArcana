@@ -5,7 +5,8 @@ public enum DevCardType
     VictoryPoint,   // 승리점 (5장)
     RoadBuilding,   // 도로건설 (2장)
     YearOfPlenty,   // 풍년 (2장)
-    Monopoly        // 독점 (2장)
+    Monopoly,       // 독점 (2장)
+    Hidden          // 상대방 카드 (종류 비공개)
 }
 
 /// <summary>발전카드 사용 상태 (다단계 효과용)</summary>
