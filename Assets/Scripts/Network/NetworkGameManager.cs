@@ -863,8 +863,11 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         if (IsServer)
         {
-            // PrepareAndSyncBoard에서 이미 PrepareGame + 보드 동기화 완료
-            // 게임 시작 (InitialPlacement 진입 → OnInitialPlacementTurn 이벤트 발행)
+            // 보드 전체 동기화 (PrepareGame에서 재배치된 보드 전송)
+            var snapshot = CreateBoardSnapshot();
+            SyncFullBoardStateClientRpc(snapshot);
+
+            // 게임 시작 (InitialPlacement 진입)
             hostLGM.StartGame();
         }
     }

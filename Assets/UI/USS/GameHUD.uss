@@ -1188,6 +1188,10 @@
     max-width: 320px;
 }
 
+#turn-order-overlay {
+    background-color: rgba(0, 0, 0, 0.85);
+}
+
 .turn-order-panel {
     min-width: 320px;
     max-width: 400px;
