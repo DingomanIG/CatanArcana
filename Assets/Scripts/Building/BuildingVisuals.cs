@@ -200,6 +200,9 @@ public class BuildingVisuals : MonoBehaviour
             go.transform.position = vertex.Position + Vector3.up * 0.1f;
             go.layer = 0;
 
+            // 콜라이더 제거 (화면 좌표 기반 감지 사용)
+            foreach (var c in go.GetComponents<Collider>()) Destroy(c);
+
             var mr = go.GetComponent<MeshRenderer>();
             mr.material = new Material(highlightMaterial);
             mr.material.color = HIGHLIGHT_VALID;
@@ -233,10 +236,8 @@ public class BuildingVisuals : MonoBehaviour
             go.transform.rotation = Quaternion.LookRotation(dir) * Quaternion.Euler(90f, 0f, 0f);
             go.layer = 0;
 
-            // 기존 콜라이더 제거 후 넓은 BoxCollider로 교체 (WebGL 클릭 정밀도 보정)
+            // 콜라이더 제거 (화면 좌표 기반 감지 사용)
             foreach (var c in go.GetComponents<Collider>()) Destroy(c);
-            var box = go.AddComponent<BoxCollider>();
-            box.size = new Vector3(3f, 1f, 3f);
 
             var mr = go.GetComponent<MeshRenderer>();
             mr.material = new Material(highlightMaterial);
@@ -245,6 +246,27 @@ public class BuildingVisuals : MonoBehaviour
             highlightObjects.Add(go);
             highlightToEdgeId[go] = edge.Id;
         }
+    }
+
+    /// <summary>화면 좌표 기준으로 가장 가까운 하이라이트 찾기 (콜라이더 불필요)</summary>
+    public GameObject FindClosestHighlight(Vector2 screenPos, Camera cam, float maxPixelDist = 40f)
+    {
+        GameObject closest = null;
+        float bestDist = maxPixelDist;
+
+        foreach (var go in highlightObjects)
+        {
+            if (go == null) continue;
+            var wp = cam.WorldToScreenPoint(go.transform.position);
+            if (wp.z < 0f) continue;
+            float d = Vector2.Distance(screenPos, new Vector2(wp.x, wp.y));
+            if (d < bestDist)
+            {
+                bestDist = d;
+                closest = go;
+            }
+        }
+        return closest;
     }
 
     /// <summary>모든 하이라이트 제거</summary>

@@ -21,21 +21,29 @@
                     <ui:VisualElement class="player-slot__color player-slot__color--0"/>
                     <ui:Label text="빈 자리" class="player-slot__name player-slot__name--empty"/>
                     <ui:Label class="player-slot__badge"/>
+                    <ui:Button name="btn-ai-0" text="+AI" class="btn-add-ai btn-add-ai--hidden"/>
+                    <ui:Button name="btn-rm-ai-0" text="X" class="btn-remove-ai btn-add-ai--hidden"/>
                 </ui:VisualElement>
                 <ui:VisualElement name="slot-1" class="player-slot">
                     <ui:VisualElement class="player-slot__color player-slot__color--1"/>
                     <ui:Label text="빈 자리" class="player-slot__name player-slot__name--empty"/>
                     <ui:Label class="player-slot__badge"/>
+                    <ui:Button name="btn-ai-1" text="+AI" class="btn-add-ai btn-add-ai--hidden"/>
+                    <ui:Button name="btn-rm-ai-1" text="X" class="btn-remove-ai btn-add-ai--hidden"/>
                 </ui:VisualElement>
                 <ui:VisualElement name="slot-2" class="player-slot">
                     <ui:VisualElement class="player-slot__color player-slot__color--2"/>
                     <ui:Label text="빈 자리" class="player-slot__name player-slot__name--empty"/>
                     <ui:Label class="player-slot__badge"/>
+                    <ui:Button name="btn-ai-2" text="+AI" class="btn-add-ai btn-add-ai--hidden"/>
+                    <ui:Button name="btn-rm-ai-2" text="X" class="btn-remove-ai btn-add-ai--hidden"/>
                 </ui:VisualElement>
                 <ui:VisualElement name="slot-3" class="player-slot">
                     <ui:VisualElement class="player-slot__color player-slot__color--3"/>
                     <ui:Label text="빈 자리" class="player-slot__name player-slot__name--empty"/>
                     <ui:Label class="player-slot__badge"/>
+                    <ui:Button name="btn-ai-3" text="+AI" class="btn-add-ai btn-add-ai--hidden"/>
+                    <ui:Button name="btn-rm-ai-3" text="X" class="btn-remove-ai btn-add-ai--hidden"/>
                 </ui:VisualElement>
             </ui:VisualElement>
 

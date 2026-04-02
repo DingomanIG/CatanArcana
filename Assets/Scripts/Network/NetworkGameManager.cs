@@ -18,6 +18,9 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
 
     LocalGameManager hostLGM;
     HexGridView hexGridView;
+    AIDifficulty[] hostAIDifficulties; // AI 슬롯 난이도 (호스트 전용)
+
+    public const ulong AI_CLIENT_BASE = ulong.MaxValue - 100;
 
     // ================================================================
     // 클라이언트 공통
@@ -27,6 +30,10 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
 
     // clientId → playerIndex 매핑 (호스트가 관리)
     NetworkList<ulong> playerClientIds;
+
+    // K1/K2: 동시 건설 방지 + 더블클릭 쿨다운
+    bool isProcessingAction;
+    readonly Dictionary<ulong, float> lastActionTime = new();
 
     // ================================================================
     // NetworkVariable — 게임 핵심 상태
@@ -176,7 +183,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     void OnClientDisconnected(ulong clientId)
     {
         int pi = GetPlayerIndexFromClientId(clientId);
-        if (pi < 0) return;
+        if (pi < 0 || IsAIPlayer(pi)) return; // AI는 퇴장 처리 불필요
 
         string playerName = GetPlayerName(pi);
         Debug.Log($"[NGM] 플레이어 퇴장: [{pi}] {playerName} (clientId={clientId})");
@@ -220,8 +227,16 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         // LGM이 GameServices에 등록하지 않도록 (NGM이 이미 등록됨)
         // InitializePlayers는 Start에서 호출될 것
 
-        // 플레이어 수 설정
-        int playerCount = NetworkManager.Singleton.ConnectedClientsList.Count;
+        // AI 슬롯 정보 읽기
+        var flow = SceneFlowManager.Instance;
+        hostAIDifficulties = flow?.AIDifficulties ?? new AIDifficulty[4];
+
+        // 플레이어 수 설정 (접속자 + AI)
+        int humanCount = NetworkManager.Singleton.ConnectedClientsList.Count;
+        int aiCount = 0;
+        for (int i = 0; i < hostAIDifficulties.Length; i++)
+            if (hostAIDifficulties[i] != AIDifficulty.None) aiCount++;
+        int playerCount = humanCount + aiCount;
         if (playerCount < 2) playerCount = 2; // 최소 2인
         hostLGM.InitializePlayers(playerCount);
         netPlayerCount.Value = playerCount;
@@ -242,37 +257,62 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         var clients = NetworkManager.Singleton.ConnectedClientsList;
 
+        // 인간 클라이언트 + AI sentinel ID 합치기
+        var allIds = new List<ulong>();
+        foreach (var c in clients) allIds.Add(c.ClientId);
+
+        // AI 슬롯 추가 (hostAIDifficulties에서 None이 아닌 슬롯)
+        int aiIdx = 0;
+        if (hostAIDifficulties != null)
+        {
+            for (int i = 0; i < hostAIDifficulties.Length; i++)
+            {
+                if (hostAIDifficulties[i] != AIDifficulty.None)
+                    allIds.Add(AI_CLIENT_BASE + (ulong)aiIdx++);
+            }
+        }
+
         // 셔플
-        var shuffled = new List<ulong>();
-        foreach (var c in clients) shuffled.Add(c.ClientId);
-        for (int i = shuffled.Count - 1; i > 0; i--)
+        for (int i = allIds.Count - 1; i > 0; i--)
         {
             int j = UnityEngine.Random.Range(0, i + 1);
-            (shuffled[i], shuffled[j]) = (shuffled[j], shuffled[i]);
+            (allIds[i], allIds[j]) = (allIds[j], allIds[i]);
         }
 
         playerClientIds.Clear();
-        foreach (var id in shuffled)
+        foreach (var id in allIds)
             playerClientIds.Add(id);
 
         // NetworkList 초기화
-        for (int i = 0; i < shuffled.Count; i++)
+        for (int i = 0; i < allIds.Count; i++)
         {
             netPlayerVP.Add(0);
             netPlayerTotalResCount.Add(0);
             netPlayerKnightsPlayed.Add(0);
             netPlayerDevCardCounts.Add(0);
-            netPlayerNames.Add(new FixedString64Bytes($"플레이어 {i + 1}")); // 기본값, ServerRpc로 덮어씀
+
+            // AI 플레이어는 이름을 바로 설정
+            if (IsAIPlayer(i))
+            {
+                var diff = GetAIDifficultyForPlayer(i);
+                netPlayerNames.Add(new FixedString64Bytes(AIDifficultySettings.GetAIName(diff)));
+            }
+            else
+            {
+                netPlayerNames.Add(new FixedString64Bytes($"플레이어 {i + 1}")); // 기본값, ServerRpc로 덮어씀
+            }
         }
 
-        // 각 클라이언트에게 본인 인덱스 알림
-        for (int i = 0; i < shuffled.Count; i++)
+        // 각 인간 클라이언트에게 본인 인덱스 알림
+        for (int i = 0; i < allIds.Count; i++)
         {
+            if (IsAIPlayer(i)) continue; // AI에게는 RPC 불필요
+
             var targetParams = new ClientRpcParams
             {
                 Send = new ClientRpcSendParams
                 {
-                    TargetClientIds = new[] { shuffled[i] }
+                    TargetClientIds = new[] { allIds[i] }
                 }
             };
             AssignPlayerIndexClientRpc(i, targetParams);
@@ -280,6 +320,44 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
 
         // 호스트 자신의 인덱스 직접 설정
         localPlayerIndex = GetPlayerIndexFromClientId(NetworkManager.Singleton.LocalClientId);
+    }
+
+    /// <summary>해당 playerIndex가 AI인지 확인</summary>
+    public bool IsAIPlayer(int playerIndex)
+    {
+        if (playerIndex < 0 || playerIndex >= playerClientIds.Count) return false;
+        return playerClientIds[playerIndex] >= AI_CLIENT_BASE;
+    }
+
+    /// <summary>네트워크용 AI 난이도 배열 반환 (playerIndex 기준, 인간=None)</summary>
+    public AIDifficulty[] GetNetworkAIDifficulties()
+    {
+        var result = new AIDifficulty[playerClientIds.Count];
+        for (int i = 0; i < playerClientIds.Count; i++)
+            result[i] = IsAIPlayer(i) ? GetAIDifficultyForPlayer(i) : AIDifficulty.None;
+        return result;
+    }
+
+    /// <summary>AI playerIndex의 난이도 반환</summary>
+    AIDifficulty GetAIDifficultyForPlayer(int playerIndex)
+    {
+        if (!IsAIPlayer(playerIndex) || hostAIDifficulties == null) return AIDifficulty.None;
+
+        // AI sentinel ID에서 aiIdx 추출 → hostAIDifficulties에서 해당 난이도 찾기
+        ulong clientId = playerClientIds[playerIndex];
+        int aiIdx = (int)(clientId - AI_CLIENT_BASE);
+
+        // hostAIDifficulties에서 aiIdx번째 AI 찾기
+        int count = 0;
+        for (int i = 0; i < hostAIDifficulties.Length; i++)
+        {
+            if (hostAIDifficulties[i] != AIDifficulty.None)
+            {
+                if (count == aiIdx) return hostAIDifficulties[i];
+                count++;
+            }
+        }
+        return AIDifficulty.Lv5; // 폴백
     }
 
     int GetPlayerIndexFromClientId(ulong clientId)
@@ -486,6 +564,9 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     ClientRpcParams GetTargetedParams(int playerIndex)
     {
         ulong clientId = GetClientIdFromPlayerIndex(playerIndex);
+        // AI 플레이어에게는 호스트 자신에게 보냄 (AI 턴은 호스트에서 처리)
+        if (clientId >= AI_CLIENT_BASE)
+            clientId = NetworkManager.Singleton.LocalClientId;
         return new ClientRpcParams
         {
             Send = new ClientRpcSendParams
@@ -764,6 +845,23 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         return true;
     }
 
+    /// <summary>K1/K2: 액션 처리 중 락 + 더블클릭 쿨다운 (0.3초)</summary>
+    bool TryAcquireActionLock(ServerRpcParams rpcParams)
+    {
+        if (isProcessingAction) return false;
+
+        ulong clientId = rpcParams.Receive.SenderClientId;
+        float now = Time.time;
+        if (lastActionTime.TryGetValue(clientId, out float last) && now - last < 0.3f)
+            return false;
+
+        isProcessingAction = true;
+        lastActionTime[clientId] = now;
+        return true;
+    }
+
+    void ReleaseActionLock() => isProcessingAction = false;
+
     [ServerRpc(RequireOwnership = false)]
     public void RequestRollDiceServerRpc(ServerRpcParams rpcParams = default)
     {
@@ -785,7 +883,9 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
-        hostLGM.TryBuildSettlement(vertexId);
+        if (!TryAcquireActionLock(rpcParams)) return;
+        try { hostLGM.TryBuildSettlement(vertexId); }
+        finally { ReleaseActionLock(); }
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -793,7 +893,9 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
-        hostLGM.TryBuildCity(vertexId);
+        if (!TryAcquireActionLock(rpcParams)) return;
+        try { hostLGM.TryBuildCity(vertexId); }
+        finally { ReleaseActionLock(); }
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -801,7 +903,9 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
-        hostLGM.TryBuildRoad(edgeId);
+        if (!TryAcquireActionLock(rpcParams)) return;
+        try { hostLGM.TryBuildRoad(edgeId); }
+        finally { ReleaseActionLock(); }
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -825,7 +929,9 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
-        hostLGM.TryBuyDevCard();
+        if (!TryAcquireActionLock(rpcParams)) return;
+        try { hostLGM.TryBuyDevCard(); }
+        finally { ReleaseActionLock(); }
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -865,7 +971,9 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
-        hostLGM.TryBankTrade((ResourceType)give, (ResourceType)receive);
+        if (!TryAcquireActionLock(rpcParams)) return;
+        try { hostLGM.TryBankTrade((ResourceType)give, (ResourceType)receive); }
+        finally { ReleaseActionLock(); }
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -915,6 +1023,18 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     public void RequestConfirmDiscardServerRpc(ResArray toDiscard, ServerRpcParams rpcParams = default)
     {
         int pi = ValidateSender(rpcParams);
+        // L2: 디스카드 대상 플레이어가 맞는지 검증
+        if (!hostLGM.IsWaitingForDiscard)
+        {
+            Debug.LogWarning($"[NGM] 디스카드 대기 중이 아님 (sender={pi})");
+            return;
+        }
+        var pending = hostLGM.GetPendingDiscardPlayer();
+        if (pending >= 0 && pending != pi)
+        {
+            Debug.LogWarning($"[NGM] 디스카드 발신자 불일치: expected={pending}, sender={pi}");
+            return;
+        }
         hostLGM.ConfirmDiscard(toDiscard.ToDict());
         netIsWaitingForDiscard.Value = hostLGM.IsWaitingForDiscard;
     }
@@ -981,7 +1101,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     }
 
     public bool IsMyTurn() => localPlayerIndex == CurrentPlayerIndex;
-    public bool IsPlayerAI(int playerIndex) => false; // 네트워크에서는 AI 없음
+    public bool IsPlayerAI(int playerIndex) => IsAIPlayer(playerIndex);
 
     public string GetPlayerName(int index)
     {
@@ -1375,6 +1495,9 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         // 타일 + 항구 데이터 적용 완료 후 비주얼 재생성
         hexGridView.RebuildVisuals();
 
+        // BUG-1: 보드 재구축 후 BuildModeController가 새 그리드 참조하도록 갱신
+        BuildModeController.Instance?.RefreshBuildingSystem(clientGrid);
+
         // 도로 적용
         foreach (var es in snapshot.Edges)
         {
@@ -1402,6 +1525,9 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     // ================================================================
     // 유틸리티
     // ================================================================
+
+    // 상대 자원 총합 캐시 (변동 감지용)
+    readonly Dictionary<int, int> prevOpponentResCount = new();
 
     /// <summary>NetworkList → clientPlayers 미러 동기화 (클라이언트 전용)</summary>
     void SyncClientPlayerMirror()
@@ -1454,6 +1580,18 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
                     clientPlayers[i].DevCards.Add(new DevelopmentCard(DevCardType.Hidden, 0));
                 while (clientPlayers[i].DevCards.Count > targetCount)
                     clientPlayers[i].DevCards.RemoveAt(clientPlayers[i].DevCards.Count - 1);
+            }
+
+            // C4: 상대 자원 총합 변동 시 OnResourceChanged 발화 → 상대 카드 UI 갱신
+            if (i != localPlayerIndex && i < netPlayerTotalResCount.Count)
+            {
+                int newTotal = netPlayerTotalResCount[i];
+                prevOpponentResCount.TryGetValue(i, out int prevTotal);
+                if (newTotal != prevTotal)
+                {
+                    prevOpponentResCount[i] = newTotal;
+                    OnResourceChanged?.Invoke(i, ResourceType.Wood, newTotal);
+                }
             }
         }
     }

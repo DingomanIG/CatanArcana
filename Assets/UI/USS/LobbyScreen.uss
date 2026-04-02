@@ -104,6 +104,47 @@
     display: none;
 }
 
+/* === AI SLOT BUTTONS === */
+.btn-add-ai {
+    height: 28px;
+    min-width: 42px;
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: #d4a845;
+    background-color: rgba(212, 168, 69, 0.15);
+    border-width: 1px;
+    border-color: #d4a845;
+    border-radius: 4px;
+    padding: 0 8px;
+    margin-left: 4px;
+}
+
+.btn-add-ai:hover {
+    background-color: rgba(212, 168, 69, 0.3);
+}
+
+.btn-remove-ai {
+    height: 28px;
+    min-width: 28px;
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: #c45c3e;
+    background-color: rgba(196, 92, 62, 0.15);
+    border-width: 1px;
+    border-color: #c45c3e;
+    border-radius: 4px;
+    padding: 0 6px;
+    margin-left: 4px;
+}
+
+.btn-remove-ai:hover {
+    background-color: rgba(196, 92, 62, 0.3);
+}
+
+.btn-add-ai--hidden {
+    display: none;
+}
+
 /* === BUTTONS === */
 .lobby-buttons {
     margin-top: 8px;

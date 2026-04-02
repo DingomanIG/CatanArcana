@@ -73,10 +73,49 @@ public class GameBootstrapper : MonoBehaviour
             var instance = Instantiate(networkGameManagerPrefab);
             instance.GetComponent<NetworkObject>().Spawn();
             Debug.Log("[GameBootstrapper] NetworkGameManager 스폰 완료 (호스트)");
+
+            // AI 슬롯이 있으면 AIController 생성 (호스트에서만 실행)
+            var flow = SceneFlowManager.Instance;
+            if (flow?.AIDifficulties != null)
+            {
+                bool hasAI = false;
+                for (int i = 0; i < flow.AIDifficulties.Length; i++)
+                    if (flow.AIDifficulties[i] != AIDifficulty.None) { hasAI = true; break; }
+
+                if (hasAI)
+                {
+                    var aiGO = new GameObject("NetworkAIController");
+                    var aiCtrl = aiGO.AddComponent<AIController>();
+                    // AIController.Start()에서 GameServices.GameManager (= NGM)를 자동으로 찾음
+                    // 난이도는 NGM.SetupHost 후 재설정 필요 → 코루틴으로 대기
+                    StartCoroutine(SetupNetworkAI(aiCtrl));
+                    Debug.Log("[GameBootstrapper] 네트워크 AIController 생성");
+                }
+            }
         }
         else
         {
             Debug.Log("[GameBootstrapper] 클라이언트 대기 — NetworkGameManager 자동 수신 예정");
         }
+    }
+
+    System.Collections.IEnumerator SetupNetworkAI(AIController aiCtrl)
+    {
+        // NGM이 SetupHost를 완료할 때까지 대기
+        NetworkGameManager ngm = null;
+        while (ngm == null)
+        {
+            ngm = FindFirstObjectByType<NetworkGameManager>();
+            if (ngm == null || ngm.PlayerCount == 0)
+            {
+                ngm = null;
+                yield return null;
+            }
+        }
+
+        // NGM의 playerIndex 기준 AI 난이도 배열로 재설정
+        var diffs = ngm.GetNetworkAIDifficulties();
+        aiCtrl.SetDifficulties(diffs);
+        Debug.Log($"[GameBootstrapper] 네트워크 AI 난이도 설정 완료: {string.Join(",", diffs)}");
     }
 }

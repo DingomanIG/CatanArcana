@@ -1063,6 +1063,14 @@ public class LocalGameManager : MonoBehaviour, IGameManager
             }
         }
 
+        // G4: 동점 시 기존 보유자 유지 (새 도전자는 strictly greater 필요)
+        if (largestArmyHolder >= 0 && maxPlayer != largestArmyHolder
+            && players[largestArmyHolder].KnightsPlayed >= 3
+            && players[largestArmyHolder].KnightsPlayed == maxKnights)
+        {
+            maxPlayer = largestArmyHolder;
+        }
+
         if (maxPlayer != largestArmyHolder)
         {
             if (largestArmyHolder >= 0)
@@ -1158,8 +1166,9 @@ public class LocalGameManager : MonoBehaviour, IGameManager
             return false;
         }
 
-        // 제안자가 은행 거래 성사 → 수신 대기 중인 제안 자동 취소
-        if (pendingIncomingTrade != null && currentPlayerIndex == pendingIncomingTrade.proposer)
+        // K3: 은행 거래 성사 → 관련 거래 제안 자동 취소 (제안자 또는 대상이 은행거래 시)
+        if (pendingIncomingTrade != null &&
+            (currentPlayerIndex == pendingIncomingTrade.proposer || currentPlayerIndex == pendingIncomingTrade.target))
             CancelPendingIncomingTrade();
 
         player.Resources[give] -= rate;
@@ -1190,6 +1199,10 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         // 네트워크 모드 또는 AI→인간 거래: 즉시 실행 대신 제안으로 전환 (상대 수락 필요)
         if (SuppressUICommands || (IsPlayerAI(currentPlayerIndex) && !IsPlayerAI(otherPlayer)))
         {
+            // H3-H4: 기존 거래 제안이 있으면 먼저 취소
+            if (pendingIncomingTrade != null)
+                CancelPendingIncomingTrade();
+
             pendingIncomingTrade = new PendingTrade
             {
                 proposer = currentPlayerIndex,
@@ -1300,6 +1313,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
     public int GetLongestRoadHolder() => longestRoadHolder;
     public int GetLargestArmyHolder() => largestArmyHolder;
+    public int GetPendingDiscardPlayer() => waitingForDiscard ? pendingDiscardPlayer : -1;
 
     const int BANK_RESOURCE_PER_TYPE = 19;
     public int GetBankResourceCount(ResourceType type)

@@ -55,12 +55,32 @@
       "WebFetch(domain:catan.fandom.com)",
       "WebFetch(domain:catanboard.com)",
       "Read(//c/Users/bonek/**)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Skill(sc:git)",
+      "Skill(sc:git:*)",
+      "Read(//c/ProgramData/Unity/**)",
+      "Read(//c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Local/**)",
+      "Read(//c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/$APPDATA/**)",
+      "Bash(find /c/Users/bonek -name *.ulf)",
+      "Read(//c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Local/Unity/**)",
+      "Read(//c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Local/Unity/licenses/**)",
+      "Bash(grep -E \"\\\\.\\(cs|txt\\)$\")",
+      "Bash(grep -r opponent-card /c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Assets/UI --include=*.uxml)",
+      "Bash(find /c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan -name *opponent* -o -name *OpponentCard*)",
+      "Bash(grep -E \"\\\\.\\(uxml|cs\\)$\")",
+      "Bash(find /c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan -name *PlayerState*)",
+      "Bash(xargs grep:*)",
+      "Bash(grep -n \"enum GamePhase\\\\|enum BuildMode\\\\|enum DevCardUseState\\\\|enum DevCardType\" /c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Assets/Scripts/*.cs)",
+      "Read(//c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/$LOCALAPPDATA/Unity/Editor/**)",
+      "Read(//c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Local/Unity/Editor/**)",
+      "Bash(grep [CoastalEdge])"
     ],
     "additionalDirectories": [
       "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\$BASE\\Art",
       "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\Assets\\Scripts",
-      "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\$BGM_DIR"
+      "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\$BGM_DIR",
+      "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\.github",
+      "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\Docs"
     ]
   }
 }

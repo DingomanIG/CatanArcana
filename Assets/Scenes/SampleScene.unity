@@ -587,6 +587,51 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!1 &449014255
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 449014257}
+  - component: {fileID: 449014256}
+  m_Layer: 0
+  m_Name: GameBootstrapper
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &449014256
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 449014255}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c0ee975abc71d54dbffef6f690789dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameBootstrapper
+  networkGameManagerPrefab: {fileID: 1320337571564151318, guid: e4519603de9c3d84f8577aea03822e3d, type: 3}
+--- !u!4 &449014257
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 449014255}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &629163895
 GameObject:
   m_ObjectHideFlags: 0
@@ -617,10 +662,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 321854deb0bd7914d975938983faab0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BuildingVisuals
-  settlementPrefab: {fileID: 0}
-  cityPrefab: {fileID: 0}
-  roadPrefab: {fileID: 0}
-  vertexHighlightPrefab: {fileID: 0}
+  settlementPrefab: {fileID: 4267533048750022638, guid: bfa6c9a89d2124e428ac11b3c74c310f, type: 3}
+  cityPrefab: {fileID: 6249569865148275545, guid: 5517b8c41a455a249be22458f8593efc, type: 3}
+  roadPrefab: {fileID: 6422660779388020523, guid: 71beb7b06336b1648a309abbadd40e60, type: 3}
+  vertexHighlightPrefab: {fileID: 3729417748569919138, guid: 09244c0b39bdbc4498981b760770b237, type: 3}
 --- !u!114 &629163897
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -751,6 +796,10 @@ MonoBehaviour:
   numberTokenPrefab: {fileID: 4096851806060512424, guid: c51b9dd5642751c47b1a1b8e966d947f, type: 3}
   robberPrefab: {fileID: 1440127950347988787, guid: 1778b4897db43fe49ad8817b37314783, type: 3}
   edgePrefab: {fileID: 6565996030956472546, guid: 6d4b5c24ae555c544b8e03101f41d3c7, type: 3}
+  vertexPrefab: {fileID: 0}
+  portMarkerPrefab: {fileID: 0}
+  dockPrefab: {fileID: 0}
+  bridgePrefab: {fileID: 0}
 --- !u!1 &1923149813
 GameObject:
   m_ObjectHideFlags: 0
@@ -828,3 +877,4 @@ SceneRoots:
   - {fileID: 291753455}
   - {fileID: 1923149815}
   - {fileID: 629163898}
+  - {fileID: 449014257}

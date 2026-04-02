@@ -18,6 +18,11 @@ public class LobbyController : MonoBehaviour
     Button btnLeave;
     VisualElement playerSlots;
     VisualElement[] slots = new VisualElement[4];
+    Button[] btnAddAI = new Button[4];
+    Button[] btnRemoveAI = new Button[4];
+
+    // AI 난이도 순환 (추가 버튼 클릭 시)
+    int[] aiLevelCycle = { 0, 5 }; // None → Lv5 토글
 
     float pollTimer;
     const float POLL_INTERVAL = 1.5f;
@@ -38,7 +43,23 @@ public class LobbyController : MonoBehaviour
         playerSlots = root.Q<VisualElement>("player-slots");
 
         for (int i = 0; i < 4; i++)
+        {
             slots[i] = root.Q<VisualElement>($"slot-{i}");
+            btnAddAI[i] = root.Q<Button>($"btn-ai-{i}");
+            btnRemoveAI[i] = root.Q<Button>($"btn-rm-ai-{i}");
+
+            int idx = i; // 클로저 캡처
+            btnAddAI[i]?.RegisterCallback<ClickEvent>(evt =>
+            {
+                SFXManager.Instance?.Play(SFXType.ButtonClick);
+                OnAddAI(idx);
+            });
+            btnRemoveAI[i]?.RegisterCallback<ClickEvent>(evt =>
+            {
+                SFXManager.Instance?.Play(SFXType.ButtonClick);
+                OnRemoveAI(idx);
+            });
+        }
 
         btnStartGame.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); OnStartGame(); };
         btnLeave.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); OnLeave(); };
@@ -138,7 +159,8 @@ public class LobbyController : MonoBehaviour
 
     void RefreshNetworkLobbyUI()
     {
-        var lobby = LobbyManager.Instance?.CurrentLobby;
+        var lobbyMgr = LobbyManager.Instance;
+        var lobby = lobbyMgr?.CurrentLobby;
         if (lobby == null)
         {
             lobbyStatus.text = "로비 연결 끊김";
@@ -148,6 +170,12 @@ public class LobbyController : MonoBehaviour
         lobbyTitle.text = lobby.Name;
         lobbyCode.text = lobby.LobbyCode ?? "------";
 
+        bool isHost = IsHost(lobby);
+        var aiSlots = lobbyMgr.GetAISlots();
+        int humanCount = lobby.Players.Count;
+
+        // 슬롯 배치: 접속자 먼저 → 나머지는 AI or 빈 자리
+        // 빈 슬롯 인덱스 = humanCount 이후
         for (int i = 0; i < 4; i++)
         {
             var slot = slots[i];
@@ -156,8 +184,12 @@ public class LobbyController : MonoBehaviour
             var nameLabel = slot.Q<Label>(className: "player-slot__name");
             var badge = slot.Q<Label>(className: "player-slot__badge");
 
-            if (i < lobby.Players.Count)
+            // AI 버튼 기본 숨김
+            HideAIButtons(i);
+
+            if (i < humanCount)
             {
+                // 실제 접속 플레이어
                 var player = lobby.Players[i];
                 string pName = GetPlayerDisplayName(player);
 
@@ -175,27 +207,44 @@ public class LobbyController : MonoBehaviour
                     badge.AddToClassList("player-slot__badge--hidden");
                 }
             }
+            else if (aiSlots[i] != AIDifficulty.None)
+            {
+                // AI 슬롯
+                int lvl = (int)aiSlots[i];
+                string aiName = lvl > 0 && lvl < AI_NAMES.Length ? AI_NAMES[lvl] : "AI";
+                slot.AddToClassList("player-slot--filled");
+                nameLabel.text = $"{aiName} (Lv{lvl})";
+                nameLabel.RemoveFromClassList("player-slot__name--empty");
+                badge.text = "AI";
+                badge.RemoveFromClassList("player-slot__badge--hidden");
+
+                // 호스트만 제거 버튼 표시
+                if (isHost) ShowRemoveAIButton(i);
+            }
             else
             {
+                // 빈 자리
                 slot.RemoveFromClassList("player-slot--filled");
                 nameLabel.text = "빈 자리";
                 nameLabel.AddToClassList("player-slot__name--empty");
                 badge.AddToClassList("player-slot__badge--hidden");
+
+                // 호스트만 추가 버튼 표시
+                if (isHost) ShowAddAIButton(i);
             }
         }
 
-        bool isHost = IsHost(lobby);
-        int playerCount = lobby.Players.Count;
+        int totalCount = lobbyMgr.GetTotalPlayerCount();
 
         btnStartGame.style.display = isHost ? DisplayStyle.Flex : DisplayStyle.None;
-        btnStartGame.SetEnabled(playerCount >= 2);
+        btnStartGame.SetEnabled(totalCount >= 2);
 
         if (isHost)
         {
-            if (playerCount < 2)
-                lobbyStatus.text = "최소 2명이 필요합니다 (현재 1명)";
+            if (totalCount < 2)
+                lobbyStatus.text = $"최소 2명이 필요합니다 (현재 {totalCount}명)";
             else
-                lobbyStatus.text = $"플레이어 {playerCount}명 준비 완료!";
+                lobbyStatus.text = $"플레이어 {totalCount}명 준비 완료!";
         }
         else
         {
@@ -216,9 +265,14 @@ public class LobbyController : MonoBehaviour
         var flow = SceneFlowManager.Instance;
         if (flow != null && !flow.IsLocalPlay)
         {
-            // 네트워크 모드: 로비 하트비트 중지 후 동기화된 씬 전환
-            // LobbyManager는 DontDestroyOnLoad이므로 씬 전환 후에도 유지
-            Debug.Log("[Lobby] 네트워크 게임 시작 — 동기화 씬 전환");
+            // AI 슬롯 정보를 SceneFlowManager에 전달
+            var lobbyMgr = LobbyManager.Instance;
+            if (lobbyMgr != null)
+            {
+                flow.AIDifficulties = lobbyMgr.GetAISlots();
+                flow.LocalPlayerCount = lobbyMgr.GetTotalPlayerCount();
+            }
+            Debug.Log($"[Lobby] 네트워크 게임 시작 — 총 {flow.LocalPlayerCount}명 (AI 포함)");
         }
 
         flow.GoToGame();
@@ -231,6 +285,42 @@ public class LobbyController : MonoBehaviour
             LobbyManager.Instance?.LeaveLobby();
 
         SceneFlowManager.Instance.GoToMainMenu();
+    }
+
+    // ========================
+    // AI SLOT HANDLERS
+    // ========================
+
+    async void OnAddAI(int slotIndex)
+    {
+        var lobbyMgr = LobbyManager.Instance;
+        if (lobbyMgr == null) return;
+        await lobbyMgr.SetAISlot(slotIndex, AIDifficulty.Lv5);
+        RefreshNetworkLobbyUI();
+    }
+
+    async void OnRemoveAI(int slotIndex)
+    {
+        var lobbyMgr = LobbyManager.Instance;
+        if (lobbyMgr == null) return;
+        await lobbyMgr.SetAISlot(slotIndex, AIDifficulty.None);
+        RefreshNetworkLobbyUI();
+    }
+
+    void HideAIButtons(int i)
+    {
+        if (btnAddAI[i] != null) btnAddAI[i].AddToClassList("btn-add-ai--hidden");
+        if (btnRemoveAI[i] != null) btnRemoveAI[i].AddToClassList("btn-add-ai--hidden");
+    }
+
+    void ShowAddAIButton(int i)
+    {
+        if (btnAddAI[i] != null) btnAddAI[i].RemoveFromClassList("btn-add-ai--hidden");
+    }
+
+    void ShowRemoveAIButton(int i)
+    {
+        if (btnRemoveAI[i] != null) btnRemoveAI[i].RemoveFromClassList("btn-add-ai--hidden");
     }
 
     // ========================

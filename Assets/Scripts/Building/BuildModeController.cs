@@ -109,6 +109,13 @@ public class BuildModeController : MonoBehaviour
     /// <summary>건설 모드 진입</summary>
     public void EnterBuildMode(BuildMode mode)
     {
+        // BUG-1: 네트워크 모드에서 보드 스냅샷 도착 전 Start()가 실행되면
+        // buildingSystem이 null일 수 있음 → 지연 초기화
+        if (buildingSystem == null && gridView != null && gridView.Grid != null)
+        {
+            buildingSystem = new BuildingSystem(gridView.Grid);
+            Debug.Log("[BuildMode] 건설 시스템 지연 초기화");
+        }
         if (buildingSystem == null) return;
 
         // 현재 플레이어 인덱스
@@ -153,6 +160,16 @@ public class BuildModeController : MonoBehaviour
         currentMode = BuildMode.None;
         OnBuildModeChanged?.Invoke(currentMode);
         Debug.Log("[BuildMode] 건설 모드 취소");
+    }
+
+    /// <summary>BUG-1: 보드 재구축 후 buildingSystem 갱신 (네트워크 스냅샷 적용 시)</summary>
+    public void RefreshBuildingSystem(HexGrid grid)
+    {
+        if (grid != null)
+        {
+            buildingSystem = new BuildingSystem(grid);
+            Debug.Log("[BuildMode] 건설 시스템 갱신 (보드 스냅샷 적용)");
+        }
     }
 
     /// <summary>초기 배치 모드 설정</summary>

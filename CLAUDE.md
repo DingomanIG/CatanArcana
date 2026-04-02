@@ -83,6 +83,7 @@ Docs/
 - Library/, Temp/, Logs/, UserSettings/ 는 gitignore 처리됨
 - 작업 완료 시 `Docs/ROADMAP.md`, `Docs/TASKS.md` 체크박스 업데이트
 - Editor 도구가 기존 에셋을 덮어쓰는 경우 `EditorUtility.DisplayDialog`로 확인창 표시 (예: 프리팹 재생성)
+- Unity 에러/로그 확인은 Claude Code가 `Editor.log` 파일을 직접 읽어서 처리 (스크린샷 불필요)
 
 ## Resources
 - 구현 중 필요한 리소스(아이콘, 이미지, 3D 모델링 등)는 유저에게 요청할 것

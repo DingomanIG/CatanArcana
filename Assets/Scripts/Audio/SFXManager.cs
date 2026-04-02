@@ -88,6 +88,12 @@ public class SFXManager : MonoBehaviour
         src.Play();
     }
 
+    public void StopAll()
+    {
+        foreach (var src in pool)
+            src.Stop();
+    }
+
     public void SetVolume(float vol)
     {
         volume = Mathf.Clamp01(vol);

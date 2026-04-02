@@ -197,7 +197,7 @@ public class AIController : MonoBehaviour
             return;
         }
 
-        // 인간 플레이어 인덱스 설정
+        // 인간 플레이어 인덱스 설정 (로컬 모드에서만 LGM에 전달)
         int humanIndex = -1;
         for (int i = 0; i < difficulties.Length; i++)
         {
@@ -212,8 +212,12 @@ public class AIController : MonoBehaviour
         if (localGM != null && humanIndex >= 0)
             localGM.SetHumanPlayerIndex(humanIndex);
 
+        // 네트워크 모드: hostLGM의 humanPlayerIndex는 NGM이 관리하므로 건드리지 않음
+
         gm.OnTurnChanged += OnTurnChanged;
         gm.OnPhaseChanged += OnPhaseChanged;
+
+        Debug.Log($"[AI] 초기화 완료 — 난이도: {string.Join(",", difficulties)}, 네트워크: {gm is NetworkGameManager}");
     }
 
     void OnDestroy()

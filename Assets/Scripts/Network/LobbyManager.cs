@@ -15,6 +15,9 @@ public class LobbyManager : MonoBehaviour
 
     public Lobby CurrentLobby { get; private set; }
 
+    // AI 슬롯 (호스트 로컬 관리 + Lobby Data로 동기화)
+    AIDifficulty[] aiSlots = new AIDifficulty[4];
+
     public event Action<Lobby> OnLobbyCreated;
     public event Action<Lobby> OnLobbyJoined;
     public event Action<List<Lobby>> OnLobbyListUpdated;
@@ -202,5 +205,63 @@ public class LobbyManager : MonoBehaviour
     {
         return CurrentLobby != null &&
                CurrentLobby.HostId == Unity.Services.Authentication.AuthenticationService.Instance.PlayerId;
+    }
+
+    // ========================
+    // AI 슬롯 관리
+    // ========================
+
+    /// <summary>빈 슬롯에 AI 설정 (호스트 전용)</summary>
+    public async Task SetAISlot(int slotIndex, AIDifficulty difficulty)
+    {
+        if (CurrentLobby == null || !IsHost()) return;
+        if (slotIndex < 0 || slotIndex >= 4) return;
+
+        aiSlots[slotIndex] = difficulty;
+
+        try
+        {
+            var data = new Dictionary<string, DataObject>();
+            // 기존 JoinCode 유지
+            if (CurrentLobby.Data.TryGetValue("JoinCode", out var joinCode))
+                data["JoinCode"] = joinCode;
+
+            for (int i = 0; i < 4; i++)
+                data[$"AI_{i}"] = new DataObject(DataObject.VisibilityOptions.Public, ((int)aiSlots[i]).ToString());
+
+            CurrentLobby = await LobbyService.Instance.UpdateLobbyAsync(CurrentLobby.Id,
+                new UpdateLobbyOptions { Data = data });
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[Lobby] AI 슬롯 업데이트 실패: {e.Message}");
+        }
+    }
+
+    /// <summary>Lobby Data에서 AI 슬롯 읽기</summary>
+    public AIDifficulty[] GetAISlots()
+    {
+        if (CurrentLobby?.Data == null) return aiSlots;
+
+        for (int i = 0; i < 4; i++)
+        {
+            if (CurrentLobby.Data.TryGetValue($"AI_{i}", out var data) &&
+                int.TryParse(data.Value, out int lvl))
+                aiSlots[i] = (AIDifficulty)lvl;
+            else
+                aiSlots[i] = AIDifficulty.None;
+        }
+        return aiSlots;
+    }
+
+    /// <summary>실제 접속자 + AI 합산 인원수</summary>
+    public int GetTotalPlayerCount()
+    {
+        int humans = CurrentLobby?.Players?.Count ?? 0;
+        var slots = GetAISlots();
+        int ai = 0;
+        for (int i = 0; i < slots.Length; i++)
+            if (slots[i] != AIDifficulty.None) ai++;
+        return humans + ai;
     }
 }
