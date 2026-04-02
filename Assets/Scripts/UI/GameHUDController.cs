@@ -159,6 +159,12 @@ public class GameHUDController : MonoBehaviour
     readonly Dictionary<ResourceType, int> discardAmounts = new();
     int discardRequired;
 
+    // I1: 네트워크 동기화 VP 캐시 (상대 VP는 계산값 대신 서버 값 사용)
+    readonly Dictionary<int, int> cachedNetworkVP = new();
+
+    // H3/H4: 네트워크 거래 대기 상태
+    bool isWaitingForTradeResponse;
+
     // Bank Resources
     Label bankWood, bankBrick, bankWool, bankWheat, bankOre, bankDevCard;
 
@@ -513,6 +519,7 @@ public class GameHUDController : MonoBehaviour
             GM.OnRoadPlaced += HandleRoadPlaced;
             GM.OnIncomingTradeProposal += HandleIncomingTradeProposal;
             GM.OnIncomingTradeCancelled += HandleIncomingTradeCancelled;
+            GM.OnTradeDeclined += HandleTradeDeclined;
             GM.OnDiscardRequired += HandleDiscardRequired;
             GM.OnPlayerDisconnected += HandlePlayerDisconnected;
             GM.OnHostDisconnected += HandleHostDisconnected;
@@ -541,6 +548,7 @@ public class GameHUDController : MonoBehaviour
             GM.OnRoadPlaced -= HandleRoadPlaced;
             GM.OnIncomingTradeProposal -= HandleIncomingTradeProposal;
             GM.OnIncomingTradeCancelled -= HandleIncomingTradeCancelled;
+            GM.OnTradeDeclined -= HandleTradeDeclined;
             GM.OnDiscardRequired -= HandleDiscardRequired;
             GM.OnPlayerDisconnected -= HandlePlayerDisconnected;
             GM.OnHostDisconnected -= HandleHostDisconnected;
@@ -775,6 +783,7 @@ public class GameHUDController : MonoBehaviour
 
     void HandleVPChanged(int playerIndex, int vp)
     {
+        cachedNetworkVP[playerIndex] = vp; // I1: 서버 VP 캐시
         UpdateOpponentCard(playerIndex);
         if (playerIndex == GM.LocalPlayerIndex)
             UpdatePlayerStats();
@@ -868,6 +877,7 @@ public class GameHUDController : MonoBehaviour
         ShowToast("trade", $"{name1} ↔ {name2} 거래 성사!");
         AddEventLog($"{name1} <-> {name2} 거래 성사", "trade");
         tradeOverlay.AddToClassList("overlay--hidden");
+        isWaitingForTradeResponse = false;
     }
 
     void HandleIncomingTradeProposal(int proposer, Dictionary<ResourceType, int> offerToHuman, Dictionary<ResourceType, int> requestFromHuman)
@@ -898,6 +908,25 @@ public class GameHUDController : MonoBehaviour
         SFXManager.Instance?.Play(SFXType.TradeReject);
         incomingTradeOverlay.AddToClassList("overlay--hidden");
         ShowToast("trade", "제안자가 다른 거래를 성사시켜 제안이 취소되었습니다.");
+    }
+
+    /// <summary>H3/H4: 네트워크 거래 거절 수신 (제안자 화면에서 응답 갱신)</summary>
+    void HandleTradeDeclined(int declinerPlayerIndex)
+    {
+        if (!isWaitingForTradeResponse) return;
+
+        if (proposalResponses.ContainsKey(declinerPlayerIndex))
+        {
+            proposalResponses[declinerPlayerIndex] = false;
+            BuildResponseList();
+        }
+
+        // 모든 응답 완료 확인
+        bool anyPending = false;
+        foreach (var kv in proposalResponses)
+            if (kv.Value == null) { anyPending = true; break; }
+
+        if (!anyPending) isWaitingForTradeResponse = false;
     }
 
     void BuildIncomingResourceDisplay(VisualElement grid, Dictionary<ResourceType, int> amounts)
@@ -1357,6 +1386,22 @@ public class GameHUDController : MonoBehaviour
             ui.statusBar.style.backgroundColor = StatusRed;
             ui.statusBar.style.display = DisplayStyle.Flex;
         }
+
+        // J1: 남은 플레이어 수 확인 → 2인 미만이면 메인메뉴 이동
+        int remaining = 0;
+        if (GM != null)
+        {
+            remaining = GM.PlayerCount; // 전체 인원
+            // 퇴장한 플레이어 수 카운트
+            foreach (var kvp in opponentCards)
+                if (kvp.Value.statusText.text == "퇴장") remaining--;
+        }
+
+        if (remaining < 2)
+        {
+            ShowToast("system", $"{playerName} 퇴장 — 메인 메뉴로 이동합니다.");
+            StartCoroutine(ReturnToMainMenuAfterDelay());
+        }
     }
 
     void HandleHostDisconnected()
@@ -1729,6 +1774,7 @@ public class GameHUDController : MonoBehaviour
         if (pendingOffer.Count == 0 || pendingRequest.Count == 0) return;
 
         proposalResponses.Clear();
+        isWaitingForTradeResponse = false;
 
         for (int i = 0; i < GM.PlayerCount; i++)
         {
@@ -1742,7 +1788,10 @@ public class GameHUDController : MonoBehaviour
             }
             else
             {
-                proposalResponses[i] = null; // 인간: 버튼으로 직접 응답
+                // H3/H4: 네트워크 인간 플레이어에게 실제 제안 전송
+                proposalResponses[i] = null; // 대기중
+                GM.TryPlayerTrade(i, pendingOffer, pendingRequest);
+                isWaitingForTradeResponse = true;
             }
         }
 
@@ -1786,20 +1835,33 @@ public class GameHUDController : MonoBehaviour
             if (response == null) // 인간 플레이어 대기 중
             {
                 anyPending = true;
-                var acceptBtn = new Button { text = "✓ 수락" };
-                acceptBtn.AddToClassList("trade-response-row__status");
-                acceptBtn.AddToClassList("trade-response--pending");
-                var declineBtn = new Button { text = "✗ 거절" };
-                declineBtn.AddToClassList("trade-response-row__status");
-                declineBtn.AddToClassList("trade-response--pending");
-                declineBtn.style.marginLeft = 4;
 
-                int captured = playerIndex;
-                acceptBtn.clicked += () => { proposalResponses[captured] = true; BuildResponseList(); };
-                declineBtn.clicked += () => { proposalResponses[captured] = false; BuildResponseList(); };
+                if (isWaitingForTradeResponse)
+                {
+                    // H3/H4: 네트워크 모드 — 상대 응답 대기
+                    var waitLabel = new Label("⏳ 대기중...");
+                    waitLabel.AddToClassList("trade-response-row__status");
+                    waitLabel.AddToClassList("trade-response--pending");
+                    row.Add(waitLabel);
+                }
+                else
+                {
+                    // 로컬 모드 — 제안자가 수락/거절 선택
+                    var acceptBtn = new Button { text = "✓ 수락" };
+                    acceptBtn.AddToClassList("trade-response-row__status");
+                    acceptBtn.AddToClassList("trade-response--pending");
+                    var declineBtn = new Button { text = "✗ 거절" };
+                    declineBtn.AddToClassList("trade-response-row__status");
+                    declineBtn.AddToClassList("trade-response--pending");
+                    declineBtn.style.marginLeft = 4;
 
-                row.Add(acceptBtn);
-                row.Add(declineBtn);
+                    int captured = playerIndex;
+                    acceptBtn.clicked += () => { proposalResponses[captured] = true; BuildResponseList(); };
+                    declineBtn.clicked += () => { proposalResponses[captured] = false; BuildResponseList(); };
+
+                    row.Add(acceptBtn);
+                    row.Add(declineBtn);
+                }
             }
             else if (response == true)
             {
@@ -2045,7 +2107,9 @@ public class GameHUDController : MonoBehaviour
         var colorRed = new Color(0.77f, 0.36f, 0.24f);
         var colorGold = new Color(0.83f, 0.66f, 0.27f);
 
-        ui.vpLabel.text = $"{state.VictoryPoints} VP";
+        // I1: 네트워크 모드에서는 서버 동기화 VP 사용 (VP카드 등 비공개 정보 반영)
+        int displayVP = cachedNetworkVP.TryGetValue(playerIndex, out var cached) ? cached : state.VictoryPoints;
+        ui.vpLabel.text = $"{displayVP} VP";
 
         int resCount = state.TotalResourceCount;
         ui.resCountLabel.text = resCount.ToString();

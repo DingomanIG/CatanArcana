@@ -102,6 +102,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     public event Action<int, int> OnPlayerTrade;
     public event Action<int, Dictionary<ResourceType, int>, Dictionary<ResourceType, int>> OnIncomingTradeProposal;
     public event Action OnIncomingTradeCancelled;
+    public event Action<int> OnTradeDeclined; // H3/H4: 거래 거절 알림 (declinerPlayerIndex)
     public event Action<int, int> OnDiscardRequired;
     public event Action<int, string> OnPlayerDisconnected;
     public event Action OnHostDisconnected;
@@ -135,6 +136,10 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         netPlayerTotalResCount.OnListChanged += _ => SyncClientPlayerMirror();
         netPlayerKnightsPlayed.OnListChanged += _ => SyncClientPlayerMirror();
         netPlayerDevCardCounts.OnListChanged += _ => SyncClientPlayerMirror();
+
+        // G1/G2: 최장도로/최대기사단 보유자 변경 시 미러 갱신
+        netLongestRoadHolder.OnValueChanged += (_, __) => SyncClientPlayerMirror();
+        netLargestArmyHolder.OnValueChanged += (_, __) => SyncClientPlayerMirror();
 
         if (IsServer)
         {
@@ -363,7 +368,11 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
 
         hostLGM.OnDevCardPurchased += (pi, ct) =>
         {
-            NotifyDevCardPurchasedClientRpc(pi, (int)ct);
+            // 전체에는 구매 사실만 알림 (카드 타입 비공개)
+            NotifyDevCardPurchasedClientRpc(pi, (int)DevCardType.Hidden);
+            // 구매자에게만 카드 타입 전송 → DevCards 리스트에 추가
+            var buyerParams = GetTargetedParams(pi);
+            NotifyDevCardAddedClientRpc(pi, (int)ct, buyerParams);
             netDevCardDeckRemaining.Value = hostLGM.DevCardDeckRemaining;
             // 개발카드 수 동기화
             if (pi < netPlayerDevCardCounts.Count)
@@ -416,6 +425,14 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
             if (target < 0) return;
             var targetParams = GetTargetedParams(target);
             NotifyIncomingTradeProposalClientRpc(proposer, ResArray.FromDict(offer), ResArray.FromDict(request), targetParams);
+        };
+
+        hostLGM.OnTradeDeclined += (decliner) =>
+        {
+            // 제안자(현재 턴 플레이어)에게 거절 알림
+            int proposer = hostLGM.CurrentPlayerIndex;
+            var proposerParams = GetTargetedParams(proposer);
+            NotifyTradeDeclinedClientRpc(decliner, proposerParams);
         };
 
         hostLGM.OnDiscardRequired += (pi, count) =>
@@ -550,9 +567,35 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         OnDevCardPurchased?.Invoke(playerIndex, (DevCardType)cardType);
     }
 
+    /// <summary>F1: 구매자에게만 카드 타입 전송 → 클라이언트 DevCards에 추가</summary>
+    [ClientRpc]
+    void NotifyDevCardAddedClientRpc(int playerIndex, int cardType, ClientRpcParams clientRpcParams = default)
+    {
+        if (IsServer) return; // 호스트는 hostLGM이 이미 처리
+        if (clientPlayers == null || playerIndex < 0 || playerIndex >= clientPlayers.Length) return;
+
+        var card = new DevelopmentCard((DevCardType)cardType, TurnNumber);
+        clientPlayers[playerIndex].DevCards.Add(card);
+        Debug.Log($"[NGM] 발전카드 추가: {(DevCardType)cardType} (DevCards 수: {clientPlayers[playerIndex].DevCards.Count})");
+    }
+
     [ClientRpc]
     void NotifyDevCardUsedClientRpc(int playerIndex, int cardType)
     {
+        // 클라이언트: 로컬 DevCards에서 사용된 카드 제거
+        if (!IsServer && clientPlayers != null && playerIndex == localPlayerIndex
+            && playerIndex >= 0 && playerIndex < clientPlayers.Length)
+        {
+            var devCards = clientPlayers[playerIndex].DevCards;
+            for (int i = 0; i < devCards.Count; i++)
+            {
+                if (devCards[i].Type == (DevCardType)cardType)
+                {
+                    devCards.RemoveAt(i);
+                    break;
+                }
+            }
+        }
         OnDevCardUsed?.Invoke(playerIndex, (DevCardType)cardType);
     }
 
@@ -578,6 +621,13 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     void NotifyPlayerTradeClientRpc(int p1, int p2)
     {
         OnPlayerTrade?.Invoke(p1, p2);
+    }
+
+    /// <summary>H3/H4: 거래 거절 알림 (제안자에게만 전송)</summary>
+    [ClientRpc]
+    void NotifyTradeDeclinedClientRpc(int declinerPlayerIndex, ClientRpcParams clientRpcParams = default)
+    {
+        OnTradeDeclined?.Invoke(declinerPlayerIndex);
     }
 
     [ClientRpc]
@@ -1401,7 +1451,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
                 int targetCount = netPlayerDevCardCounts[i];
                 // DevCards 리스트 크기를 맞춤 (타입은 Unknown으로)
                 while (clientPlayers[i].DevCards.Count < targetCount)
-                    clientPlayers[i].DevCards.Add(DevCardType.Hidden);
+                    clientPlayers[i].DevCards.Add(new DevelopmentCard(DevCardType.Hidden, 0));
                 while (clientPlayers[i].DevCards.Count > targetCount)
                     clientPlayers[i].DevCards.RemoveAt(clientPlayers[i].DevCards.Count - 1);
             }

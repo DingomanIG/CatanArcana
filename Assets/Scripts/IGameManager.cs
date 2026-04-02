@@ -90,6 +90,7 @@ public interface IGameManager
     // AI→인간 거래 제안 수신 (proposer, offerToHuman, requestFromHuman)
     event Action<int, Dictionary<ResourceType, int>, Dictionary<ResourceType, int>> OnIncomingTradeProposal;
     event Action OnIncomingTradeCancelled; // 제안자가 다른 거래 성사 시 자동 취소
+    event Action<int> OnTradeDeclined; // (declinerPlayerIndex) 거래 거절 알림 → 제안자에게 전달
     void RespondToIncomingTrade(bool accept);
 
     // 조회

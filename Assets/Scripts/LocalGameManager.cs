@@ -104,6 +104,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     public event Action<int, int> OnPlayerTrade;
     public event Action<int, Dictionary<ResourceType, int>, Dictionary<ResourceType, int>> OnIncomingTradeProposal;
     public event Action OnIncomingTradeCancelled;
+    public event Action<int> OnTradeDeclined; // (declinerPlayerIndex) 거래 거절 알림
     public event Action<int, int> OnDiscardRequired;
     public event Action<int, string> OnPlayerDisconnected;
     public event Action OnHostDisconnected;
@@ -249,6 +250,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     public void RollDice()
     {
         if (currentPhase != GamePhase.RollDice) return;
+        if (waitingForDiscard) return; // D3: 디스카드 대기 중 주사위 재굴림 방지
 
         int die1 = UnityEngine.Random.Range(1, 7);
         int die2 = UnityEngine.Random.Range(1, 7);
@@ -1210,7 +1212,11 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         var trade = pendingIncomingTrade;
         pendingIncomingTrade = null;
 
-        if (!accept) return;
+        if (!accept)
+        {
+            OnTradeDeclined?.Invoke(trade.target);
+            return;
+        }
 
         // 재검증 (자원 상황이 바뀔 수 있음)
         var proposer = players[trade.proposer];
