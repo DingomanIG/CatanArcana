@@ -105,6 +105,11 @@
 - [x] P1: 연결 해제/퇴장 처리 (OnClientDisconnectCallback, GoToMainMenu 네트워크 정리)
 - [ ] P2: 재접속 처리 (SyncFullBoardState + 자원 재전송)
 
+### 5.5단계: 네트워크 AI 버그 수정
+- [x] 로비 AI 난이도 선택 기능 추가 (Lv1→Lv3→Lv5→Lv7→Lv9 순환)
+- [x] 네트워크 AI 자동 준비(ready) 처리 (AI가 readyPlayers에 미포함 → 게임 시작 불가 수정)
+- [x] AIController.SetDifficulties 동적 배열 크기 지원 (네트워크 인덱스 매핑 불일치 수정)
+
 ### 6단계: 테스트
 - [ ] P1: 로컬 회귀 테스트 (기존 AI 대전)
 - [ ] P1: 네트워크 2인 테스트 (ParrelSync)

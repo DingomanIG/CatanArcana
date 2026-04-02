@@ -102,6 +102,8 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     public event Action<BuildMode> OnBuildModeChanged;
     public event Action<int, DevCardType> OnDevCardPurchased;
     public event Action<int, DevCardType> OnDevCardUsed;
+    /// <summary>카드 목록 변경 시 UI 갱신 전용 (이벤트 로그 없음)</summary>
+    public event Action<int> OnDevCardCountChanged;
     public event Action<int, bool> OnLongestRoadChanged;
     public event Action<int, bool> OnLargestArmyChanged;
     public event Action<int, int, ResourceType> OnRobberSteal;
@@ -468,6 +470,8 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
             // 개발카드 수 동기화
             if (pi < netPlayerDevCardCounts.Count)
                 netPlayerDevCardCounts[pi] = hostLGM.GetPlayerState(pi).DevCards.Count;
+            // 기사 카운트 등 공개 정보 동기화
+            SyncPlayerPublicInfo(pi);
         };
 
         hostLGM.OnLongestRoadChanged += (pi, gained) =>
@@ -663,9 +667,9 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         clientPlayers[playerIndex].DevCards.Add(card);
         Debug.Log($"[NGM] 발전카드 추가: {(DevCardType)cardType} (DevCards 수: {clientPlayers[playerIndex].DevCards.Count})");
 
-        // 카드 추가 후 HUD 갱신 (NotifyDevCardPurchasedClientRpc보다 늦게 도착할 수 있으므로)
+        // 카드 추가 후 HUD 갱신만 트리거 (이벤트 로그는 NotifyDevCardPurchasedClientRpc에서 처리)
         if (playerIndex == localPlayerIndex)
-            OnDevCardPurchased?.Invoke(playerIndex, (DevCardType)cardType);
+            OnDevCardCountChanged?.Invoke(playerIndex);
     }
 
     [ClientRpc]
@@ -806,6 +810,13 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         if (pi < 0) return;
 
         readyPlayers.Add(pi);
+
+        // AI 플레이어는 자동 준비 처리
+        for (int i = 0; i < playerClientIds.Count; i++)
+        {
+            if (IsAIPlayer(i)) readyPlayers.Add(i);
+        }
+
         Debug.Log($"[NGM] 플레이어 준비 완료: [{pi}] ({readyPlayers.Count}/{netPlayerCount.Value})");
 
         if (readyPlayers.Count >= netPlayerCount.Value)

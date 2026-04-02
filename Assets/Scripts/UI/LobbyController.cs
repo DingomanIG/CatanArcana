@@ -22,7 +22,10 @@ public class LobbyController : MonoBehaviour
     Button[] btnRemoveAI = new Button[4];
 
     // AI 난이도 순환 (추가 버튼 클릭 시)
-    int[] aiLevelCycle = { 0, 5 }; // None → Lv5 토글
+    static readonly AIDifficulty[] AI_LEVEL_CYCLE = {
+        AIDifficulty.Lv1, AIDifficulty.Lv3, AIDifficulty.Lv5,
+        AIDifficulty.Lv7, AIDifficulty.Lv9
+    };
 
     float pollTimer;
     const float POLL_INTERVAL = 1.5f;
@@ -218,8 +221,13 @@ public class LobbyController : MonoBehaviour
                 badge.text = "AI";
                 badge.RemoveFromClassList("player-slot__badge--hidden");
 
-                // 호스트만 제거 버튼 표시
-                if (isHost) ShowRemoveAIButton(i);
+                // 호스트만 난이도 변경 + 제거 버튼 표시
+                if (isHost)
+                {
+                    ShowAddAIButton(i); // 난이도 순환 버튼으로 재활용
+                    if (btnAddAI[i] != null) btnAddAI[i].text = $"Lv{lvl}";
+                    ShowRemoveAIButton(i);
+                }
             }
             else
             {
@@ -230,7 +238,11 @@ public class LobbyController : MonoBehaviour
                 badge.AddToClassList("player-slot__badge--hidden");
 
                 // 호스트만 추가 버튼 표시
-                if (isHost) ShowAddAIButton(i);
+                if (isHost)
+                {
+                    ShowAddAIButton(i);
+                    if (btnAddAI[i] != null) btnAddAI[i].text = "+AI";
+                }
             }
         }
 
@@ -295,7 +307,18 @@ public class LobbyController : MonoBehaviour
     {
         var lobbyMgr = LobbyManager.Instance;
         if (lobbyMgr == null) return;
-        await lobbyMgr.SetAISlot(slotIndex, AIDifficulty.Lv5);
+
+        // 이미 AI가 있으면 난이도 순환, 없으면 기본 Lv5로 추가
+        var currentSlots = lobbyMgr.GetAISlots();
+        AIDifficulty next = AIDifficulty.Lv5;
+        if (currentSlots[slotIndex] != AIDifficulty.None)
+        {
+            // 현재 레벨의 다음 레벨로 순환
+            int idx = System.Array.IndexOf(AI_LEVEL_CYCLE, currentSlots[slotIndex]);
+            next = AI_LEVEL_CYCLE[(idx + 1) % AI_LEVEL_CYCLE.Length];
+        }
+
+        await lobbyMgr.SetAISlot(slotIndex, next);
         RefreshNetworkLobbyUI();
     }
 

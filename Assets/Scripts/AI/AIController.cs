@@ -173,17 +173,18 @@ public class AIController : MonoBehaviour
         // SetDifficulties()가 먼저 호출됐으면 덮어쓰지 않음
         // (LocalGameManager.Awake [-100] → SetDifficulties → AIController.Awake [0])
         difficulties ??= new[] { player0AI, player1AI, player2AI, player3AI };
-        playerStrategies ??= new AIStrategyType[4];
+        playerStrategies ??= new AIStrategyType[difficulties.Length];
     }
 
     /// <summary>외부에서 난이도 설정 (메인 메뉴 → SceneFlowManager 경유)</summary>
     public void SetDifficulties(AIDifficulty[] diffs)
     {
-        // Awake보다 먼저 호출될 수 있음 (LocalGameManager DefaultExecutionOrder -100)
-        difficulties ??= new[] { player0AI, player1AI, player2AI, player3AI };
-        playerStrategies ??= new AIStrategyType[4];
         if (diffs == null) return;
-        for (int i = 0; i < Mathf.Min(diffs.Length, 4); i++)
+
+        // 전달받은 배열 크기에 맞게 재할당
+        difficulties = new AIDifficulty[diffs.Length];
+        playerStrategies = new AIStrategyType[diffs.Length];
+        for (int i = 0; i < diffs.Length; i++)
             difficulties[i] = diffs[i];
     }
 

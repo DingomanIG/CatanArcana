@@ -509,6 +509,8 @@ public class GameHUDController : MonoBehaviour
             GM.OnVPChanged += HandleVPChanged;
             GM.OnDevCardPurchased += HandleDevCardPurchased;
             GM.OnDevCardUsed += HandleDevCardUsed;
+            if (GM is NetworkGameManager ngm)
+                ngm.OnDevCardCountChanged += HandleDevCardCountChanged;
             GM.OnLongestRoadChanged += HandleLongestRoadChanged;
             GM.OnLargestArmyChanged += HandleLargestArmyChanged;
             GM.OnRobberMoved += HandleRobberMoved;
@@ -538,6 +540,8 @@ public class GameHUDController : MonoBehaviour
             GM.OnVPChanged -= HandleVPChanged;
             GM.OnDevCardPurchased -= HandleDevCardPurchased;
             GM.OnDevCardUsed -= HandleDevCardUsed;
+            if (GM is NetworkGameManager ngm2)
+                ngm2.OnDevCardCountChanged -= HandleDevCardCountChanged;
             GM.OnLongestRoadChanged -= HandleLongestRoadChanged;
             GM.OnLargestArmyChanged -= HandleLargestArmyChanged;
             GM.OnRobberMoved -= HandleRobberMoved;
@@ -763,11 +767,11 @@ public class GameHUDController : MonoBehaviour
         {
             bool isLocal = playerIndex == GM?.LocalPlayerIndex;
 
-            // 이벤트 로그: 본인은 상세, 상대는 "자원"으로 표시
-            BufferResourceLog(playerIndex, type, delta, isLocal);
+            // 이벤트 로그: 자원 종류는 공개 정보
+            BufferResourceLog(playerIndex, type, delta, true);
 
-            // 상대 카드 status bar에 자원 증감 표시 (상대는 종류 비공개)
-            string resName = isLocal ? GetResourceName(type) : "자원";
+            // 상대 카드 status bar에 자원 증감 표시
+            string resName = GetResourceName(type);
             ShowOpponentResourceDelta(playerIndex, resName, delta);
         }
 
@@ -797,6 +801,18 @@ public class GameHUDController : MonoBehaviour
         if (playerIndex == GM.LocalPlayerIndex)
         {
             Debug.Log($"[HUD] 발전카드 구매: {cardType}");
+            UpdateBuildCounts();
+            UpdatePlayerStats();
+            RefreshDevCardQuickSlots();
+        }
+        UpdateOpponentCard(playerIndex);
+    }
+
+    /// <summary>카드 목록 변경 시 UI만 갱신 (이벤트 로그 없음)</summary>
+    void HandleDevCardCountChanged(int playerIndex)
+    {
+        if (playerIndex == GM.LocalPlayerIndex)
+        {
             UpdateBuildCounts();
             UpdatePlayerStats();
             RefreshDevCardQuickSlots();
