@@ -19,6 +19,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     LocalGameManager hostLGM;
     HexGridView hexGridView;
     AIDifficulty[] hostAIDifficulties; // AI 슬롯 난이도 (호스트 전용)
+    int expectedHumanCount; // 로비에서 받은 예상 인간 플레이어 수
 
     public const ulong AI_CLIENT_BASE = ulong.MaxValue - 100;
 
@@ -181,6 +182,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         if (IsServer && NetworkManager.Singleton != null)
         {
             NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
+            NetworkManager.Singleton.OnClientConnectedCallback -= OnWaitForClients;
         }
     }
 
@@ -229,25 +231,22 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         hostLGM.SetHexGridView(hexGridView);
         hostLGM.SuppressUICommands = true; // BuildModeController 직접 호출 억제 → NGM이 ClientRpc로 처리
 
-        // LGM이 GameServices에 등록하지 않도록 (NGM이 이미 등록됨)
-        // InitializePlayers는 Start에서 호출될 것
-
         // AI 슬롯 정보 읽기
         var flow = SceneFlowManager.Instance;
         hostAIDifficulties = flow?.AIDifficulties ?? new AIDifficulty[4];
 
-        // 플레이어 수 설정 (접속자 + AI)
-        int humanCount = NetworkManager.Singleton.ConnectedClientsList.Count;
+        // 로비 데이터에서 정확한 인원수 계산 (ConnectedClientsList는 씬 로딩 중 불완전)
         int aiCount = 0;
         for (int i = 0; i < hostAIDifficulties.Length; i++)
             if (hostAIDifficulties[i] != AIDifficulty.None) aiCount++;
-        int playerCount = humanCount + aiCount;
+
+        int totalFromLobby = flow?.LocalPlayerCount ?? 2;
+        expectedHumanCount = Mathf.Max(1, totalFromLobby - aiCount);
+
+        int playerCount = expectedHumanCount + aiCount;
         if (playerCount < 2) playerCount = 2; // 최소 2인
         hostLGM.InitializePlayers(playerCount);
         netPlayerCount.Value = playerCount;
-
-        // 플레이어 인덱스 매핑
-        SetupPlayerMapping();
 
         // LGM 이벤트 구독 → 네트워크 브로드캐스트
         SubscribeHostEvents();
@@ -255,7 +254,33 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         // 클라이언트 퇴장 콜백
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
 
-        Debug.Log($"[NGM] 호스트 셋업 완료 — {playerCount}명");
+        // 플레이어 매핑: 모든 인간 클라이언트 접속 대기
+        TryFinalizePlayerMapping();
+
+        Debug.Log($"[NGM] 호스트 셋업 — {playerCount}명 (인간 {expectedHumanCount}, AI {aiCount}), 접속 대기 중...");
+    }
+
+    /// <summary>모든 예상 인간 클라이언트가 접속했으면 매핑 실행</summary>
+    void TryFinalizePlayerMapping()
+    {
+        int currentHumans = NetworkManager.Singleton.ConnectedClientsList.Count;
+        if (currentHumans >= expectedHumanCount)
+        {
+            NetworkManager.Singleton.OnClientConnectedCallback -= OnWaitForClients;
+            SetupPlayerMapping();
+            Debug.Log($"[NGM] 플레이어 매핑 완료 — 전원 접속 ({currentHumans}명)");
+        }
+        else
+        {
+            Debug.Log($"[NGM] 접속 대기: {currentHumans}/{expectedHumanCount}명");
+            NetworkManager.Singleton.OnClientConnectedCallback += OnWaitForClients;
+        }
+    }
+
+    void OnWaitForClients(ulong clientId)
+    {
+        Debug.Log($"[NGM] 클라이언트 접속 감지: {clientId} ({NetworkManager.Singleton.ConnectedClientsList.Count}/{expectedHumanCount}명)");
+        TryFinalizePlayerMapping();
     }
 
     void SetupPlayerMapping()
