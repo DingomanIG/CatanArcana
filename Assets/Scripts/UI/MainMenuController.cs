@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Unity.Services.Lobbies.Models;
@@ -188,6 +189,9 @@ public class MainMenuController : MonoBehaviour
 
     void Start()
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        WebGLInput.captureAllKeyboardInput = false;
+#endif
         SetNetworkButtonsEnabled(false);
         SetStatus("서비스 연결 중...");
         StartCoroutine(WaitForServicesCoroutine());
@@ -464,4 +468,38 @@ public class MainMenuController : MonoBehaviour
         btnCreateRoom?.SetEnabled(enabled);
         btnJoinRoom?.SetEnabled(enabled);
     }
+
+    // ========================
+    // WEBGL CLIPBOARD PASTE
+    // ========================
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+    [DllImport("__Internal")]
+    static extern void WebGL_GetClipboardText(string callbackObj, string callbackMethod);
+
+    void Update()
+    {
+        // Ctrl+V 감지 → JS clipboard API 호출
+        if ((Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
+            && Input.GetKeyDown(KeyCode.V))
+        {
+            WebGL_GetClipboardText(gameObject.name, "OnClipboardText");
+        }
+    }
+
+    /// <summary>
+    /// JS에서 클립보드 텍스트를 받아 포커스된 TextField에 붙여넣기
+    /// </summary>
+    public void OnClipboardText(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return;
+
+        // 현재 포커스된 TextField 찾기
+        var focused = uiDocument.rootVisualElement.focusController?.focusedElement;
+        if (focused is TextField tf)
+        {
+            tf.value = text.Trim();
+        }
+    }
+#endif
 }
