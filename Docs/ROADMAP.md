@@ -24,6 +24,7 @@ Claude Code + Unity 워크플로우 검증용 기본 카탄 구현.
 - [x] WebGL 빌드 설정 (Player Settings, Gzip 압축, 디컴프레션 폴백)
 - [x] GitHub Pages 배포 완료 (https://dingomanig.github.io/CatanArcana/)
 - [x] 로컬 빌드 → Docs/WebGL/ → push → 수동 배포 플로우 확립
+- [x] WebGL 텍스트 입력 수정 (네이티브 HTML input overlay — IME/한글 지원)
 
 ---
 

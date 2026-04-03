@@ -63,6 +63,7 @@
 - [x] P0: WebGL Player Settings (Gzip 압축, 디컴프레션 폴백)
 - [x] P0: GitHub Pages 배포 완료 (https://dingomanig.github.io/CatanArcana/)
 - [x] P1: 로컬 빌드 → Docs/WebGL/ → push → 수동 배포 플로우 확립
+- [x] P1: WebGL 텍스트 입력 수정 (네이티브 HTML input overlay — IME/한글 지원)
 - ~~P0: CI 빌드 (Unity Personal 시리얼 미지원으로 로컬 빌드 전환)~~
 
 ---

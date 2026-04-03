@@ -190,12 +190,64 @@ public class MainMenuController : MonoBehaviour
     void Start()
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
-        WebGLInput.captureAllKeyboardInput = false;
+        WebGLInput.captureAllKeyboardInput = true;
+        RegisterWebGLNativeTextInput(inputPlayerName);
+        RegisterWebGLNativeTextInput(profileNameField);
+        RegisterWebGLNativeTextInput(inputRoomCode);
 #endif
         SetNetworkButtonsEnabled(false);
         SetStatus("서비스 연결 중...");
         StartCoroutine(WaitForServicesCoroutine());
     }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+    [DllImport("__Internal")]
+    static extern void WebGLTextInput_Show(string objName, string callback, string initValue,
+        float x, float y, float w, float h, float fontSize);
+
+    [DllImport("__Internal")]
+    static extern void WebGLTextInput_Hide();
+
+    TextField _activeOverlayField;
+
+    void RegisterWebGLNativeTextInput(TextField tf)
+    {
+        if (tf == null) return;
+
+        // PointerDown on the TextField → show native overlay input
+        tf.RegisterCallback<PointerDownEvent>(evt =>
+        {
+            _activeOverlayField = tf;
+
+            // Get world rect of the TextField in panel coordinates
+            var rect = tf.worldBound;
+
+            // Panel coordinates → screen pixels (UI Toolkit uses top-left origin)
+            float x = rect.x;
+            float y = rect.y;
+            float w = rect.width;
+            float h = rect.height;
+            float fontSize = tf.resolvedStyle.fontSize > 0 ? tf.resolvedStyle.fontSize : 14f;
+
+            WebGLTextInput_Show(gameObject.name, "OnNativeTextInputResult",
+                tf.value ?? "", x, y, w, h, fontSize);
+
+            evt.StopPropagation();
+        });
+    }
+
+    /// <summary>
+    /// JS native input으로부터 최종 값을 받는 콜백
+    /// </summary>
+    public void OnNativeTextInputResult(string value)
+    {
+        if (_activeOverlayField != null)
+        {
+            _activeOverlayField.value = value;
+            _activeOverlayField = null;
+        }
+    }
+#endif
 
     // ========================
     // TAB SWITCHING
@@ -469,37 +521,5 @@ public class MainMenuController : MonoBehaviour
         btnJoinRoom?.SetEnabled(enabled);
     }
 
-    // ========================
-    // WEBGL CLIPBOARD PASTE
-    // ========================
-
-#if UNITY_WEBGL && !UNITY_EDITOR
-    [DllImport("__Internal")]
-    static extern void WebGL_GetClipboardText(string callbackObj, string callbackMethod);
-
-    void Update()
-    {
-        // Ctrl+V 감지 → JS clipboard API 호출
-        if ((Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
-            && Input.GetKeyDown(KeyCode.V))
-        {
-            WebGL_GetClipboardText(gameObject.name, "OnClipboardText");
-        }
-    }
-
-    /// <summary>
-    /// JS에서 클립보드 텍스트를 받아 포커스된 TextField에 붙여넣기
-    /// </summary>
-    public void OnClipboardText(string text)
-    {
-        if (string.IsNullOrEmpty(text)) return;
-
-        // 현재 포커스된 TextField 찾기
-        var focused = uiDocument.rootVisualElement.focusController?.focusedElement;
-        if (focused is TextField tf)
-        {
-            tf.value = text.Trim();
-        }
-    }
-#endif
+    // Clipboard paste is now handled natively by the HTML <input> overlay (WebGLTextInput.jslib)
 }
