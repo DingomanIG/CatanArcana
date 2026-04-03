@@ -73,7 +73,8 @@
       "Bash(grep -n \"enum GamePhase\\\\|enum BuildMode\\\\|enum DevCardUseState\\\\|enum DevCardType\" /c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Assets/Scripts/*.cs)",
       "Read(//c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/$LOCALAPPDATA/Unity/Editor/**)",
       "Read(//c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Local/Unity/Editor/**)",
-      "Bash(grep [CoastalEdge])"
+      "Bash(grep [CoastalEdge])",
+      "Bash(find c:/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan -type f -name *.jslib)"
     ],
     "additionalDirectories": [
       "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\$BASE\\Art",
