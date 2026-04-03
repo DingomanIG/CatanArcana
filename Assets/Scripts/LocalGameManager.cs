@@ -38,7 +38,6 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     // 초기 배치 상태
     int initialRound;
     int initialStepInRound;
-    bool initialWaitingForRoad;
     int lastPlacedVertexId;
 
     // 발전카드 상태
@@ -106,8 +105,10 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     public event Action OnIncomingTradeCancelled;
     public event Action<int> OnTradeDeclined; // (declinerPlayerIndex) 거래 거절 알림
     public event Action<int, int> OnDiscardRequired;
+#pragma warning disable CS0067 // 인터페이스 구현용 — 향후 사용 예정
     public event Action<int, string> OnPlayerDisconnected;
     public event Action OnHostDisconnected;
+#pragma warning restore CS0067
 
     // 초기 배치 진행 이벤트 (NetworkGameManager가 구독)
     // (playerIndex, isRoadPhase) — isRoadPhase=false: 마을 배치, true: 도로 배치
@@ -192,7 +193,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         grid.ResetBoardState();
 
         // 건물 비주얼 제거
-        var buildingVisuals = FindObjectOfType<BuildingVisuals>();
+        var buildingVisuals = FindFirstObjectByType<BuildingVisuals>();
         buildingVisuals?.ClearAllBuildings();
 
         // 도적 비주얼 리셋
@@ -229,7 +230,6 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         turnNumber = 0;
         initialRound = 0;
         initialStepInRound = 0;
-        initialWaitingForRoad = false;
 
         // 페이즈 리셋 (GameOver → WaitingForPlayers)
         currentPhase = GamePhase.WaitingForPlayers;
@@ -351,15 +351,12 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     void OnInitialSettlementPlaced(int vertexId)
     {
         lastPlacedVertexId = vertexId;
-        initialWaitingForRoad = true;
         Debug.Log($"[Local] {GetPlayerName(currentPlayerIndex)} 마을 배치 완료 → 도로를 배치하세요");
         StartInitialRoadMode();
     }
 
     void OnInitialRoadPlaced()
     {
-        initialWaitingForRoad = false;
-
         if (initialRound == 1)
         {
             GrantInitialResources(lastPlacedVertexId);

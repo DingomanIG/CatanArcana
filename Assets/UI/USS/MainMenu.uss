@@ -371,13 +371,100 @@
     -unity-font-style: italic;
 }
 
+/* Profile Panel */
+.profile-title {
+    color: rgb(212, 168, 69);
+    font-size: 18px;
+    -unity-font-style: bold;
+    padding: 16px 20px 8px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(74, 63, 53);
+}
+
+.profile-section {
+    padding: 20px 24px;
+}
+
+.profile-label {
+    color: rgb(168, 152, 128);
+    font-size: 13px;
+    -unity-font-style: bold;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+}
+
+.profile-name-row {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.profile-name-field {
+    flex-grow: 1;
+    height: 38px;
+    margin: 0;
+    margin-right: 8px;
+    font-size: 15px;
+    -unity-font-style: bold;
+}
+
+.profile-name-field #unity-text-input {
+    background-color: rgb(42, 36, 32);
+    border-width: 1px;
+    border-color: rgb(74, 63, 53);
+    border-radius: 6px;
+    color: rgb(232, 220, 200);
+    padding: 4px 10px;
+}
+
+.profile-name-field:focus #unity-text-input {
+    border-color: rgb(212, 168, 69);
+}
+
+.profile-btn-random {
+    width: 80px;
+    height: 38px;
+    font-size: 13px;
+}
+
+.btn--outline {
+    background-color: transparent;
+    border-width: 1px;
+    border-color: rgb(168, 152, 128);
+    border-radius: 6px;
+    color: rgb(168, 152, 128);
+}
+
+.btn--outline:hover {
+    border-color: rgb(212, 168, 69);
+    color: rgb(212, 168, 69);
+    background-color: rgba(212, 168, 69, 0.1);
+}
+
+.profile-save-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.profile-btn-save {
+    width: 100px;
+    height: 38px;
+    font-size: 14px;
+    margin-right: 12px;
+}
+
+.profile-status {
+    color: rgb(120, 200, 120);
+    font-size: 13px;
+    -unity-font-style: bold;
+}
+
 .status-overlay {
     position: absolute;
     bottom: 40px;
     left: 140px;
     right: 20px;
     -unity-text-align: middle-center;
-    picking-mode: ignore;
 }
 
 .version-label {

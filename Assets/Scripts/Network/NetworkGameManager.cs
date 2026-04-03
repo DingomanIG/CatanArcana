@@ -79,7 +79,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     public int FirstPlayerIndex => netFirstPlayerIndex.Value;
     public int PlayerCount => netPlayerCount.Value;
     public GamePhase CurrentPhase => (GamePhase)netCurrentPhase.Value;
-    public bool IsHost => IsServer;
+    public new bool IsHost => IsServer;
     public BuildMode CurrentBuildMode => (BuildMode)netCurrentBuildMode.Value;
     public DevCardUseState DevCardState => (DevCardUseState)netDevCardState.Value;
     public int DevCardDeckRemaining => netDevCardDeckRemaining.Value;
@@ -110,7 +110,9 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     public event Action<int, ResourceType, ResourceType, int> OnBankTrade;
     public event Action<int, int> OnPlayerTrade;
     public event Action<int, Dictionary<ResourceType, int>, Dictionary<ResourceType, int>> OnIncomingTradeProposal;
+#pragma warning disable CS0067 // 인터페이스 구현용 — 향후 네트워크 로직에서 사용 예정
     public event Action OnIncomingTradeCancelled;
+#pragma warning restore CS0067
     public event Action<int> OnTradeDeclined; // H3/H4: 거래 거절 알림 (declinerPlayerIndex)
     public event Action<int, int> OnDiscardRequired;
     public event Action<int, string> OnPlayerDisconnected;

@@ -31,12 +31,12 @@ public class BuildModeController : MonoBehaviour
 
     void Start()
     {
-        gridView = FindObjectOfType<HexGridView>();
+        gridView = FindFirstObjectByType<HexGridView>();
         buildingVisuals = GetComponent<BuildingVisuals>();
         if (buildingVisuals == null)
             buildingVisuals = gameObject.AddComponent<BuildingVisuals>();
 
-        uiDocument = FindObjectOfType<UIDocument>();
+        uiDocument = FindFirstObjectByType<UIDocument>();
 
         // 투명 레이아웃 컨테이너의 picking-mode를 Ignore로 설정
         // USS만으로 불확실하므로 C#에서도 확실히 설정

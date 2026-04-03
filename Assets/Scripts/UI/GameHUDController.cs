@@ -865,7 +865,7 @@ public class GameHUDController : MonoBehaviour
         string who = GM?.GetPlayerName(GM.CurrentPlayerIndex) ?? "?";
         AddEventLog($"{who} 도적 이동", "robber");
 
-        var gridView = FindObjectOfType<HexGridView>();
+        var gridView = FindFirstObjectByType<HexGridView>();
         if (gridView != null)
             gridView.MoveRobberVisual(newCoord);
     }
