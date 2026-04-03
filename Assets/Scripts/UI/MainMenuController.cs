@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -189,7 +190,7 @@ public class MainMenuController : MonoBehaviour
     {
         SetNetworkButtonsEnabled(false);
         SetStatus("서비스 연결 중...");
-        WaitForServices();
+        StartCoroutine(WaitForServicesCoroutine());
     }
 
     // ========================
@@ -235,19 +236,19 @@ public class MainMenuController : MonoBehaviour
     // SERVICES
     // ========================
 
-    async void WaitForServices()
+    IEnumerator WaitForServicesCoroutine()
     {
         if (GameNetworkManager.Instance == null)
         {
             SetStatus("로컬 플레이만 가능");
-            return;
+            yield break;
         }
 
-        int timeout = 30;
-        while (!GameNetworkManager.Instance.IsInitialized && timeout > 0)
+        float elapsed = 0f;
+        while (!GameNetworkManager.Instance.IsInitialized && elapsed < 15f)
         {
-            await System.Threading.Tasks.Task.Delay(200);
-            timeout--;
+            yield return new WaitForSeconds(0.3f);
+            elapsed += 0.3f;
         }
 
         if (GameNetworkManager.Instance.IsInitialized)
@@ -255,7 +256,7 @@ public class MainMenuController : MonoBehaviour
             networkReady = true;
             SetNetworkButtonsEnabled(true);
             SetStatus("준비 완료!");
-            await System.Threading.Tasks.Task.Delay(1000);
+            yield return new WaitForSeconds(1f);
             SetStatus("");
         }
         else
