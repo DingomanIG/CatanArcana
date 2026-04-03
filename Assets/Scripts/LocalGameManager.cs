@@ -257,7 +257,6 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         int total = die1 + die2;
 
         OnDiceRolled?.Invoke(die1, die2, total);
-        Debug.Log($"[Local] 주사위: {die1} + {die2} = {total}");
 
         if (total == 7)
         {
@@ -288,7 +287,6 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
         SetPhase(GamePhase.RollDice);
         OnTurnChanged?.Invoke(currentPlayerIndex);
-        Debug.Log($"[Local] 턴 {turnNumber} - {GetPlayerName(currentPlayerIndex)}");
     }
 
     public bool IsMyTurn() => humanPlayerIndex < 0 || currentPlayerIndex == humanPlayerIndex;
@@ -416,7 +414,6 @@ public class LocalGameManager : MonoBehaviour, IGameManager
             {
                 player.AddResource(tile.Resource, 1);
                 OnResourceChanged?.Invoke(currentPlayerIndex, tile.Resource, player.Resources[tile.Resource]);
-                Debug.Log($"[Local] {GetPlayerName(currentPlayerIndex)}: 초기 자원 +1 {tile.Resource}");
             }
         }
     }
@@ -454,8 +451,6 @@ public class LocalGameManager : MonoBehaviour, IGameManager
                 players[owner].AddResource(tile.Resource, amount);
                 OnResourceChanged?.Invoke(owner, tile.Resource, players[owner].Resources[tile.Resource]);
                 SFXManager.Instance?.Play(SFXType.ResourceGain);
-
-                Debug.Log($"[Local] {GetPlayerName(owner)}: +{amount} {tile.Resource} (타일 {tile.Coord})");
             }
         }
     }
@@ -507,7 +502,6 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     void ProceedToMoveRobber()
     {
         SetPhase(GamePhase.MoveRobber);
-        Debug.Log("[Local] 7 나옴! 도적 이동 필요 (아무 육지 타일 클릭)");
     }
 
     public void ConfirmDiscard(Dictionary<ResourceType, int> toDiscard)
@@ -590,7 +584,6 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         tile.HasRobber = true;
         OnRobberMoved?.Invoke(newTile);
         SFXManager.Instance?.Play(SFXType.RobberMove);
-        Debug.Log($"[Local] 도적 이동: {newTile}");
 
         bool fromKnight = devCardUseState == DevCardUseState.SelectingKnightTarget;
         if (fromKnight)
@@ -604,7 +597,6 @@ public class LocalGameManager : MonoBehaviour, IGameManager
             // 약탈 대상 없음 → 바로 진행
             if (!fromKnight)
                 SetPhase(GamePhase.Action);
-            Debug.Log("[Local] 도적 약탈 대상 없음");
         }
         else if (robberStealCandidates.Count == 1)
         {
@@ -619,7 +611,6 @@ public class LocalGameManager : MonoBehaviour, IGameManager
             // 대상 2명 이상 → 선택 UI 표시
             returnToActionAfterSteal = !fromKnight;
             SetPhase(GamePhase.StealResource);
-            Debug.Log($"[Local] 도적 약탈 대상 선택 필요: {robberStealCandidates.Count}명");
         }
 
         return true;
@@ -680,8 +671,6 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         NotifyAllResources(thiefIndex);
         OnRobberSteal?.Invoke(thiefIndex, victimIndex, stolen);
         SFXManager.Instance?.Play(SFXType.RobberSteal);
-
-        Debug.Log($"[Local] {GetPlayerName(thiefIndex)}이 {GetPlayerName(victimIndex)}에게서 {stolen} 1장 약탈!");
     }
 
     // ========================
@@ -1162,8 +1151,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
 
         if (player.Resources[give] < rate)
         {
-            Debug.Log($"[Local] 은행 거래 실패: {give} {rate}개 필요 (보유: {player.Resources[give]})");
-            return false;
+                return false;
         }
 
         // K3: 은행 거래 성사 → 관련 거래 제안 자동 취소 (제안자 또는 대상이 은행거래 시)
@@ -1177,8 +1165,6 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         NotifyAllResources(currentPlayerIndex);
         OnBankTrade?.Invoke(currentPlayerIndex, give, receive, rate);
         SFXManager.Instance?.Play(SFXType.BankTrade);
-
-        Debug.Log($"[Local] {GetPlayerName(currentPlayerIndex)}: 은행 거래 {give}×{rate} → {receive}×1");
         return true;
     }
 
@@ -1271,13 +1257,11 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         NotifyAllResources(p2);
         OnPlayerTrade?.Invoke(p1, p2);
         SFXManager.Instance?.Play(SFXType.TradeAccept);
-        Debug.Log($"[Local] {GetPlayerName(p1)} ↔ {GetPlayerName(p2)} 거래 성사!");
     }
 
     void CancelPendingIncomingTrade()
     {
         if (pendingIncomingTrade == null) return;
-        Debug.Log($"[Local] 수신 거래 제안 자동 취소 (제안자: {GetPlayerName(pendingIncomingTrade.proposer)})");
         pendingIncomingTrade = null;
         OnIncomingTradeCancelled?.Invoke();
     }
