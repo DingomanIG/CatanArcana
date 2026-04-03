@@ -4,6 +4,7 @@ using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
+using Unity.Networking.Transport.Relay;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using UnityEngine;
@@ -71,15 +72,14 @@ public class GameNetworkManager : MonoBehaviour
             Allocation allocation = await RelayService.Instance.CreateAllocationAsync(maxPlayers - 1);
             JoinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
 
-            // Transport 설정
+            // Transport 설정 (WebGL은 WebSocket만 지원)
             var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-            transport.SetRelayServerData(
-                allocation.RelayServer.IpV4,
-                (ushort)allocation.RelayServer.Port,
-                allocation.AllocationIdBytes,
-                allocation.Key,
-                allocation.ConnectionData
-            );
+            string connectionType = "dtls";
+#if UNITY_WEBGL && !UNITY_EDITOR
+            connectionType = "wss";
+#endif
+            var relayServerData = new RelayServerData(allocation, connectionType);
+            transport.SetRelayServerData(relayServerData);
 
             NetworkManager.Singleton.StartHost();
             RegisterCallbacks();
@@ -111,14 +111,12 @@ public class GameNetworkManager : MonoBehaviour
             JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
 
             var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-            transport.SetRelayServerData(
-                joinAllocation.RelayServer.IpV4,
-                (ushort)joinAllocation.RelayServer.Port,
-                joinAllocation.AllocationIdBytes,
-                joinAllocation.Key,
-                joinAllocation.ConnectionData,
-                joinAllocation.HostConnectionData
-            );
+            string connectionType = "dtls";
+#if UNITY_WEBGL && !UNITY_EDITOR
+            connectionType = "wss";
+#endif
+            var relayServerData = new RelayServerData(joinAllocation, connectionType);
+            transport.SetRelayServerData(relayServerData);
 
             NetworkManager.Singleton.StartClient();
             RegisterCallbacks();
