@@ -276,7 +276,8 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         {
             NetworkManager.Singleton.OnClientConnectedCallback -= OnWaitForClients;
             SetupPlayerMapping();
-            Debug.Log($"[NGM] 플레이어 매핑 완료 — 전원 접속 ({currentHumans}명)");
+            Debug.Log($"[NGM] 플레이어 매핑 완료 — 전원 접속 ({currentHumans}명), 매핑 {playerClientIds.Count}명");
+            FlushPendingReadyQueue();
         }
         else
         {
@@ -878,13 +879,28 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     // ================================================================
 
     readonly HashSet<int> readyPlayers = new();
+    readonly Queue<ulong> pendingReadyQueue = new(); // 매핑 전 도착한 준비 신호 대기열
 
     [ServerRpc(RequireOwnership = false)]
     public void RequestPlayerReadyServerRpc(ServerRpcParams rpcParams = default)
     {
-        int pi = GetPlayerIndexFromClientId(rpcParams.Receive.SenderClientId);
-        if (pi < 0) return;
+        ulong senderId = rpcParams.Receive.SenderClientId;
+        int pi = GetPlayerIndexFromClientId(senderId);
 
+        if (pi < 0)
+        {
+            // 매핑이 아직 안 됐을 수 있음 → 대기열에 저장
+            if (!pendingReadyQueue.Contains(senderId))
+                pendingReadyQueue.Enqueue(senderId);
+            Debug.LogWarning($"[NGM] Ready: 매핑 미완료 상태에서 준비 신호 수신 (clientId={senderId}), 대기열 저장");
+            return;
+        }
+
+        ProcessPlayerReady(pi);
+    }
+
+    void ProcessPlayerReady(int pi)
+    {
         readyPlayers.Add(pi);
 
         // AI 플레이어는 자동 준비 처리
@@ -893,13 +909,32 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
             if (IsAIPlayer(i)) readyPlayers.Add(i);
         }
 
-        Debug.Log($"[NGM] 플레이어 준비 완료: [{pi}] ({readyPlayers.Count}/{netPlayerCount.Value})");
+        Debug.Log($"[NGM] 플레이어 준비 완료: [{pi}] ({readyPlayers.Count}/{netPlayerCount.Value}, mapped={playerClientIds.Count})");
 
         if (readyPlayers.Count >= netPlayerCount.Value)
         {
             Debug.Log("[NGM] 전원 준비 완료 → 게임 시작!");
             readyPlayers.Clear();
             StartGame();
+        }
+    }
+
+    /// <summary>매핑 완료 후 대기열에 있던 준비 신호 처리</summary>
+    void FlushPendingReadyQueue()
+    {
+        while (pendingReadyQueue.Count > 0)
+        {
+            ulong clientId = pendingReadyQueue.Dequeue();
+            int pi = GetPlayerIndexFromClientId(clientId);
+            if (pi >= 0)
+            {
+                Debug.Log($"[NGM] 대기열 준비 신호 처리: clientId={clientId} → P{pi}");
+                ProcessPlayerReady(pi);
+            }
+            else
+            {
+                Debug.LogWarning($"[NGM] 대기열 준비 신호 무시: clientId={clientId} 매핑 없음");
+            }
         }
     }
 

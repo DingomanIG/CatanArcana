@@ -2594,7 +2594,6 @@ public class GameHUDController : MonoBehaviour
 
     void CloseTurnOrderOverlay()
     {
-        turnOrderOverlay?.AddToClassList("overlay--hidden");
         if (turnOrderCountdown != null)
         {
             StopCoroutine(turnOrderCountdown);
@@ -2606,7 +2605,7 @@ public class GameHUDController : MonoBehaviour
         {
             if (GM is NetworkGameManager ngm)
             {
-                // 네트워크: "준비 완료" 신호 → 전원 준비 시 호스트가 StartGame
+                // 네트워크: 오버레이 유지하면서 "대기 중..." 표시
                 if (btnCloseTurnOrder != null)
                 {
                     btnCloseTurnOrder.text = "대기 중...";
@@ -2614,7 +2613,7 @@ public class GameHUDController : MonoBehaviour
                 }
                 ngm.RequestPlayerReadyServerRpc();
                 // 오버레이는 StartGame 후 PhaseChanged 이벤트에서 닫힘
-                return; // 오버레이 아직 안 닫음
+                return;
             }
             else
             {
@@ -2622,6 +2621,8 @@ public class GameHUDController : MonoBehaviour
                 GM.StartGame();
             }
         }
+
+        turnOrderOverlay?.AddToClassList("overlay--hidden");
     }
 
     // ========================
