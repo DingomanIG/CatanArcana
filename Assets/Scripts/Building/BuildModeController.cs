@@ -335,21 +335,31 @@ public class BuildModeController : MonoBehaviour
     void PredictBuildingVisual(int vertexId, BuildingType type)
     {
         if (gridView?.Grid == null || buildingVisuals == null) return;
-        if (!gridView.Grid.Vertices.TryGetValue(vertexId, out var vertex)) return;
+        var verts = gridView.Grid.Vertices;
+        if (vertexId < 0 || vertexId >= verts.Count) return;
+        var vertex = verts[vertexId];
 
+        int pi = GetLocalPlayerIndex();
         if (type == BuildingType.Settlement)
-            buildingVisuals.CreateSettlement(vertex, activePlayerIndex);
+            buildingVisuals.CreateSettlement(vertex, pi);
         else if (type == BuildingType.City)
-            buildingVisuals.CreateCity(vertex, activePlayerIndex);
+            buildingVisuals.CreateCity(vertex, pi);
     }
 
     /// <summary>클라이언트 예측: 서버 응답 전 즉시 도로 비주얼 표시</summary>
     void PredictRoadVisual(int edgeId)
     {
         if (gridView?.Grid == null || buildingVisuals == null) return;
-        if (!gridView.Grid.Edges.TryGetValue(edgeId, out var edge)) return;
+        var edges = gridView.Grid.Edges;
+        if (edgeId < 0 || edgeId >= edges.Count) return;
 
-        buildingVisuals.CreateRoad(edge, activePlayerIndex);
+        buildingVisuals.CreateRoad(edges[edgeId], GetLocalPlayerIndex());
+    }
+
+    int GetLocalPlayerIndex()
+    {
+        var gm = GameServices.GameManager;
+        return gm != null ? gm.LocalPlayerIndex : activePlayerIndex;
     }
 
     bool IsPointerOverUI()
