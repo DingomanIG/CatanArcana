@@ -885,9 +885,12 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
             return false;
         }
 
+        // 초기 배치 중에는 마을→도로 연속 배치이므로 쿨다운 스킵
+        bool isInitialPlacement = hostLGM != null && hostLGM.CurrentPhase == GamePhase.InitialPlacement;
+
         ulong clientId = rpcParams.Receive.SenderClientId;
         float now = Time.time;
-        if (lastActionTime.TryGetValue(clientId, out float last) && now - last < 0.3f)
+        if (!isInitialPlacement && lastActionTime.TryGetValue(clientId, out float last) && now - last < 0.3f)
         {
             NetLog.Warn("LOCK", $"더블클릭 쿨다운 (client={clientId})");
             return false;
