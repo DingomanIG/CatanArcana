@@ -80,7 +80,18 @@
                         <ui:Label text="Coming Soon" class="placeholder-text"/>
                     </ui:VisualElement>
                     <ui:VisualElement name="panel-profile" class="content-panel content-panel--hidden">
-                        <ui:Label text="Coming Soon" class="placeholder-text"/>
+                        <ui:Label text="Profile" class="profile-title"/>
+                        <ui:VisualElement class="profile-section">
+                            <ui:Label text="Display Name" class="profile-label"/>
+                            <ui:VisualElement class="profile-name-row">
+                                <ui:TextField name="profile-name-input" max-length="16" class="profile-name-field"/>
+                                <ui:Button name="btn-profile-random" text="Random" class="btn btn--outline profile-btn-random"/>
+                            </ui:VisualElement>
+                            <ui:VisualElement class="profile-save-row">
+                                <ui:Button name="btn-profile-save" text="Save" class="btn btn--gold profile-btn-save"/>
+                                <ui:Label name="profile-status" class="profile-status"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>

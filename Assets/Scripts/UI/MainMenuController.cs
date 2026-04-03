@@ -22,6 +22,11 @@ public class MainMenuController : MonoBehaviour
     // User bar
     TextField inputPlayerName;
 
+    // Profile panel
+    TextField profileNameField;
+    Button profileSaveBtn;
+    Label profileStatus;
+
     // ROOMS panel
     Button roomsTabOpen, roomsTabSpectate;
     ScrollView roomListScroll;
@@ -125,14 +130,59 @@ public class MainMenuController : MonoBehaviour
         btnInvite.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); SetStatus("초대 기능은 준비 중입니다"); };
         btnStartGame.clicked += () => { SFXManager.Instance?.Play(SFXType.ButtonClick); OnStartGame(); };
 
-        // Load saved name
+        // Profile panel elements
+        profileNameField = root.Q<TextField>("profile-name-input");
+        profileSaveBtn = root.Q<Button>("btn-profile-save");
+        profileStatus = root.Q<Label>("profile-status");
+
+        // Load saved name or generate random
         string savedName = PlayerPrefs.GetString("PlayerName", "");
-        if (!string.IsNullOrEmpty(savedName))
-            inputPlayerName.value = savedName;
+        if (string.IsNullOrEmpty(savedName))
+            savedName = GenerateRandomName();
+        inputPlayerName.value = savedName;
 
         // P1 name follows input
         inputPlayerName.RegisterValueChangedCallback(evt => { if (playP1Name != null) playP1Name.text = evt.newValue; });
         if (playP1Name != null) playP1Name.text = inputPlayerName.value;
+
+        // Profile panel: sync name field and save button
+        if (profileNameField != null)
+        {
+            profileNameField.value = savedName;
+            profileNameField.RegisterValueChangedCallback(evt =>
+            {
+                inputPlayerName.value = evt.newValue;
+                if (profileStatus != null) profileStatus.text = "";
+            });
+        }
+        inputPlayerName.RegisterValueChangedCallback(evt =>
+        {
+            if (profileNameField != null) profileNameField.value = evt.newValue;
+        });
+        if (profileSaveBtn != null)
+        {
+            profileSaveBtn.clicked += () =>
+            {
+                SFXManager.Instance?.Play(SFXType.ButtonClick);
+                string name = GetPlayerName();
+                SavePlayerName(name);
+                if (profileStatus != null) profileStatus.text = "Saved!";
+            };
+        }
+
+        // Random name button
+        var btnRandom = root.Q<Button>("btn-profile-random");
+        if (btnRandom != null)
+        {
+            btnRandom.clicked += () =>
+            {
+                SFXManager.Instance?.Play(SFXType.ButtonClick);
+                string rnd = GenerateRandomName();
+                inputPlayerName.value = rnd;
+                if (profileNameField != null) profileNameField.value = rnd;
+                if (profileStatus != null) profileStatus.text = "";
+            };
+        }
     }
 
     void Start()
@@ -379,6 +429,12 @@ public class MainMenuController : MonoBehaviour
     // ========================
     // HELPERS
     // ========================
+
+    string GenerateRandomName()
+    {
+        string hex = Random.Range(0x1000, 0xFFFF).ToString("X4");
+        return $"Player_{hex}";
+    }
 
     string GetPlayerName()
     {

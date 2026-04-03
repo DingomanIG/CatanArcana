@@ -147,6 +147,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         netPlayerTotalResCount.OnListChanged += _ => SyncClientPlayerMirror();
         netPlayerKnightsPlayed.OnListChanged += _ => SyncClientPlayerMirror();
         netPlayerDevCardCounts.OnListChanged += _ => SyncClientPlayerMirror();
+        netPlayerNames.OnListChanged += _ => OnPlayerListChanged?.Invoke();
 
         // G1/G2: 최장도로/최대기사단 보유자 변경 시 미러 갱신
         netLongestRoadHolder.OnValueChanged += (_, __) => SyncClientPlayerMirror();
@@ -388,9 +389,15 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         hostLGM.OnTurnChanged += pi =>
         {
+            bool sameValue = netCurrentPlayerIndex.Value == pi;
             netCurrentPlayerIndex.Value = pi;
             netTurnNumber.Value = hostLGM.TurnNumber;
             NetLog.Phase($"턴 전환 → P{pi} (턴#{hostLGM.TurnNumber})");
+
+            // 같은 값이면 OnValueChanged가 안 터지므로 직접 이벤트 발생
+            // (예: 초기 배치 마지막 플레이어 == firstPlayerIndex일 때)
+            if (sameValue)
+                OnTurnChanged?.Invoke(pi);
         };
 
         hostLGM.OnPhaseChanged += phase =>
