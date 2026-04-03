@@ -346,6 +346,7 @@ public class AIController : MonoBehaviour
     IEnumerator DoFullTurn(int playerIndex)
     {
         var diff = GetDifficulty(playerIndex);
+        NetLog.Log("AI", $"P{playerIndex} DoFullTurn 시작 (phase={gm.CurrentPhase})");
 
         // 전략 결정 (초기 배치 완료 후 첫 일반 턴에서)
         // 실제 확보한 자원 타일을 보고 전략 선택
@@ -363,8 +364,22 @@ public class AIController : MonoBehaviour
         yield return new WaitForSeconds(actionDelay);
 
         // 1.5. 인간 플레이어 디스카드 대기 (7이 나왔을 때)
-        while (gm.IsWaitingForDiscard)
-            yield return null;
+        if (gm.IsWaitingForDiscard)
+        {
+            NetLog.Log("AI", $"P{playerIndex} 디스카드 대기 진입");
+            float discardWait = 0f;
+            while (gm.IsWaitingForDiscard)
+            {
+                discardWait += Time.deltaTime;
+                if (discardWait > 60f)
+                {
+                    NetLog.Warn("AI", $"P{playerIndex} 디스카드 대기 타임아웃 (60초)!");
+                    break;
+                }
+                yield return null;
+            }
+            NetLog.Log("AI", $"P{playerIndex} 디스카드 대기 완료 ({discardWait:F1}초)");
+        }
 
         // 2. 도적 이동 (7이 나왔을 때)
         if (gm.CurrentPhase == GamePhase.MoveRobber)
@@ -390,9 +405,15 @@ public class AIController : MonoBehaviour
         if (gm.CurrentPhase == GamePhase.Action)
         {
             yield return new WaitForSeconds(actionDelay);
+            NetLog.Log("AI", $"P{playerIndex} EndTurn 호출");
             gm.EndTurn();
         }
+        else
+        {
+            NetLog.Warn("AI", $"P{playerIndex} EndTurn 스킵 — phase={gm.CurrentPhase}");
+        }
 
+        NetLog.Log("AI", $"P{playerIndex} DoFullTurn 완료");
         currentCoroutine = null;
     }
 
@@ -511,6 +532,7 @@ public class AIController : MonoBehaviour
         if (endgameAccel) Debug.Log($"[AI] P{playerIndex} 클로디: 🔥 엔드게임 가속 모드! (VP:{player.VictoryPoints})");
 
         proposedToHumanThisTurn = false;
+        NetLog.Log("AI", $"P{playerIndex} DoActionPhase 시작 (maxActions={maxActions})");
 
         while (actions < maxActions && gm.CurrentPhase == GamePhase.Action)
         {
@@ -570,10 +592,22 @@ public class AIController : MonoBehaviour
                             }
                             else if (gm.HasPendingIncomingTrade)
                             {
-                                // 인간에게 거래 제안 → 응답까지 대기
+                                // 인간에게 거래 제안 → 응답까지 대기 (타임아웃 30초)
                                 proposedToHumanThisTurn = true;
+                                NetLog.Log("AI", $"P{playerIndex} 거래 응답 대기 시작");
+                                float tradeWait = 0f;
                                 while (gm.HasPendingIncomingTrade)
+                                {
+                                    tradeWait += Time.deltaTime;
+                                    if (tradeWait > 30f)
+                                    {
+                                        NetLog.Warn("AI", $"P{playerIndex} 거래 응답 타임아웃 (30초) — 자동 취소");
+                                        gm.RespondToIncomingTrade(false);
+                                        break;
+                                    }
                                     yield return null;
+                                }
+                                NetLog.Log("AI", $"P{playerIndex} 거래 응답 완료 ({tradeWait:F1}초)");
                                 yield return new WaitForSeconds(actionDelay);
                                 acted = true;
                             }
@@ -621,8 +655,13 @@ public class AIController : MonoBehaviour
                 }
             }
 
-            if (!acted) break; // 모든 액션 시도 실패 → 턴 종료
+            if (!acted)
+            {
+                NetLog.Log("AI", $"P{playerIndex} 액션 없음 → 루프 종료 (actions={actions})");
+                break;
+            }
         }
+        NetLog.Log("AI", $"P{playerIndex} DoActionPhase 완료 (actions={actions}, phase={gm.CurrentPhase})");
     }
 
     // ========================
