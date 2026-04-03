@@ -252,7 +252,8 @@ public class BuildModeController : MonoBehaviour
                 else if (gm != null && !gm.IsHost)
                 {
                     // 네트워크 클라이언트: ServerRpc 전송됨, 결과는 ClientRpc로 수신
-                    // 하이라이트 정리 (초기 배치 모드는 ClientRpc에서 재설정)
+                    // 클라이언트 예측: 즉시 로컬 비주얼 표시 (서버 응답 시 중복 체크로 스킵됨)
+                    PredictBuildingVisual(vertexId, BuildingType.Settlement);
                     CancelBuildMode();
                 }
                 else
@@ -274,6 +275,7 @@ public class BuildModeController : MonoBehaviour
                 }
                 else if (gm != null && !gm.IsHost)
                 {
+                    PredictRoadVisual(edgeId);
                     CancelBuildMode();
                 }
                 else
@@ -295,6 +297,7 @@ public class BuildModeController : MonoBehaviour
                 }
                 else if (gm != null && !gm.IsHost)
                 {
+                    PredictBuildingVisual(vertexId, BuildingType.City);
                     CancelBuildMode();
                 }
                 else
@@ -326,6 +329,27 @@ public class BuildModeController : MonoBehaviour
                 return;
             }
         }
+    }
+
+    /// <summary>클라이언트 예측: 서버 응답 전 즉시 건물 비주얼 표시</summary>
+    void PredictBuildingVisual(int vertexId, BuildingType type)
+    {
+        if (gridView?.Grid == null || buildingVisuals == null) return;
+        if (!gridView.Grid.Vertices.TryGetValue(vertexId, out var vertex)) return;
+
+        if (type == BuildingType.Settlement)
+            buildingVisuals.CreateSettlement(vertex, activePlayerIndex);
+        else if (type == BuildingType.City)
+            buildingVisuals.CreateCity(vertex, activePlayerIndex);
+    }
+
+    /// <summary>클라이언트 예측: 서버 응답 전 즉시 도로 비주얼 표시</summary>
+    void PredictRoadVisual(int edgeId)
+    {
+        if (gridView?.Grid == null || buildingVisuals == null) return;
+        if (!gridView.Grid.Edges.TryGetValue(edgeId, out var edge)) return;
+
+        buildingVisuals.CreateRoad(edge, activePlayerIndex);
     }
 
     bool IsPointerOverUI()
