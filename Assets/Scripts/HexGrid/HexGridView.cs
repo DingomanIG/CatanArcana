@@ -128,7 +128,7 @@ public class HexGridView : MonoBehaviour
             var dots = token.transform.Find("Dots").GetComponent<TextMesh>();
             if (dotCount > 0)
             {
-                dots.text = new string('\u2022', dotCount);
+                dots.text = new string('.', dotCount);
                 dots.color = isHot ? Color.red : Color.black;
                 SetTextMeshDepthTest(dots.gameObject);
             }
@@ -186,7 +186,7 @@ public class HexGridView : MonoBehaviour
             dotsGo.transform.localPosition = new Vector3(0f, 0.05f, -hexSize * 0.18f);
             dotsGo.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
             var dotTm = dotsGo.AddComponent<TextMesh>();
-            dotTm.text = new string('\u2022', fallbackDotCount);
+            dotTm.text = new string('.', fallbackDotCount);
             dotTm.characterSize = hexSize * 0.025f;
             dotTm.anchor = TextAnchor.MiddleCenter;
             dotTm.alignment = TextAlignment.Center;

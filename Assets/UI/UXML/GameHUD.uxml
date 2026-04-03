@@ -224,7 +224,7 @@
                 <ui:Button name="btn-confirm-discard" text="확인" class="trade-execute-btn"/>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="rules-overlay" class="overlay overlay--hidden" style="display: none;">
+        <ui:VisualElement name="rules-overlay" class="overlay overlay--hidden">
             <ui:VisualElement class="overlay-panel rules-panel">
                 <ui:Label text="게임 규칙" class="overlay-title"/>
                 <ui:ScrollView class="rules-scroll">

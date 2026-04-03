@@ -115,6 +115,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     public event Action OnIncomingTradeCancelled;
 #pragma warning restore CS0067
     public event Action<int> OnTradeDeclined; // H3/H4: 거래 거절 알림 (declinerPlayerIndex)
+    public event Action<string> OnTradeRequestFailed; // 거래 요청 서버 검증 실패 알림
     public event Action<int, int> OnDiscardRequired;
     public event Action<int, string> OnPlayerDisconnected;
     public event Action OnHostDisconnected;
@@ -769,6 +770,13 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         OnTradeDeclined?.Invoke(declinerPlayerIndex);
     }
 
+    /// <summary>거래 요청 서버 검증 실패 시 제안자에게 알림</summary>
+    [ClientRpc]
+    void NotifyTradeRequestFailedClientRpc(FixedString128Bytes reason, ClientRpcParams clientRpcParams = default)
+    {
+        OnTradeRequestFailed?.Invoke(reason.ToString());
+    }
+
     [ClientRpc]
     void NotifyResourceUpdateClientRpc(int playerIndex, ResArray resources, ClientRpcParams clientRpcParams = default)
     {
@@ -1069,9 +1077,27 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         ServerRpcParams rpcParams = default)
     {
         int pi = ValidateSender(rpcParams);
-        if (!ValidateTurn(pi)) return;
+        if (pi < 0)
+        {
+            Debug.LogWarning($"[NGM] PlayerTrade: ValidateSender 실패 (senderId={rpcParams.Receive.SenderClientId})");
+            return;
+        }
+        if (!ValidateTurn(pi))
+        {
+            Debug.LogWarning($"[NGM] PlayerTrade: 턴 검증 실패 sender={pi}, current={hostLGM.CurrentPlayerIndex}");
+            var failParams = GetTargetedParams(pi);
+            NotifyTradeRequestFailedClientRpc("현재 당신의 턴이 아닙니다.", failParams);
+            return;
+        }
         NetLog.ServerRpc("PlayerTrade", pi, $"→P{otherPlayer}");
-        hostLGM.TryPlayerTrade(otherPlayer, offer.ToDict(), request.ToDict());
+        bool success = hostLGM.TryPlayerTrade(otherPlayer, offer.ToDict(), request.ToDict());
+        if (!success && hostLGM.PendingTradeTarget < 0)
+        {
+            // 제안 전환이 아닌 진짜 실패 (자원 부족, 페이즈 불일치 등)
+            Debug.LogWarning($"[NGM] PlayerTrade: TryPlayerTrade 실패 (P{pi}→P{otherPlayer}, phase={hostLGM.CurrentPhase})");
+            var failParams = GetTargetedParams(pi);
+            NotifyTradeRequestFailedClientRpc("거래 요청이 실패했습니다.", failParams);
+        }
     }
 
     [ServerRpc(RequireOwnership = false)]

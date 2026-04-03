@@ -525,6 +525,8 @@ public class GameHUDController : MonoBehaviour
             GM.OnDiscardRequired += HandleDiscardRequired;
             GM.OnPlayerDisconnected += HandlePlayerDisconnected;
             GM.OnHostDisconnected += HandleHostDisconnected;
+            if (GM is NetworkGameManager ngm3)
+                ngm3.OnTradeRequestFailed += HandleTradeRequestFailed;
         }
     }
 
@@ -556,6 +558,8 @@ public class GameHUDController : MonoBehaviour
             GM.OnDiscardRequired -= HandleDiscardRequired;
             GM.OnPlayerDisconnected -= HandlePlayerDisconnected;
             GM.OnHostDisconnected -= HandleHostDisconnected;
+            if (GM is NetworkGameManager ngm3)
+                ngm3.OnTradeRequestFailed -= HandleTradeRequestFailed;
         }
     }
 
@@ -943,6 +947,13 @@ public class GameHUDController : MonoBehaviour
             if (kv.Value == null) { anyPending = true; break; }
 
         if (!anyPending) isWaitingForTradeResponse = false;
+    }
+
+    void HandleTradeRequestFailed(string reason)
+    {
+        isWaitingForTradeResponse = false;
+        ShowToast("trade", reason);
+        SFXManager.Instance?.Play(SFXType.TradeReject);
     }
 
     void BuildIncomingResourceDisplay(VisualElement grid, Dictionary<ResourceType, int> amounts)
