@@ -510,7 +510,10 @@ public class GameHUDController : MonoBehaviour
             GM.OnDevCardPurchased += HandleDevCardPurchased;
             GM.OnDevCardUsed += HandleDevCardUsed;
             if (GM is NetworkGameManager ngm)
+            {
                 ngm.OnDevCardCountChanged += HandleDevCardCountChanged;
+                ngm.OnBankResourcesChanged += HandleBankResourcesChanged;
+            }
             GM.OnLongestRoadChanged += HandleLongestRoadChanged;
             GM.OnLargestArmyChanged += HandleLargestArmyChanged;
             GM.OnRobberMoved += HandleRobberMoved;
@@ -543,7 +546,10 @@ public class GameHUDController : MonoBehaviour
             GM.OnDevCardPurchased -= HandleDevCardPurchased;
             GM.OnDevCardUsed -= HandleDevCardUsed;
             if (GM is NetworkGameManager ngm2)
+            {
                 ngm2.OnDevCardCountChanged -= HandleDevCardCountChanged;
+                ngm2.OnBankResourcesChanged -= HandleBankResourcesChanged;
+            }
             GM.OnLongestRoadChanged -= HandleLongestRoadChanged;
             GM.OnLargestArmyChanged -= HandleLargestArmyChanged;
             GM.OnRobberMoved -= HandleRobberMoved;
@@ -2331,6 +2337,8 @@ public class GameHUDController : MonoBehaviour
         };
         if (target != null) target.text = count.ToString();
     }
+
+    void HandleBankResourcesChanged() => UpdateBankResources();
 
     void UpdateBankResources()
     {

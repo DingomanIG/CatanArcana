@@ -62,6 +62,9 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     // 플레이어 이름 (FixedString64Bytes — NetworkList 지원)
     NetworkList<FixedString64Bytes> netPlayerNames;
 
+    // 은행 자원 잔고 (인덱스 0~4 = Wood, Brick, Wool, Wheat, Ore)
+    NetworkList<int> netBankResources;
+
     // ================================================================
     // 클라이언트 측 미러 데이터
     // ================================================================
@@ -105,6 +108,8 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     public event Action<int, DevCardType> OnDevCardUsed;
     /// <summary>카드 목록 변경 시 UI 갱신 전용 (이벤트 로그 없음)</summary>
     public event Action<int> OnDevCardCountChanged;
+    /// <summary>은행 자원 잔고 변경 시 UI 갱신용</summary>
+    public event Action OnBankResourcesChanged;
     public event Action<int, bool> OnLongestRoadChanged;
     public event Action<int, bool> OnLargestArmyChanged;
     public event Action<int, int, ResourceType> OnRobberSteal;
@@ -132,6 +137,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         netPlayerKnightsPlayed = new NetworkList<int>();
         netPlayerDevCardCounts = new NetworkList<int>();
         netPlayerNames = new NetworkList<FixedString64Bytes>();
+        netBankResources = new NetworkList<int>();
     }
 
     public override void OnNetworkSpawn()
@@ -150,6 +156,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         netPlayerKnightsPlayed.OnListChanged += _ => SyncClientPlayerMirror();
         netPlayerDevCardCounts.OnListChanged += _ => SyncClientPlayerMirror();
         netPlayerNames.OnListChanged += _ => OnPlayerListChanged?.Invoke();
+        netBankResources.OnListChanged += _ => OnBankResourcesChanged?.Invoke();
 
         // G1/G2: 최장도로/최대기사단 보유자 변경 시 미러 갱신
         netLongestRoadHolder.OnValueChanged += (_, __) => SyncClientPlayerMirror();
@@ -466,6 +473,8 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
             var ps = hostLGM.GetPlayerState(pi);
             if (ps != null && pi < netPlayerTotalResCount.Count)
                 netPlayerTotalResCount[pi] = ps.TotalResourceCount;
+            // 은행 자원 동기화
+            SyncBankResources();
             // 호스트 UI: 상대 자원 변동 시 이벤트 전파 (상대 카드 갱신용)
             // 호스트 본인은 NotifyResourceUpdateClientRpc에서 처리되므로 제외
             if (pi != localPlayerIndex)
@@ -601,6 +610,19 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         // 공개 총 자원 수
         if (playerIndex < netPlayerTotalResCount.Count)
             netPlayerTotalResCount[playerIndex] = ps.TotalResourceCount;
+    }
+
+    void SyncBankResources()
+    {
+        if (!IsServer || hostLGM == null) return;
+
+        // 초기화: 아직 리스트가 비어있으면 5개 항목 추가
+        while (netBankResources.Count < 5)
+            netBankResources.Add(19);
+
+        var types = new[] { ResourceType.Wood, ResourceType.Brick, ResourceType.Wool, ResourceType.Wheat, ResourceType.Ore };
+        for (int i = 0; i < types.Length; i++)
+            netBankResources[i] = hostLGM.GetBankResourceCount(types[i]);
     }
 
     void SyncPlayerPublicInfo(int playerIndex)
@@ -1201,6 +1223,9 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
 
             // 게임 시작 (InitialPlacement 진입)
             hostLGM.StartGame();
+
+            // 은행 자원 초기 동기화
+            SyncBankResources();
         }
     }
 
@@ -1449,7 +1474,20 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     public int GetBankResourceCount(ResourceType type)
     {
         if (IsServer) return hostLGM.GetBankResourceCount(type);
-        return 19; // 클라이언트는 정확한 은행 잔고 모름
+
+        // 클라이언트: NetworkList에서 은행 잔고 조회
+        int idx = type switch
+        {
+            ResourceType.Wood  => 0,
+            ResourceType.Brick => 1,
+            ResourceType.Wool  => 2,
+            ResourceType.Wheat => 3,
+            ResourceType.Ore   => 4,
+            _ => -1
+        };
+        if (idx >= 0 && idx < netBankResources.Count)
+            return netBankResources[idx];
+        return 19;
     }
 
     public int GetLongestRoadLength(int playerIndex)
