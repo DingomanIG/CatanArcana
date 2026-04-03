@@ -6,16 +6,10 @@
     <title>Unity Web Player | Arcana Board</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
-    <style>
-      * { margin: 0; padding: 0; }
-      html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1625; }
-      #unity-container { width: 100%; height: 100%; }
-      #unity-footer { display: none; }
-    </style>
   </head>
   <body>
     <div id="unity-container" class="unity-desktop">
-      <canvas id="unity-canvas" tabindex="-1" style="width:100%;height:100%"></canvas>
+      <canvas id="unity-canvas" width=1920 height=1080 tabindex="-1"></canvas>
       <div id="unity-loading-bar">
         <div id="unity-logo"></div>
         <div id="unity-progress-bar-empty">
@@ -83,7 +77,6 @@
       // happening inside the engine, and you would instead like to size up
       // the canvas DOM size and WebGL render target sizes yourself.
       // config.matchWebGLToCanvasSize = false;
-      config.devicePixelRatio = 1;
 
       // If you would like all file writes inside Unity Application.persistentDataPath
       // directory to automatically persist so that the contents are remembered when
@@ -110,16 +103,10 @@
 
 
       } else {
-        // Desktop style: fill the whole browser window
-        canvas.style.width = "100vw";
-        canvas.style.height = "100vh";
+        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
+        canvas.style.width = "1920px";
+        canvas.style.height = "1080px";
       }
-
-      // Auto-resize on window change
-      window.addEventListener('resize', function() {
-        canvas.style.width = "100vw";
-        canvas.style.height = "100vh";
-      });
 
       document.querySelector("#unity-loading-bar").style.display = "block";
 

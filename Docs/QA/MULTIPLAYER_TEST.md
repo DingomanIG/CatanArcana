@@ -27,13 +27,13 @@
 - [x] **C1** 주사위 굴리기 (`NotifyDiceRolledClientRpc`) — 양쪽 동일 결과 표시
 - [ ] **C2** 자원 분배 정착지=1, 도시=2 (`NotifyResourceUpdateClientRpc`)
 - [ ] **C3** 사막/강도 타일 미생산 — 강도 있는 타일 자원 안 줌
-- [C] **C4** 자원 비공개 (`netPlayerTotalResCount`) — 이상하게 보임,정보가 다름 ~~(코드 로직 정상, 재테스트 필요)~~
+- [X] **C4** 자원 비공개 (`netPlayerTotalResCount`) — 이상하게 보임,정보가 다름 ~~(코드 로직 정상, 재테스트 필요)~~
 
 ## D. 강도 (7 굴렸을 때)
 
 - [X] **D1** 8 이상 자원 보유자 반토막 (`NotifyDiscardRequiredClientRpc`) — 8장 이상만 디스카드 요청
 - [X] **D2** 디스카드 확인 (`RequestConfirmDiscardServerRpc`) — 선택 자원 차감, 게임 진행
-- [C] **D3** 강도 이동 (`NotifyRobberMovedClientRpc`) — 강도 이동전에 상대가 디스카드 요청중이면 주사위를 굴림 그리고 도적 이동 ~~(수정: 디스카드 대기 중 RollDice 차단 추가)~~
+- [X] **D3** 강도 이동 (`NotifyRobberMovedClientRpc`) — 강도 이동전에 상대가 디스카드 요청중이면 주사위를 굴림 그리고 도적 이동 ~~(수정: 디스카드 대기 중 RollDice 차단 추가)~~
 - [ ] **D4** 도둑질 대상 선택 (`NotifyStealCandidatesClientRpc`) — 해당 타일 건물주만 후보
 - [X] **D5** 자원 훔치기 실행 (`NotifyRobberStealClientRpc`) — 도둑/피해자 자원 변동
 - [X] **D6** 강도 위치에서 자원 미생산 — 이후 주사위에서 해당 타일 자원 차단
@@ -50,7 +50,7 @@
 
 ## F. 발전 카드
 
-- [C] **F1** 카드 구매 (양+밀+광석) — 호스트는 구매됨,빌드쪽은 구매 되지만 자원이 감소됨 하지만 발전 카드가 안보임 ~~(수정: Targeted RPC로 카드 타입 전송 + DevCards 동기화)~~
+- [X] **F1** 카드 구매 (양+밀+광석) — 호스트는 구매됨,빌드쪽은 구매 되지만 자원이 감소됨 하지만 발전 카드가 안보임 ~~(수정: Targeted RPC로 카드 타입 전송 + DevCards 동기화)~~
 - [ ] **F2** 기사 사용 → 강도 이동 — 기사 카운트 증가
 - [ ] **F3** 도로 건설 카드 — 자원 소모 없이 도로 2개
 - [ ] **F4** 풍년 카드 — 선택한 자원 2개 수령
