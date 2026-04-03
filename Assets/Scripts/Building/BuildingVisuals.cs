@@ -3,6 +3,7 @@ using UnityEngine;
 
 /// <summary>
 /// 건물 비주얼 관리 - 건물 생성 + 하이라이트
+/// WebGL 최적화: 메시 캐싱 + 머티리얼 공유 (CreatePrimitive 제거)
 /// </summary>
 public class BuildingVisuals : MonoBehaviour
 {
@@ -25,6 +26,13 @@ public class BuildingVisuals : MonoBehaviour
 
     Material defaultMaterial;
     Material highlightMaterial;
+    Material highlightValidMat;   // 공유 인스턴스 (VALID 색상)
+    Material highlightHoverMat;   // 공유 인스턴스 (HOVER 색상)
+
+    // 캐싱된 프리미티브 메시 (CreatePrimitive 대체)
+    Mesh cachedSphereMesh;
+    Mesh cachedCubeMesh;
+    Mesh cachedCylinderMesh;
 
     Transform buildingsParent;
     Transform highlightsParent;
@@ -51,11 +59,46 @@ public class BuildingVisuals : MonoBehaviour
         highlightMaterial.renderQueue = 3000;
         highlightMaterial.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
 
+        // 하이라이트용 공유 머티리얼 (개별 인스턴스 생성 제거)
+        highlightValidMat = new Material(highlightMaterial);
+        highlightValidMat.color = HIGHLIGHT_VALID;
+        highlightHoverMat = new Material(highlightMaterial);
+        highlightHoverMat.color = HIGHLIGHT_HOVER;
+
+        // 프리미티브 메시 캐싱 (CreatePrimitive 없이 메시만 추출)
+        CachePrimitiveMeshes();
+
         buildingsParent = new GameObject("Buildings").transform;
         buildingsParent.SetParent(transform);
 
         highlightsParent = new GameObject("Highlights").transform;
         highlightsParent.SetParent(transform);
+    }
+
+    void CachePrimitiveMeshes()
+    {
+        // 임시 프리미티브에서 메시만 추출 후 즉시 파괴 (Awake에서 1회만)
+        var tmpSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        cachedSphereMesh = tmpSphere.GetComponent<MeshFilter>().sharedMesh;
+        DestroyImmediate(tmpSphere);
+
+        var tmpCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        cachedCubeMesh = tmpCube.GetComponent<MeshFilter>().sharedMesh;
+        DestroyImmediate(tmpCube);
+
+        var tmpCylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        cachedCylinderMesh = tmpCylinder.GetComponent<MeshFilter>().sharedMesh;
+        DestroyImmediate(tmpCylinder);
+    }
+
+    /// <summary>캐싱된 메시로 가벼운 GameObject 생성 (콜라이더 없음)</summary>
+    GameObject CreateLightPrimitive(Mesh mesh, Transform parent)
+    {
+        var go = new GameObject();
+        go.AddComponent<MeshFilter>().sharedMesh = mesh;
+        go.AddComponent<MeshRenderer>();
+        go.transform.SetParent(parent);
+        return go;
     }
 
     public static Color GetPlayerColor(int playerIndex)
@@ -82,7 +125,7 @@ public class BuildingVisuals : MonoBehaviour
         }
         else
         {
-            go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go = CreateLightPrimitive(cachedCubeMesh, buildingsParent);
             go.transform.localScale = new Vector3(0.25f, 0.25f, 0.25f);
         }
         go.name = $"Settlement_P{playerIndex}_V{vertex.Id}";
@@ -112,7 +155,7 @@ public class BuildingVisuals : MonoBehaviour
         }
         else
         {
-            go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go = CreateLightPrimitive(cachedCubeMesh, buildingsParent);
             go.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
         }
         go.name = $"City_P{playerIndex}_V{vertex.Id}";
@@ -142,9 +185,8 @@ public class BuildingVisuals : MonoBehaviour
         }
         else
         {
-            go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            go = CreateLightPrimitive(cachedCylinderMesh, buildingsParent);
             go.transform.localScale = new Vector3(0.1f, dir.magnitude / 2f, 0.1f);
-            Destroy(go.GetComponent<Collider>());
         }
         go.name = $"Road_P{playerIndex}_E{edge.Id}";
         go.transform.SetParent(buildingsParent);
@@ -192,7 +234,7 @@ public class BuildingVisuals : MonoBehaviour
             }
             else
             {
-                go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                go = CreateLightPrimitive(cachedSphereMesh, highlightsParent);
                 go.transform.localScale = Vector3.one * 0.3f;
             }
             go.name = $"Highlight_V{vertex.Id}";
@@ -200,12 +242,8 @@ public class BuildingVisuals : MonoBehaviour
             go.transform.position = vertex.Position + Vector3.up * 0.1f;
             go.layer = 0;
 
-            // 콜라이더 제거 (화면 좌표 기반 감지 사용)
-            foreach (var c in go.GetComponents<Collider>()) Destroy(c);
-
-            var mr = go.GetComponent<MeshRenderer>();
-            mr.material = new Material(highlightMaterial);
-            mr.material.color = HIGHLIGHT_VALID;
+            // 공유 머티리얼 사용 (개별 인스턴스 생성 없음)
+            go.GetComponent<MeshRenderer>().sharedMaterial = highlightValidMat;
 
             highlightObjects.Add(go);
             highlightToVertexId[go] = vertex.Id;
@@ -227,7 +265,7 @@ public class BuildingVisuals : MonoBehaviour
             }
             else
             {
-                go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                go = CreateLightPrimitive(cachedCylinderMesh, highlightsParent);
                 go.transform.localScale = new Vector3(0.15f, dir.magnitude / 2f, 0.15f);
             }
             go.name = $"Highlight_E{edge.Id}";
@@ -236,12 +274,8 @@ public class BuildingVisuals : MonoBehaviour
             go.transform.rotation = Quaternion.LookRotation(dir) * Quaternion.Euler(90f, 0f, 0f);
             go.layer = 0;
 
-            // 콜라이더 제거 (화면 좌표 기반 감지 사용)
-            foreach (var c in go.GetComponents<Collider>()) Destroy(c);
-
-            var mr = go.GetComponent<MeshRenderer>();
-            mr.material = new Material(highlightMaterial);
-            mr.material.color = HIGHLIGHT_VALID;
+            // 공유 머티리얼 사용 (개별 인스턴스 생성 없음)
+            go.GetComponent<MeshRenderer>().sharedMaterial = highlightValidMat;
 
             highlightObjects.Add(go);
             highlightToEdgeId[go] = edge.Id;
@@ -289,7 +323,7 @@ public class BuildingVisuals : MonoBehaviour
         if (currentHover != null && currentHover != target)
         {
             var prevMr = currentHover.GetComponent<MeshRenderer>();
-            if (prevMr != null) prevMr.material.color = HIGHLIGHT_VALID;
+            if (prevMr != null) prevMr.sharedMaterial = highlightValidMat;
         }
 
         currentHover = target;
@@ -297,7 +331,7 @@ public class BuildingVisuals : MonoBehaviour
         if (target != null)
         {
             var mr = target.GetComponent<MeshRenderer>();
-            if (mr != null) mr.material.color = HIGHLIGHT_HOVER;
+            if (mr != null) mr.sharedMaterial = highlightHoverMat;
         }
     }
 
