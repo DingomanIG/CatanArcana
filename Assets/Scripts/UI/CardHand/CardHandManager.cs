@@ -162,7 +162,14 @@ namespace ArcanaCatan.UI.CardHand
 
         // === Card Management ===
 
+        /// <summary>레거시 — DevCardType으로 추가</summary>
         public BaseCard AddCard(DevCardType type)
+        {
+            return AddCard(CardData.Development(type));
+        }
+
+        /// <summary>통합 — CardData로 추가, 정렬 순서에 맞게 삽입</summary>
+        public BaseCard AddCard(CardData data)
         {
             if (cardPrefab == null)
             {
@@ -172,13 +179,23 @@ namespace ArcanaCatan.UI.CardHand
 
             GameObject cardObj = Instantiate(cardPrefab, cardContainer);
             BaseCard baseCard = cardObj.GetComponent<BaseCard>();
-            baseCard.Initialize(this, type, cards.Count);
+
+            // 정렬 순서에 맞는 삽입 위치 찾기
+            int insertIndex = 0;
+            for (int i = 0; i < cards.Count; i++)
+            {
+                if (cards[i].CardData != null && cards[i].CardData.SortOrder <= data.SortOrder)
+                    insertIndex = i + 1;
+            }
+
+            baseCard.Initialize(this, data, insertIndex);
 
             CardVisual visual = cardObj.GetComponentInChildren<CardVisual>();
             if (visual != null)
                 visual.Initialize(baseCard);
 
-            cards.Add(baseCard);
+            cards.Insert(insertIndex, baseCard);
+            UpdateCardIndices();
 
             // 부채꼴 목표 위치 계산
             int count = cards.Count;

@@ -15,8 +15,11 @@ namespace ArcanaCatan.UI.CardHand
         IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         [Header("Data")]
-        public DevCardType cardType;
+        public DevCardType cardType;    // 레거시 호환
         public int cardIndex;
+
+        /// <summary>통합 카드 데이터</summary>
+        public CardData CardData { get; private set; }
 
         [Header("Selection")]
         [SerializeField] private float selectionOffsetY = 30f;
@@ -41,10 +44,18 @@ namespace ArcanaCatan.UI.CardHand
 
         public RectTransform RectTransform => rectTransform;
 
+        /// <summary>레거시 초기화 (DevCardType)</summary>
         public void Initialize(CardHandManager manager, DevCardType type, int index)
         {
-            handManager = manager;
+            Initialize(manager, CardData.Development(type), index);
             cardType = type;
+        }
+
+        /// <summary>통합 카드 데이터로 초기화</summary>
+        public void Initialize(CardHandManager manager, CardData data, int index)
+        {
+            handManager = manager;
+            CardData = data;
             cardIndex = index;
             rectTransform = GetComponent<RectTransform>();
             parentCanvas = GetComponentInParent<Canvas>();
@@ -90,6 +101,7 @@ namespace ArcanaCatan.UI.CardHand
         public void OnBeginDrag(PointerEventData eventData)
         {
             if (eventData.button != PointerEventData.InputButton.Left) return;
+            if (CardData != null && !CardData.IsDraggable) return;
             IsDragging = true;
 
             RectTransformUtility.ScreenPointToLocalPointInRectangle(

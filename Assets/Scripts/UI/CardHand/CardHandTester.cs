@@ -4,35 +4,58 @@ using UnityEngine.InputSystem;
 namespace ArcanaCatan.UI.CardHand
 {
     /// <summary>
-    /// 카드 핸드 테스트용 - 키보드로 카드 추가/제거.
-    /// Game 씬에서 CardHandManager에 붙여서 사용.
+    /// 카드 핸드 테스트용 — 키보드로 카드 추가/제거.
     /// </summary>
     public class CardHandTester : MonoBehaviour
     {
         [SerializeField] private CardHandManager handManager;
 
-        private DevCardType[] testTypes = {
-            DevCardType.Knight,
-            DevCardType.VictoryPoint,
-            DevCardType.RoadBuilding,
-            DevCardType.YearOfPlenty,
+        [Header("테스트 모드")]
+        [SerializeField] private bool testResourceCards = true;
+        [SerializeField] private bool testDevCards = true;
+
+        private ResourceType[] resourceTypes = {
+            ResourceType.Wood, ResourceType.Brick,
+            ResourceType.Wool, ResourceType.Wheat, ResourceType.Ore
+        };
+
+        private DevCardType[] devTypes = {
+            DevCardType.Knight, DevCardType.VictoryPoint,
+            DevCardType.RoadBuilding, DevCardType.YearOfPlenty,
             DevCardType.Monopoly
         };
 
-        private int typeIndex;
+        private int resIndex;
+        private int devIndex;
 
         private void Update()
         {
             var keyboard = Keyboard.current;
             if (keyboard == null) return;
 
-            // Space: 카드 추가
-            if (keyboard.spaceKey.wasPressedThisFrame)
+            // Space: 자원 카드 추가 (순환)
+            if (keyboard.spaceKey.wasPressedThisFrame && testResourceCards)
             {
-                var type = testTypes[typeIndex % testTypes.Length];
-                handManager.AddCard(type);
-                typeIndex++;
-                Debug.Log($"[CardHandTest] Added {type} (total: {handManager.CardCount})");
+                var type = resourceTypes[resIndex % resourceTypes.Length];
+                handManager.AddCard(CardData.Resource(type));
+                resIndex++;
+                Debug.Log($"[Test] 자원 추가: {type} (총 {handManager.CardCount})");
+            }
+
+            // D: 발전 카드 추가 (순환)
+            if (keyboard.dKey.wasPressedThisFrame && testDevCards)
+            {
+                var type = devTypes[devIndex % devTypes.Length];
+                handManager.AddCard(CardData.Development(type));
+                devIndex++;
+                Debug.Log($"[Test] 발전카드 추가: {type} (총 {handManager.CardCount})");
+            }
+
+            // B: 보너스 카드 추가
+            if (keyboard.bKey.wasPressedThisFrame)
+            {
+                handManager.AddCard(CardData.Bonus(BonusCardType.LongestRoad));
+                Debug.Log($"[Test] 최장도로 추가");
             }
 
             // Backspace: 마지막 카드 제거
@@ -42,7 +65,6 @@ namespace ArcanaCatan.UI.CardHand
                 {
                     var cards = handManager.Cards;
                     handManager.RemoveCard(cards[cards.Count - 1]);
-                    Debug.Log($"[CardHandTest] Removed last card (total: {handManager.CardCount - 1})");
                 }
             }
 
@@ -53,7 +75,7 @@ namespace ArcanaCatan.UI.CardHand
                 foreach (var card in selected)
                     handManager.RemoveCard(card);
                 if (selected.Count > 0)
-                    Debug.Log($"[CardHandTest] Removed {selected.Count} selected cards");
+                    Debug.Log($"[Test] {selected.Count}장 제거");
             }
         }
     }
