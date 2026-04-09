@@ -11,10 +11,6 @@ namespace ArcanaCatan.UI.CardHand
     {
         [SerializeField] private CardHandManager handManager;
 
-        [Header("Animation")]
-        [SerializeField] private Camera worldCamera;
-        [SerializeField] private float hexSize = 1f;
-
         private IGameManager gm;
         private bool subscribed;
 
@@ -27,9 +23,6 @@ namespace ArcanaCatan.UI.CardHand
             { ResourceType.Wheat, 0 },
             { ResourceType.Ore, 0 },
         };
-
-        // 타일 → 핸드 날아오기 연출용 큐 (타일 이벤트가 먼저 → 자원 이벤트에서 소비)
-        private Queue<Vector3> pendingFlyOrigins = new Queue<Vector3>();
 
         private void Update()
         {
@@ -57,7 +50,6 @@ namespace ArcanaCatan.UI.CardHand
             gm.OnDiscardRequired += HandleDiscardRequired;
             gm.OnLongestRoadChanged += HandleLongestRoadChanged;
             gm.OnLargestArmyChanged += HandleLargestArmyChanged;
-            gm.OnResourceGainedFromTile += HandleResourceGainedFromTile;
             subscribed = true;
         }
 
@@ -69,7 +61,6 @@ namespace ArcanaCatan.UI.CardHand
             gm.OnDiscardRequired -= HandleDiscardRequired;
             gm.OnLongestRoadChanged -= HandleLongestRoadChanged;
             gm.OnLargestArmyChanged -= HandleLargestArmyChanged;
-            gm.OnResourceGainedFromTile -= HandleResourceGainedFromTile;
             subscribed = false;
         }
 
@@ -113,12 +104,7 @@ namespace ArcanaCatan.UI.CardHand
             {
                 // 자원 획득 — 카드 추가 (스택 증가)
                 for (int i = 0; i < delta; i++)
-                {
-                    if (pendingFlyOrigins.Count > 0 && worldCamera != null)
-                        handManager.AddCardFromWorld(CardData.Resource(type), pendingFlyOrigins.Dequeue(), worldCamera);
-                    else
-                        handManager.AddCard(CardData.Resource(type));
-                }
+                    handManager.AddCard(CardData.Resource(type));
             }
             else if (delta < 0)
             {
@@ -144,14 +130,6 @@ namespace ArcanaCatan.UI.CardHand
         {
             if (playerIndex != gm.LocalPlayerIndex) return;
             handManager.EnterDiscardMode(discardCount);
-        }
-
-        /// <summary>타일에서 자원 획득 → 월드 좌표를 fly-in 큐에 등록</summary>
-        private void HandleResourceGainedFromTile(int playerIndex, ResourceType type, HexCoord tileCoord)
-        {
-            if (playerIndex != gm.LocalPlayerIndex) return;
-            Vector3 worldPos = tileCoord.ToWorldPosition(hexSize);
-            pendingFlyOrigins.Enqueue(worldPos);
         }
 
         /// <summary>최장도로 변경 → 보너스 카드 추가/제거</summary>

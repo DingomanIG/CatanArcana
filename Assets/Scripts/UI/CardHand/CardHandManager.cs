@@ -220,54 +220,6 @@ namespace ArcanaCatan.UI.CardHand
             return AddCard(CardData.Development(type));
         }
 
-        /// <summary>
-        /// 월드 좌표에서 날아오는 카드 추가.
-        /// worldPos를 Canvas 로컬 좌표로 변환 → 카드를 거기서 시작 → 목표 위치로 이동.
-        /// </summary>
-        public BaseCard AddCardFromWorld(CardData data, Vector3 worldPos, Camera worldCamera)
-        {
-            var card = AddCardInternal(data, skipDealAnim: true);
-            if (card == null) return null;
-
-            // 스택 증가 케이스: 이미 존재하는 카드 → fly-in 불필요 (배지만 증가)
-            if (data.Category == CardCategory.Resource
-                && resourceStacks.TryGetValue(data.ResourceType, out var existing)
-                && existing == card && card.StackCount > 1)
-            {
-                return card;
-            }
-
-            // 월드 → 스크린 → Canvas 로컬 좌표
-            Vector2 screenPos = worldCamera.WorldToScreenPoint(worldPos);
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                cardContainer, screenPos,
-                rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : rootCanvas.worldCamera,
-                out Vector2 startLocal);
-
-            // fly-in 목표 위치 계산
-            RectTransform rt = card.RectTransform;
-            int idx = cards.IndexOf(card);
-            int count = cards.Count;
-            float t = count == 1 ? 0.5f : (float)idx / (count - 1);
-            float targetX = GetCardX(idx, count);
-            float targetY = curveY.Evaluate(t) * curveYMultiplier;
-            int tweenId = rt.GetInstanceID();
-
-            // ID 체계: +0=position, +1=rotation, +2=scale
-            DOTween.Kill(tweenId + 0);
-            DOTween.Kill(tweenId + 2);
-
-            rt.anchoredPosition = startLocal;
-            rt.localScale = Vector3.one * 0.3f;
-
-            rt.DOAnchorPos(new Vector2(targetX, targetY), 0.5f)
-                .SetEase(Ease.OutQuart).SetId(tweenId + 0);
-            rt.DOScale(1f, 0.5f)
-                .SetEase(Ease.OutBack).SetId(tweenId + 2);
-
-            return card;
-        }
-
         /// <summary>통합 — CardData로 추가. 자원카드는 팬 스택 처리.</summary>
         public BaseCard AddCard(CardData data) => AddCardInternal(data, skipDealAnim: false);
 
@@ -285,6 +237,7 @@ namespace ArcanaCatan.UI.CardHand
             {
                 if (resourceStacks.TryGetValue(data.ResourceType, out BaseCard existing))
                 {
+                    PlayStackAddAnimation(existing);
                     existing.SetStackCount(existing.StackCount + 1);
                     return existing;
                 }
@@ -359,6 +312,7 @@ namespace ArcanaCatan.UI.CardHand
             // 자원 스택 감소 처리
             if (card.CardData?.Category == CardCategory.Resource && card.StackCount > 1)
             {
+                PlayStackRemoveAnimation(card);
                 card.SetStackCount(card.StackCount - 1);
                 return;
             }
@@ -383,6 +337,79 @@ namespace ArcanaCatan.UI.CardHand
                     UpdateCardIndices();
                     isDirty = true;
                 });
+        }
+
+        /// <summary>스택 증가 시 고스트 카드가 위에서 내려와 스택에 합류하는 연출</summary>
+        private void PlayStackAddAnimation(BaseCard card)
+        {
+            GameObject prefab = GetPrefabForCard(card.CardData);
+            GameObject ghost = Instantiate(prefab, cardContainer);
+            ghost.name = "GhostCard_StackAdd";
+
+            // 인터랙션 차단
+            var bc = ghost.GetComponent<BaseCard>();
+            if (bc != null) Destroy(bc);
+            var vis = ghost.GetComponent<CardVisual>();
+            if (vis != null) Destroy(vis);
+            var cg = ghost.GetComponent<CanvasGroup>();
+            if (cg == null) cg = ghost.AddComponent<CanvasGroup>();
+            cg.blocksRaycasts = false;
+            cg.interactable = false;
+
+            // 스택 카드 위 200px에서 시작
+            RectTransform ghostRT = ghost.GetComponent<RectTransform>();
+            RectTransform srcRT = card.RectTransform;
+            Vector2 targetPos = srcRT.anchoredPosition;
+            ghostRT.anchoredPosition = targetPos + new Vector2(0, 200f);
+            ghostRT.localScale = Vector3.zero;
+            ghostRT.localRotation = srcRT.localRotation;
+
+            // 내려오며 합류
+            int tid = ghostRT.GetInstanceID();
+            ghostRT.DOAnchorPos(targetPos, dealDuration)
+                .SetEase(Ease.OutBack).SetId(tid);
+            ghostRT.DOScale(1f, dealDuration)
+                .SetEase(Ease.OutBack).SetId(tid + 2)
+                .OnComplete(() =>
+                {
+                    Destroy(ghost);
+                    // 합류 임팩트 — 원본 카드 펀치 스케일
+                    srcRT.DOPunchScale(Vector3.one * 0.1f, 0.2f, 6, 0.5f)
+                        .SetId(srcRT.GetInstanceID() + 3);
+                });
+        }
+
+        /// <summary>스택 감소 시 고스트 카드가 위로 날아가며 사라지는 연출</summary>
+        private void PlayStackRemoveAnimation(BaseCard card)
+        {
+            GameObject prefab = GetPrefabForCard(card.CardData);
+            GameObject ghost = Instantiate(prefab, cardContainer);
+            ghost.name = "GhostCard_StackRemove";
+
+            // 인터랙션 차단
+            var baseCard = ghost.GetComponent<BaseCard>();
+            if (baseCard != null) Destroy(baseCard);
+            var visual = ghost.GetComponent<CardVisual>();
+            if (visual != null) Destroy(visual);
+            var cg = ghost.GetComponent<CanvasGroup>();
+            if (cg == null) cg = ghost.AddComponent<CanvasGroup>();
+            cg.blocksRaycasts = false;
+            cg.interactable = false;
+
+            // 원본 카드 위치에서 시작
+            RectTransform ghostRT = ghost.GetComponent<RectTransform>();
+            RectTransform srcRT = card.RectTransform;
+            ghostRT.anchoredPosition = srcRT.anchoredPosition;
+            ghostRT.localScale = srcRT.localScale;
+            ghostRT.localRotation = srcRT.localRotation;
+
+            // 위로 날아가며 페이드아웃
+            int tid = ghostRT.GetInstanceID();
+            ghostRT.DOAnchorPos(ghostRT.anchoredPosition + new Vector2(0, 200f), 0.35f)
+                .SetEase(Ease.InBack).SetId(tid);
+            cg.DOFade(0f, 0.35f).SetEase(Ease.InQuad).SetId(tid + 1);
+            ghostRT.DOScale(0.5f, 0.35f).SetEase(Ease.InBack).SetId(tid + 2)
+                .OnComplete(() => Destroy(ghost));
         }
 
         /// <summary>특정 자원 타입의 스택 카드 가져오기</summary>
