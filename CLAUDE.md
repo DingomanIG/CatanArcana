@@ -95,5 +95,12 @@ Docs/
 - 기획 선행 → UI·구현 병렬 (기획 간단하면 3개 동시)
 - 폴더 경계 엄수 (충돌 방지)
 
+## Cross-Platform 대비 (WebGL 우선, 향후 모바일 확장)
+- 입력: Input System 유지 (마우스/터치 자동 매핑)
+- UI: 앵커+비율 기반, 절대 px 금지, 버튼 최소 44x44dp 염두
+- 해상도: 1920x1080 가로 기준, 16:9~19.5:9 대응
+- 플랫폼 분기: `#if` 남발 금지, PlatformHelper 한 곳에서 관리
+- 데이터/뷰 분리 패턴 유지 (UI 교체 용이)
+
 ## Related
 - ArcanaStock 기획서: `C:\Users\bonek\Documents\AntigravityFolder\ArcanaStock\CLAUDE.md`

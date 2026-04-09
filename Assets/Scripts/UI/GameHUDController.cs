@@ -298,6 +298,12 @@ public class GameHUDController : MonoBehaviour
             GM.PrepareGame();
             ShowTurnOrderOverlay();
         }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // 디버그 치트 패널 자동 부착 (F9 토글)
+        if (gameObject.GetComponent<DebugCheatPanel>() == null)
+            gameObject.AddComponent<DebugCheatPanel>();
+#endif
     }
 
     void OnDisable()

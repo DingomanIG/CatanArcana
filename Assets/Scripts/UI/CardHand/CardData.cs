@@ -21,13 +21,13 @@ public class CardData
     public CardCategory Category { get; }
 
     // Resource
-    public ResourceType ResourceType { get; }
+    public ResourceType ResourceType { get; private set; }
 
     // Development
-    public DevCardType DevCardType { get; }
+    public DevCardType DevCardType { get; private set; }
 
     // Bonus
-    public BonusCardType BonusType { get; }
+    public BonusCardType BonusType { get; private set; }
 
     // 정렬 우선순위 (핸드 내 그룹핑용)
     public int SortOrder { get; }

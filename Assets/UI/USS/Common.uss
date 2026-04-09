@@ -1,48 +1,30 @@
-/* ============================================
-   ArcanaCatan - Common Stylesheet
-   Shared styles for MainMenu, Lobby, Game
-
-   Color Palette:
-   bg-dark:       #1a1612
-   bg-panel:      #2a2420
-   bg-panel-alt:  #352e28
-   border:        #4a3f35
-   text-primary:  #e8dcc8
-   text-secondary:#a89880
-   accent-gold:   #d4a845
-   accent-red:    #c45c3e
-   accent-green:  #5a9e4b
-   ============================================ */
-
-/* === FULL SCREEN ROOT === */
 .screen-root {
     position: absolute;
     left: 0;
     top: 0;
     right: 0;
     bottom: 0;
-    background-color: #1a1612;
+    background-color: rgb(26, 22, 18);
     align-items: center;
     justify-content: center;
-    -unity-font: resource('Fonts/NotoSansKR-Regular');
+    -unity-font: resource("Fonts/NotoSansKR-Regular");
 }
 
-/* === COMMON BUTTON === */
 .btn {
     height: 44px;
     border-radius: 6px;
     font-size: 15px;
     -unity-font-style: bold;
-    color: #e8dcc8;
-    background-color: #352e28;
+    color: rgb(232, 220, 200);
+    background-color: rgb(53, 46, 40);
     border-width: 1px;
-    border-color: #4a3f35;
+    border-color: rgb(74, 63, 53);
     padding: 0 20px;
     margin-bottom: 8px;
 }
 
 .btn:hover {
-    background-color: #4a3f35;
+    background-color: rgb(74, 63, 53);
 }
 
 .btn:disabled {
@@ -50,65 +32,62 @@
 }
 
 .btn--primary {
-    background-color: #3a6830;
-    border-color: #5a9e4b;
+    background-color: rgb(58, 104, 48);
+    border-color: rgb(90, 158, 75);
 }
 
 .btn--primary:hover {
-    background-color: #4a7a3e;
+    background-color: rgb(74, 122, 62);
 }
 
 .btn--danger {
-    background-color: #8b3a25;
-    border-color: #c45c3e;
+    background-color: rgb(139, 58, 37);
+    border-color: rgb(196, 92, 62);
 }
 
 .btn--danger:hover {
-    background-color: #a04530;
+    background-color: rgb(160, 69, 48);
 }
 
 .btn--gold {
-    background-color: #8a6d20;
-    border-color: #d4a845;
+    background-color: rgb(138, 109, 32);
+    border-color: rgb(212, 168, 69);
 }
 
 .btn--gold:hover {
-    background-color: #a08030;
+    background-color: rgb(160, 128, 48);
 }
 
-/* === COMMON TEXT INPUT === */
 .text-input {
     height: 40px;
     border-radius: 6px;
     font-size: 15px;
-    color: #e8dcc8;
-    background-color: #1a1612;
+    color: rgb(232, 220, 200);
+    background-color: rgb(26, 22, 18);
     border-width: 1px;
-    border-color: #4a3f35;
+    border-color: rgb(74, 63, 53);
     padding: 0 12px;
     margin-bottom: 8px;
 }
 
 .text-input:focus {
-    border-color: #d4a845;
+    border-color: rgb(212, 168, 69);
 }
 
 .text-input > .unity-text-element {
-    color: #e8dcc8;
+    color: rgb(232, 220, 200);
 }
 
-/* === COMMON PANEL === */
 .panel {
-    background-color: #2a2420;
+    background-color: rgb(42, 36, 32);
     border-width: 1px;
-    border-color: #4a3f35;
+    border-color: rgb(74, 63, 53);
     border-radius: 12px;
     padding: 24px;
 }
 
-/* === COMMON LABEL === */
 .label-title {
-    color: #d4a845;
+    color: rgb(212, 168, 69);
     font-size: 18px;
     -unity-font-style: bold;
     margin-bottom: 16px;
@@ -116,32 +95,30 @@
 }
 
 .label-subtitle {
-    color: #a89880;
+    color: rgb(168, 152, 128);
     font-size: 13px;
     -unity-text-align: middle-center;
     margin-bottom: 8px;
 }
 
 .label-text {
-    color: #e8dcc8;
+    color: rgb(232, 220, 200);
     font-size: 14px;
 }
 
 .label-muted {
-    color: #a89880;
+    color: rgb(168, 152, 128);
     font-size: 12px;
 }
 
-/* === DIVIDER === */
 .divider {
     height: 1px;
-    background-color: #4a3f35;
+    background-color: rgb(74, 63, 53);
     margin: 12px 0;
 }
 
-/* === STATUS MESSAGE === */
 .status-message {
-    color: #a89880;
+    color: rgb(168, 152, 128);
     font-size: 13px;
     -unity-text-align: middle-center;
     min-height: 20px;
@@ -149,9 +126,14 @@
 }
 
 .status-message--error {
-    color: #c45c3e;
+    color: rgb(196, 92, 62);
 }
 
 .status-message--success {
-    color: #5a9e4b;
+    color: rgb(90, 158, 75);
+}
+
+.image--size {
+    width: 24px;
+    height: 20px;
 }

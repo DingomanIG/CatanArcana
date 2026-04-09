@@ -74,14 +74,21 @@
       "Read(//c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/$LOCALAPPDATA/Unity/Editor/**)",
       "Read(//c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Local/Unity/Editor/**)",
       "Bash(grep [CoastalEdge])",
-      "Bash(find c:/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan -type f -name *.jslib)"
+      "Bash(find c:/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan -type f -name *.jslib)",
+      "WebSearch",
+      "Bash(find /c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan -type f -name \"*.cs\" -exec grep -l \"Monopoly\\\\|monopoly\" {})",
+      "Bash(claude --version)",
+      "Bash(npm view:*)",
+      "Bash(npm update:*)",
+      "WebFetch(domain:www.youtube.com)"
     ],
     "additionalDirectories": [
       "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\$BASE\\Art",
       "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\Assets\\Scripts",
       "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\$BGM_DIR",
       "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\.github",
-      "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\Docs"
+      "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\Docs",
+      "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\Assets\\Scripts\\UI"
     ]
   }
 }

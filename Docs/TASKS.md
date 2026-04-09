@@ -111,6 +111,11 @@
 - [x] 네트워크 AI 자동 준비(ready) 처리 (AI가 readyPlayers에 미포함 → 게임 시작 불가 수정)
 - [x] AIController.SetDifficulties 동적 배열 크기 지원 (네트워크 인덱스 매핑 불일치 수정)
 
+### 5.6단계: 디버그 치트 패널
+- [x] P1: DebugCheatPanel (F9 토글 OnGUI — 자원/발전카드/건물재고/강도/페이즈 조작)
+- [x] P1: LocalGameManager 치트 메서드 (CheatAddResource/DevCard/BuildingStock/Robber/Phase/Turn)
+- [x] P1: NetworkGameManager 치트 ServerRpc + ClientRpc 동기화
+
 ### 6단계: 테스트
 - [ ] P1: 로컬 회귀 테스트 (기존 AI 대전)
 - [ ] P1: 네트워크 2인 테스트 (ParrelSync)

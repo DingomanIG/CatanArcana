@@ -62,38 +62,38 @@
                     <ui:Label name="build-road-count" text="0" style="font-size: 16px; margin-top: 0; margin-right: 6px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
                     <ui:Label text="도로 건설" style="font-size: 16px; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
                     <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse;">
-                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(107, 142, 80); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
-                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(196, 105, 74); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=1568936095&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_brick" class="image--size"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=-815898445&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_wood" class="image--size"/>
                     </ui:VisualElement>
                 </ui:Button>
                 <ui:Button name="btn-build-settlement" text="" class="action-btn" style="flex-direction: row; align-self: auto; align-items: stretch; justify-content: flex-start;">
                     <ui:Label name="build-settlement-count" text="0" style="font-size: 16px; margin-top: 0; margin-right: 6px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
                     <ui:Label text="마을 건설" style="font-size: 16px; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
                     <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse;">
-                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(107, 142, 80); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
-                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(196, 105, 74); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
-                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(168, 200, 121); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
-                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(219, 184, 77); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=40755259&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_wheat" class="image--size"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=217937409&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_sheep" class="image--size"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=1568936095&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_brick" class="image--size"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=-815898445&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_wood" class="image--size"/>
                     </ui:VisualElement>
                 </ui:Button>
                 <ui:Button name="btn-build-city" text="" class="action-btn" style="flex-direction: row; align-self: auto; align-items: stretch; justify-content: flex-start;">
                     <ui:Label name="build-city-count" text="0" style="font-size: 16px; margin-top: 0; margin-right: 6px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
                     <ui:Label text="도시 건설" style="font-size: 16px; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
                     <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse;">
-                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(219, 184, 77); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
-                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(219, 184, 77); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
-                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(136, 153, 170); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
-                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(136, 153, 170); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
-                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(136, 153, 170); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=-1948509397&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_ore" class="image--size"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=-1948509397&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_ore" class="image--size"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=-1948509397&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_ore" class="image--size"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=40755259&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_wheat" class="image--size"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=40755259&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_wheat" class="image--size"/>
                     </ui:VisualElement>
                 </ui:Button>
                 <ui:Button name="btn-buy-devcard" text="" class="action-btn" style="flex-direction: row; align-self: auto; align-items: stretch; justify-content: flex-start;">
                     <ui:Label name="build-devcard-count" text="0" style="font-size: 16px; margin-top: 0; margin-right: 6px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
                     <ui:Label text="발전카드 구매" style="font-size: 16px; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
                     <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse;">
-                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(168, 200, 121); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
-                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(219, 184, 77); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
-                        <ui:VisualElement style="flex-grow: 0; flex-shrink: 0; width: 14px; height: 14px; background-color: rgb(136, 153, 170); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; margin-left: 2px; margin-right: 2px; align-self: center;"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=-1948509397&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_ore" class="image--size"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=40755259&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_wheat" class="image--size"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=217937409&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_sheep" class="image--size"/>
                     </ui:VisualElement>
                 </ui:Button>
                 <ui:VisualElement class="action-separator"/>

@@ -1798,4 +1798,75 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         PortType.Ore => resource == ResourceType.Ore,
         _ => false
     };
+
+    // ================================================================
+    // 치트 (디버그용) — 호스트 전용
+    // ================================================================
+
+    [ServerRpc(RequireOwnership = false)]
+    public void CheatAddResourceServerRpc(int playerIndex, int resourceType, int amount, ServerRpcParams rpcParams = default)
+    {
+        if (!IsServer || hostLGM == null) return;
+        hostLGM.CheatAddResource(playerIndex, (ResourceType)resourceType, amount);
+        SendResourceToOwner(playerIndex);
+        SyncBankResources();
+        SyncPlayerPublicInfo(playerIndex);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void CheatAddDevCardServerRpc(int playerIndex, int cardType, ServerRpcParams rpcParams = default)
+    {
+        if (!IsServer || hostLGM == null) return;
+        hostLGM.CheatAddDevCard(playerIndex, (DevCardType)cardType);
+        // 구매자에게 카드 타입 전송
+        var targetParams = GetTargetedParams(playerIndex);
+        NotifyDevCardAddedClientRpc(playerIndex, cardType, targetParams);
+        // 전체에 구매 알림
+        NotifyDevCardPurchasedClientRpc(playerIndex, (int)DevCardType.Hidden);
+        if (playerIndex < netPlayerDevCardCounts.Count)
+            netPlayerDevCardCounts[playerIndex] = hostLGM.GetPlayerState(playerIndex).DevCards.Count;
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void CheatSetBuildingStockServerRpc(int playerIndex, int roads, int settlements, int cities, ServerRpcParams rpcParams = default)
+    {
+        if (!IsServer || hostLGM == null) return;
+        hostLGM.CheatSetBuildingStock(playerIndex, roads, settlements, cities);
+        SyncPlayerPublicInfo(playerIndex);
+        CheatSyncBuildingStockClientRpc(playerIndex, roads, settlements, cities);
+    }
+
+    [ClientRpc]
+    void CheatSyncBuildingStockClientRpc(int playerIndex, int roads, int settlements, int cities)
+    {
+        if (clientPlayers == null || playerIndex >= clientPlayers.Length) return;
+        var ps = clientPlayers[playerIndex];
+        ps.RoadsRemaining = roads;
+        ps.SettlementsRemaining = settlements;
+        ps.CitiesRemaining = cities;
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void CheatMoveRobberServerRpc(int q, int r, ServerRpcParams rpcParams = default)
+    {
+        if (!IsServer || hostLGM == null) return;
+        hostLGM.CheatMoveRobber(new HexCoord(q, r));
+        netRobberPosition.Value = new HexCoordNet { Q = q, R = r };
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void CheatSetPhaseServerRpc(int phase, ServerRpcParams rpcParams = default)
+    {
+        if (!IsServer || hostLGM == null) return;
+        hostLGM.CheatSetPhase((GamePhase)phase);
+        netCurrentPhase.Value = phase;
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void CheatSetCurrentPlayerServerRpc(int playerIndex, ServerRpcParams rpcParams = default)
+    {
+        if (!IsServer || hostLGM == null) return;
+        hostLGM.CheatSetCurrentPlayer(playerIndex);
+        netCurrentPlayerIndex.Value = playerIndex;
+    }
 }

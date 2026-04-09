@@ -1109,6 +1109,66 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         Debug.Log($"[Cheat] {GetPlayerName(currentPlayerIndex)} 강제 승리!");
     }
 
+    /// <summary>치트: 특정 플레이어에게 자원 추가</summary>
+    public void CheatAddResource(int playerIndex, ResourceType type, int amount)
+    {
+        if (playerIndex < 0 || playerIndex >= playerCount) return;
+        var ps = players[playerIndex];
+        ps.Resources[type] = Mathf.Max(0, ps.Resources[type] + amount);
+        OnResourceChanged?.Invoke(playerIndex, type, ps.Resources[type]);
+        Debug.Log($"[Cheat] P{playerIndex} {type} {(amount >= 0 ? "+" : "")}{amount} → {ps.Resources[type]}");
+    }
+
+    /// <summary>치트: 특정 플레이어에게 발전카드 추가</summary>
+    public void CheatAddDevCard(int playerIndex, DevCardType cardType)
+    {
+        if (playerIndex < 0 || playerIndex >= playerCount) return;
+        var ps = players[playerIndex];
+        var card = new DevelopmentCard(cardType, -1); // turnNumber = -1 → 즉시 사용 가능
+        ps.DevCards.Add(card);
+        OnDevCardPurchased?.Invoke(playerIndex, cardType);
+        Debug.Log($"[Cheat] P{playerIndex} +{cardType} (총 {ps.DevCards.Count}장)");
+    }
+
+    /// <summary>치트: 건물 재고 직접 설정</summary>
+    public void CheatSetBuildingStock(int playerIndex, int roads, int settlements, int cities)
+    {
+        if (playerIndex < 0 || playerIndex >= playerCount) return;
+        var ps = players[playerIndex];
+        ps.RoadsRemaining = Mathf.Clamp(roads, 0, 15);
+        ps.SettlementsRemaining = Mathf.Clamp(settlements, 0, 5);
+        ps.CitiesRemaining = Mathf.Clamp(cities, 0, 4);
+        Debug.Log($"[Cheat] P{playerIndex} 재고: 도로={ps.RoadsRemaining} 정착지={ps.SettlementsRemaining} 도시={ps.CitiesRemaining}");
+    }
+
+    /// <summary>치트: 강도 이동 (이벤트 트리거 없이)</summary>
+    public void CheatMoveRobber(HexCoord target)
+    {
+        var tile = grid.GetTile(target);
+        if (tile == null) return;
+        foreach (var t in grid.Tiles.Values)
+            t.HasRobber = false;
+        tile.HasRobber = true;
+        OnRobberMoved?.Invoke(target);
+        Debug.Log($"[Cheat] 강도 → ({target.Q},{target.R})");
+    }
+
+    /// <summary>치트: 게임 페이즈 강제 변경</summary>
+    public void CheatSetPhase(GamePhase phase)
+    {
+        SetPhase(phase);
+        Debug.Log($"[Cheat] 페이즈 → {phase}");
+    }
+
+    /// <summary>치트: 현재 턴 플레이어 변경</summary>
+    public void CheatSetCurrentPlayer(int playerIndex)
+    {
+        if (playerIndex < 0 || playerIndex >= playerCount) return;
+        currentPlayerIndex = playerIndex;
+        OnTurnChanged?.Invoke(playerIndex);
+        Debug.Log($"[Cheat] 현재 플레이어 → P{playerIndex}");
+    }
+
     // ========================
     // 거래
     // ========================
