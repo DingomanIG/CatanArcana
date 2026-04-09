@@ -41,7 +41,6 @@ public class GameHUDController : MonoBehaviour
     Button btnEndTurn;
     Button btnTrade;
     Button btnBuyDevCard;
-    Button btnDevCardHand;
 
     // Build Section Header
     VisualElement buildHeader;
@@ -73,14 +72,12 @@ public class GameHUDController : MonoBehaviour
     // Overlays
     VisualElement tradeOverlay;
     VisualElement rulesOverlay;
-    VisualElement devCardOverlay;
     VisualElement resourceSelectOverlay;
     VisualElement volumeOverlay;
     VisualElement optionsOverlay;
     Button btnCloseTrade;
     Button btnRules;
     Button btnCloseRules;
-    Button btnCloseDevCard;
     Button btnCancelResourceSelect;
     Button btnCloseVolume;
     Button btnCloseOptions;
@@ -156,8 +153,10 @@ public class GameHUDController : MonoBehaviour
     Label discardInfo;
     VisualElement discardResourceGrid;
     Button btnConfirmDiscard;
-    readonly Dictionary<ResourceType, int> discardAmounts = new();
     int discardRequired;
+
+    // CardHandManager 참조 (디스카드 카드 선택 연동)
+    ArcanaCatan.UI.CardHand.CardHandManager cardHandManager;
 
     // I1: 네트워크 동기화 VP 캐시 (상대 VP는 계산값 대신 서버 값 사용)
     readonly Dictionary<int, int> cachedNetworkVP = new();
@@ -191,8 +190,6 @@ public class GameHUDController : MonoBehaviour
     Button btnResultMenu;
     Button btnResultRematch;
 
-    // Dev Card Hand
-    ScrollView devCardHand;
 
     // Dev Card Quick Slot Bar
     VisualElement devCardQuickSlotBar;
@@ -288,6 +285,12 @@ public class GameHUDController : MonoBehaviour
     void Start()
     {
         gm = GameServices.GameManager;
+
+        // CardHandManager 참조 (디스카드 카드 선택 연동)
+        cardHandManager = FindObjectOfType<ArcanaCatan.UI.CardHand.CardHandManager>();
+        if (cardHandManager != null)
+            cardHandManager.OnDiscardSelectionChanged += HandleDiscardSelectionFromHand;
+
         SubscribeToEvents();
         RefreshAllUI();
         InvokeRepeating(nameof(UpdateNowPlaying), 0.5f, 1f);
@@ -310,6 +313,8 @@ public class GameHUDController : MonoBehaviour
     {
         UnsubscribeFromEvents();
         CancelInvoke(nameof(UpdateNowPlaying));
+        if (cardHandManager != null)
+            cardHandManager.OnDiscardSelectionChanged -= HandleDiscardSelectionFromHand;
     }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -370,7 +375,6 @@ public class GameHUDController : MonoBehaviour
         btnEndTurn = root.Q<Button>("btn-end-turn");
         btnTrade = root.Q<Button>("btn-trade");
         btnBuyDevCard = root.Q<Button>("btn-buy-devcard");
-        btnDevCardHand = root.Q<Button>("btn-devcard-hand");
         buildHeader = root.Q<VisualElement>("build-header");
 
         diceDisplay = root.Q<VisualElement>("dice-display");
@@ -392,12 +396,10 @@ public class GameHUDController : MonoBehaviour
 
         tradeOverlay = root.Q<VisualElement>("trade-overlay");
         rulesOverlay = root.Q<VisualElement>("rules-overlay");
-        devCardOverlay = root.Q<VisualElement>("devcard-overlay");
         resourceSelectOverlay = root.Q<VisualElement>("resource-select-overlay");
         btnCloseTrade = root.Q<Button>("btn-close-trade");
         btnRules = root.Q<Button>("btn-rules");
         btnCloseRules = root.Q<Button>("btn-close-rules");
-        btnCloseDevCard = root.Q<Button>("btn-close-devcard");
         btnCancelResourceSelect = root.Q<Button>("btn-cancel-resource-select");
 
         btnBuildRoad = root.Q<Button>("btn-build-road");
@@ -416,7 +418,6 @@ public class GameHUDController : MonoBehaviour
         btnSelectWheat = root.Q<Button>("btn-select-wheat");
         btnSelectOre = root.Q<Button>("btn-select-ore");
 
-        devCardHand = root.Q<ScrollView>("devcard-hand");
         devCardQuickSlotBar = root.Q<VisualElement>("devcard-quickslot-bar");
 
         btnTradeTabBank = root.Q<Button>("btn-trade-tab-bank");
@@ -586,11 +587,9 @@ public class GameHUDController : MonoBehaviour
         btnEndTurn.clicked += OnEndTurnClicked;
         btnTrade.clicked += OnTradeClicked;
         btnBuyDevCard.clicked += OnBuyDevCardClicked;
-        btnDevCardHand.clicked += OnDevCardHandClicked;
         btnCloseTrade.clicked += OnCloseTradeClicked;
         btnRules.clicked += OnRulesClicked;
         btnCloseRules.clicked += OnCloseRulesClicked;
-        btnCloseDevCard.clicked += OnCloseDevCardClicked;
         btnCancelResourceSelect.clicked += OnCancelResourceSelect;
         btnConfirmDiscard.clicked += OnConfirmDiscardClicked;
         btnCloseTurnOrder.clicked += () => CloseTurnOrderOverlay();
@@ -676,17 +675,10 @@ public class GameHUDController : MonoBehaviour
         GM?.TryBuyDevCard();
     }
 
-    void OnDevCardHandClicked()
-    {
-        SFXManager.Instance?.Play(SFXType.MenuOpen);
-        RefreshDevCardHand();
-        devCardOverlay.RemoveFromClassList("overlay--hidden");
-    }
 
     void OnCloseTradeClicked() { SFXManager.Instance?.Play(SFXType.MenuClose); tradeOverlay.AddToClassList("overlay--hidden"); }
     void OnRulesClicked() => rulesOverlay.RemoveFromClassList("overlay--hidden");
     void OnCloseRulesClicked() => rulesOverlay.AddToClassList("overlay--hidden");
-    void OnCloseDevCardClicked() => devCardOverlay.AddToClassList("overlay--hidden");
     void OnOptionsClicked() => optionsOverlay.RemoveFromClassList("overlay--hidden");
     void OnVolumeClicked() => volumeOverlay.RemoveFromClassList("overlay--hidden");
 
@@ -1115,7 +1107,6 @@ public class GameHUDController : MonoBehaviour
         btnBuildCity.SetEnabled(actionPhase);
         btnBuyDevCard.SetEnabled(actionPhase);
         btnTrade.SetEnabled(actionPhase);
-        btnDevCardHand.SetEnabled(phase != GamePhase.WaitingForPlayers && phase != GamePhase.GameOver);
     }
 
     void HideAllButtons()
@@ -1131,7 +1122,6 @@ public class GameHUDController : MonoBehaviour
         btnBuildCity.SetEnabled(false);
         btnBuyDevCard.SetEnabled(false);
         btnTrade.SetEnabled(false);
-        btnDevCardHand.SetEnabled(false); // HideAllButtons는 GM==null일 때만 호출
     }
 
     static void SetVisible(VisualElement element, bool visible)
@@ -1140,73 +1130,8 @@ public class GameHUDController : MonoBehaviour
     }
 
 
-    // ========================
-    // DEV CARD HAND
-    // ========================
-
-    void RefreshDevCardHand()
-    {
-        devCardHand.Clear();
-
-        if (GM == null) return;
-
-        var state = GM.GetPlayerState(GM.LocalPlayerIndex);
-        if (state == null || state.DevCards.Count == 0)
-        {
-            var emptyLabel = new Label("보유한 발전카드가 없습니다.");
-            emptyLabel.AddToClassList("placeholder-text");
-            devCardHand.Add(emptyLabel);
-            return;
-        }
-
-        foreach (var card in state.DevCards)
-        {
-            if (card.IsUsed) continue;
-
-            var entry = new VisualElement();
-            entry.AddToClassList("devcard-entry");
-
-            var info = new VisualElement();
-            info.AddToClassList("devcard-entry__info");
-
-            var nameLabel = new Label(GetDevCardName(card.Type));
-            nameLabel.AddToClassList("devcard-entry__name");
-
-            var descLabel = new Label(GetDevCardDesc(card.Type));
-            descLabel.AddToClassList("devcard-entry__desc");
-
-            info.Add(nameLabel);
-            info.Add(descLabel);
-            entry.Add(info);
-
-            // 승리점 카드는 사용 버튼 없음
-            if (card.Type != DevCardType.VictoryPoint)
-            {
-                var useBtn = new Button();
-                useBtn.text = "사용";
-                useBtn.AddToClassList("devcard-entry__btn");
-
-                bool canUse = !state.HasUsedDevCardThisTurn
-                              && card.CanUseOnTurn(GM.TurnNumber)
-                              && GM.CurrentPhase == GamePhase.Action;
-
-                useBtn.SetEnabled(canUse);
-                if (!canUse) entry.AddToClassList("devcard-entry--disabled");
-
-                var capturedCard = card;
-                useBtn.clicked += () => UseDevCard(capturedCard);
-
-                entry.Add(useBtn);
-            }
-
-            devCardHand.Add(entry);
-        }
-    }
-
     void UseDevCard(DevelopmentCard card)
     {
-        devCardOverlay.AddToClassList("overlay--hidden");
-
         switch (card.Type)
         {
             case DevCardType.Knight:
@@ -1401,18 +1326,40 @@ public class GameHUDController : MonoBehaviour
 
     void HandleDiscardRequired(int playerIndex, int count)
     {
-        if (discardOverlay == null || discardResourceGrid == null) return;
+        if (discardOverlay == null) return;
 
         discardRequired = count;
-        discardAmounts.Clear();
-        foreach (var res in AllResources)
-            discardAmounts[res] = 0;
 
         var state = GM?.GetPlayerState(playerIndex);
         discardTitle.text = $"자원 버리기 ({state?.TotalResourceCount}장 중 {count}장)";
-        BuildDiscardGrid();
-        UpdateDiscardInfo();
+
+        // 그리드 비우기 (카드 핸드에서 직접 선택하는 방식)
+        if (discardResourceGrid != null)
+            discardResourceGrid.Clear();
+
+        discardInfo.text = $"카드를 선택하세요 (0/{count})";
+        discardInfo.RemoveFromClassList("discard-info--ready");
+        btnConfirmDiscard.SetEnabled(false);
         discardOverlay.RemoveFromClassList("overlay--hidden");
+    }
+
+    /// <summary>카드 핸드에서 디스카드 선택 변경 시 패널 카운트 업데이트</summary>
+    void HandleDiscardSelectionFromHand(int selected, int required)
+    {
+        if (discardInfo == null) return;
+
+        bool ready = selected >= required;
+        if (ready)
+        {
+            discardInfo.text = $"선택 완료! ({selected}/{required})";
+            discardInfo.AddToClassList("discard-info--ready");
+        }
+        else
+        {
+            discardInfo.text = $"카드를 선택하세요 ({selected}/{required})";
+            discardInfo.RemoveFromClassList("discard-info--ready");
+        }
+        btnConfirmDiscard?.SetEnabled(ready);
     }
 
     void HandlePlayerDisconnected(int playerIndex, string playerName)
@@ -1457,107 +1404,39 @@ public class GameHUDController : MonoBehaviour
         SceneFlowManager.Instance?.GoToMainMenu();
     }
 
-    void BuildDiscardGrid()
-    {
-        discardResourceGrid.Clear();
-        if (GM == null) return;
-
-        var state = GM.GetPlayerState(GM.LocalPlayerIndex);
-
-        foreach (var res in AllResources)
-        {
-            int owned = state.Resources.GetValueOrDefault(res, 0);
-            if (owned <= 0) continue;
-
-            var row = new VisualElement();
-            row.AddToClassList("trade-amount-row");
-
-            var icon = new VisualElement();
-            icon.AddToClassList("trade-amount-row__icon");
-            icon.AddToClassList($"resource-icon--{res.ToString().ToLower()}");
-
-            var nameLabel = new Label($"{GetResourceName(res)} ({owned})");
-            nameLabel.AddToClassList("trade-amount-row__name");
-
-            var countLabel = new Label(discardAmounts[res].ToString());
-            countLabel.AddToClassList("trade-amount-row__count");
-
-            var btnMinus = new Button { text = "-" };
-            btnMinus.AddToClassList("trade-amount-btn");
-            btnMinus.SetEnabled(discardAmounts[res] > 0);
-
-            var btnPlus = new Button { text = "+" };
-            btnPlus.AddToClassList("trade-amount-btn");
-            int totalSelected = 0;
-            foreach (var kv in discardAmounts) totalSelected += kv.Value;
-            btnPlus.SetEnabled(discardAmounts[res] < owned && totalSelected < discardRequired);
-
-            var capturedRes = res;
-            btnMinus.clicked += () =>
-            {
-                if (discardAmounts[capturedRes] > 0)
-                {
-                    discardAmounts[capturedRes]--;
-                    BuildDiscardGrid();
-                    UpdateDiscardInfo();
-                }
-            };
-            btnPlus.clicked += () =>
-            {
-                int total = 0;
-                foreach (var kv in discardAmounts) total += kv.Value;
-                if (discardAmounts[capturedRes] < state.Resources.GetValueOrDefault(capturedRes, 0) && total < discardRequired)
-                {
-                    discardAmounts[capturedRes]++;
-                    BuildDiscardGrid();
-                    UpdateDiscardInfo();
-                }
-            };
-
-            row.Add(icon);
-            row.Add(nameLabel);
-            row.Add(btnMinus);
-            row.Add(countLabel);
-            row.Add(btnPlus);
-            discardResourceGrid.Add(row);
-        }
-    }
-
-    void UpdateDiscardInfo()
-    {
-        int totalSelected = 0;
-        foreach (var kv in discardAmounts) totalSelected += kv.Value;
-
-        discardInfo.text = $"버릴 자원을 선택하세요 ({totalSelected}/{discardRequired})";
-
-        bool ready = totalSelected == discardRequired;
-        if (ready)
-        {
-            discardInfo.AddToClassList("discard-info--ready");
-            discardInfo.text = $"선택 완료! ({totalSelected}/{discardRequired})";
-        }
-        else
-        {
-            discardInfo.RemoveFromClassList("discard-info--ready");
-        }
-
-        btnConfirmDiscard.SetEnabled(ready);
-    }
+    // BuildDiscardGrid / UpdateDiscardInfo 삭제됨
+    // → 카드 핸드에서 직접 선택, HandleDiscardSelectionFromHand()로 카운트 업데이트
 
     void OnConfirmDiscardClicked()
     {
-        int totalSelected = 0;
-        foreach (var kv in discardAmounts) totalSelected += kv.Value;
-        if (totalSelected != discardRequired) return;
+        if (cardHandManager == null) return;
 
+        // 선택된 개별 카드 기반으로 디스카드 데이터 구성
         var toDiscard = new Dictionary<ResourceType, int>();
-        foreach (var kv in discardAmounts)
+        foreach (var card in cardHandManager.Cards)
         {
-            if (kv.Value > 0) toDiscard[kv.Key] = kv.Value;
+            if (!card.IsSelected) continue;
+            if (card.CardData?.Category != CardCategory.Resource) continue;
+            var res = card.CardData.ResourceType;
+            toDiscard[res] = toDiscard.GetValueOrDefault(res, 0) + 1;
         }
+
+        int total = 0;
+        foreach (var kv in toDiscard) total += kv.Value;
+        if (total != discardRequired) return;
 
         SFXManager.Instance?.Play(SFXType.ResourceLost);
         discardOverlay.AddToClassList("overlay--hidden");
+
+        // Syncer의 prevResources 동기화 (이중 제거 방지)
+        var syncer = FindObjectOfType<ArcanaCatan.UI.CardHand.CardHandSyncer>();
+        if (syncer != null)
+        {
+            foreach (var kv in toDiscard)
+                syncer.AdjustPrevResource(kv.Key, kv.Value);
+        }
+
+        cardHandManager.ConfirmDiscard();
         GM?.ConfirmDiscard(toDiscard);
     }
 

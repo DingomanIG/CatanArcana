@@ -976,65 +976,6 @@
     margin-right: 8px;
 }
 
-.devcard-panel {
-    max-width: 500px;
-    max-height: 80%;
-}
-
-.devcard-hand {
-    max-height: 400px;
-}
-
-.devcard-entry {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 12px;
-    margin-bottom: 6px;
-    border-radius: 6px;
-    background-color: rgba(53, 46, 40, 0.8);
-    border-width: 1px;
-    border-color: rgb(74, 63, 53);
-}
-
-.devcard-entry--disabled {
-    opacity: 0.5;
-}
-
-.devcard-entry__info {
-    flex-grow: 1;
-    margin-right: 8px;
-}
-
-.devcard-entry__name {
-    color: rgb(232, 220, 200);
-    font-size: 14px;
-    -unity-font-style: bold;
-}
-
-.devcard-entry__desc {
-    color: rgb(168, 152, 128);
-    font-size: 11px;
-}
-
-.devcard-entry__btn {
-    height: 28px;
-    min-width: 60px;
-    border-radius: 4px;
-    background-color: rgb(58, 104, 48);
-    border-color: rgb(90, 158, 75);
-    border-width: 1px;
-    color: rgb(232, 220, 200);
-    font-size: 12px;
-}
-
-.devcard-entry__btn:hover {
-    background-color: rgb(74, 122, 62);
-}
-
-.devcard-entry__btn:disabled {
-    opacity: 0.4;
-}
 
 .resource-select-panel {
     max-width: 360px;
@@ -1481,6 +1422,16 @@
     margin-top: 0;
     margin-bottom: 0;
     margin-left: 3px;
+}
+
+.discard-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    justify-content: center;
+    align-items: center;
 }
 
 .discard-panel {
