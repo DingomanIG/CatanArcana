@@ -24,6 +24,9 @@ namespace ArcanaCatan.UI.CardHand
         [Header("Selection")]
         [SerializeField] private float selectionOffsetY = 30f;
 
+        [Header("Card Use (발전카드)")]
+        [SerializeField] private float useThresholdRatio = 0.6f; // 화면 높이의 60%
+
         // Events for CardVisual
         public event Action OnHoverEnter;
         public event Action OnHoverExit;
@@ -33,6 +36,11 @@ namespace ArcanaCatan.UI.CardHand
         public event Action OnDragStart;
         public event Action OnDragEnd;
         public event Action<int> OnStackCountChanged;
+
+        /// <summary>카드 사용 성공 (날아가기 연출 트리거)</summary>
+        public event Action OnCardUsed;
+        /// <summary>카드 사용 실패 (shake 연출 트리거)</summary>
+        public event Action OnCardUseRejected;
 
         public bool IsSelected { get; private set; }
         public bool IsDragging { get; private set; }
@@ -146,6 +154,28 @@ namespace ArcanaCatan.UI.CardHand
         {
             IsDragging = false;
             GetComponent<CanvasGroup>().blocksRaycasts = true;
+
+            // 발전카드: 상단 임계선 초과 시 사용 시도
+            if (CardData?.Category == CardCategory.Development)
+            {
+                float screenY = eventData.position.y;
+                float threshold = Screen.height * useThresholdRatio;
+
+                if (screenY >= threshold)
+                {
+                    bool success = handManager != null && handManager.TryUseDevCard(this);
+                    if (success)
+                    {
+                        OnCardUsed?.Invoke();
+                        return; // 매니저가 카드 제거 처리
+                    }
+                    else
+                    {
+                        OnCardUseRejected?.Invoke();
+                    }
+                }
+            }
+
             OnDragEnd?.Invoke();
             handManager?.OnCardDragEnd(this);
         }

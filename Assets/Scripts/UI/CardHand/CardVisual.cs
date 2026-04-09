@@ -104,6 +104,7 @@ namespace ArcanaCatan.UI.CardHand
             baseCard.OnDragStart += HandleDragStart;
             baseCard.OnDragEnd += HandleDragEnd;
             baseCard.OnStackCountChanged += HandleStackCountChanged;
+            baseCard.OnCardUseRejected += HandleCardUseRejected;
         }
 
         private void UnsubscribeEvents()
@@ -115,6 +116,7 @@ namespace ArcanaCatan.UI.CardHand
             baseCard.OnDragStart -= HandleDragStart;
             baseCard.OnDragEnd -= HandleDragEnd;
             baseCard.OnStackCountChanged -= HandleStackCountChanged;
+            baseCard.OnCardUseRejected -= HandleCardUseRejected;
         }
 
         private void Update()
@@ -345,6 +347,15 @@ namespace ArcanaCatan.UI.CardHand
         {
             isDragging = false;
             rectTransform.DOScale(isHovering ? hoverScale : 1f, 0.2f).SetEase(Ease.OutBack);
+        }
+
+        /// <summary>사용 불가 — 좌우 흔들림 후 핸드로 복귀</summary>
+        private void HandleCardUseRejected()
+        {
+            isDragging = false;
+            rectTransform.DOShakeAnchorPos(0.4f, new Vector2(20f, 0), 12, 90f, false, true)
+                .SetEase(Ease.OutQuad);
+            rectTransform.DOScale(1f, 0.3f).SetEase(Ease.OutBack);
         }
     }
 }

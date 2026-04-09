@@ -395,6 +395,68 @@ namespace ArcanaCatan.UI.CardHand
             }
         }
 
+        // === Dev Card Use ===
+
+        /// <summary>
+        /// 발전카드 사용 시도. IGameManager 연동.
+        /// 성공 시 카드 제거 + true, 실패 시 false (shake 트리거는 BaseCard에서).
+        /// </summary>
+        public bool TryUseDevCard(BaseCard card)
+        {
+            if (card.CardData?.Category != CardCategory.Development) return false;
+
+            var gm = GameServices.GameManager;
+            if (gm == null)
+            {
+                Debug.LogWarning("[CardHand] GameManager 없음 — 테스트 모드에서는 항상 성공");
+                RemoveCardWithUseAnimation(card);
+                return true;
+            }
+
+            if (!gm.IsMyTurn() || gm.CurrentPhase != GamePhase.Action)
+                return false;
+
+            bool success = card.CardData.DevCardType switch
+            {
+                DevCardType.Knight => gm.TryUseKnight(default),
+                DevCardType.RoadBuilding => gm.TryUseRoadBuilding(),
+                DevCardType.YearOfPlenty => gm.TryUseYearOfPlenty(default, default),
+                DevCardType.Monopoly => gm.TryUseMonopoly(default),
+                _ => false // VictoryPoint, Hidden 등은 사용 불가
+            };
+
+            if (success)
+            {
+                RemoveCardWithUseAnimation(card);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>카드 사용 성공 — 위로 날아가며 제거</summary>
+        private void RemoveCardWithUseAnimation(BaseCard card)
+        {
+            if (currentHoveredCard == card)
+                currentHoveredCard = null;
+
+            cards.Remove(card);
+            SetCardSortingOverride(card, true);
+
+            RectTransform rt = card.RectTransform;
+
+            // 위로 날아가며 사라짐
+            rt.DOAnchorPos(rt.anchoredPosition + new Vector2(0, 400f), 0.4f)
+                .SetEase(Ease.InBack);
+            rt.DOScale(0.3f, 0.4f).SetEase(Ease.InBack)
+                .OnComplete(() =>
+                {
+                    Destroy(card.gameObject);
+                    UpdateCardIndices();
+                    isDirty = true;
+                });
+        }
+
         // === Public API ===
 
         public int CardCount => cards.Count;
@@ -424,3 +486,4 @@ namespace ArcanaCatan.UI.CardHand
         }
     }
 }
+
