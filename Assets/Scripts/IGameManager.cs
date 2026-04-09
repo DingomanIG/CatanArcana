@@ -41,6 +41,9 @@ public interface IGameManager
     event Action<int, bool> OnLargestArmyChanged;  // (playerIndex, gained)
     event Action<int, int, ResourceType> OnRobberSteal; // (thief, victim, resource)
 
+    // 자원 획득 연출용 (타일 위치 포함)
+    event Action<int, ResourceType, HexCoord> OnResourceGainedFromTile; // (playerIndex, resource, tileCoord)
+
     // 디스카드 이벤트
     event Action<int, int> OnDiscardRequired; // (playerIndex, discardCount) — 인간 플레이어에게 디스카드 UI 표시
 

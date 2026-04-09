@@ -116,7 +116,17 @@
 - [x] P1: LocalGameManager 치트 메서드 (CheatAddResource/DevCard/BuildingStock/Robber/Phase/Turn)
 - [x] P1: NetworkGameManager 치트 ServerRpc + ClientRpc 동기화
 
-### 6단계: 테스트
+### 6단계: 카드 핸드 시스템 (Balatro 스타일)
+- [x] P1: 싱글 핸드 + 팬 스택 (CardHandManager, 부채꼴 배열, 자원 스택 겹침)
+- [x] P1: 발전카드 드래그 사용 연출 (상단 임계선 감지, shake 연출)
+- [x] P1: 자원 카드 연동 (CardHandSyncer, OnResourceChanged 델타 동기화)
+- [x] P1: 도적 디스카드 다중 선택 모드 (SelectionMode 상태 관리)
+- [x] P1: 보너스 카드 동기화 (OnLongestRoadChanged/OnLargestArmyChanged → AddBonusCard/RemoveBonusCard)
+- [x] P1: 카드 타입별 아이콘/라벨 비주얼 (이모지 아이콘 + 이름 라벨 + 보너스 ★/+2VP)
+- [x] P1: 타일 → 핸드 날아오기 연출 (OnResourceGainedFromTile → 월드→스크린→Canvas 좌표 변환)
+- [x] P1: WebGL 성능 최적화 (DOTween SetId/SetAutoKill, SetTweensCapacity)
+
+### 7단계: 테스트
 - [ ] P1: 로컬 회귀 테스트 (기존 AI 대전)
 - [ ] P1: 네트워크 2인 테스트 (ParrelSync)
 

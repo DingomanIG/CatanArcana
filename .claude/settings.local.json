@@ -80,7 +80,14 @@
       "Bash(claude --version)",
       "Bash(npm view:*)",
       "Bash(npm update:*)",
-      "WebFetch(domain:www.youtube.com)"
+      "WebFetch(domain:www.youtube.com)",
+      "Bash(grep -l \"class CardHandManager\\\\|AddCard\\\\|RemoveCard\\\\|EnterDiscardMode\" /c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Assets/Scripts/UI/CardHand/*.cs)",
+      "Bash(find c:UsersbonekDocumentsAntigravityFolderArcanaCatanArcanaCatan -type f \\\\\\(-name *prefab -o -name *.prefab \\\\\\))",
+      "Bash(find c:UsersbonekDocumentsAntigravityFolderArcanaCatanArcanaCatanAssets -type f -name *ardu*)",
+      "Bash(find c:UsersbonekDocumentsAntigravityFolderArcanaCatanArcanaCatanAssetsScriptsUI -name *HUD* -o -name *GameHUD*)",
+      "Bash(grep -E \"\\\\.cs$\")",
+      "Bash(grep -l \"CardVisual\" \"c:\\\\Users\\\\bonek\\\\Documents\\\\AntigravityFolder\\\\ArcanaCatan\\\\ArcanaCatan\\\\Assets\\\\Prefabs\\\\UI\"/*.prefab)",
+      "Bash(find /c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Assets -maxdepth 3 -name *.unity)"
     ],
     "additionalDirectories": [
       "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\$BASE\\Art",

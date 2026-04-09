@@ -104,6 +104,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
     public event Action<int, Dictionary<ResourceType, int>, Dictionary<ResourceType, int>> OnIncomingTradeProposal;
     public event Action OnIncomingTradeCancelled;
     public event Action<int> OnTradeDeclined; // (declinerPlayerIndex) 거래 거절 알림
+    public event Action<int, ResourceType, HexCoord> OnResourceGainedFromTile;
     public event Action<int, int> OnDiscardRequired;
 #pragma warning disable CS0067 // 인터페이스 구현용 — 향후 사용 예정
     public event Action<int, string> OnPlayerDisconnected;
@@ -411,6 +412,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
             {
                 player.AddResource(tile.Resource, 1);
                 OnResourceChanged?.Invoke(currentPlayerIndex, tile.Resource, player.Resources[tile.Resource]);
+                OnResourceGainedFromTile?.Invoke(currentPlayerIndex, tile.Resource, tile.Coord);
             }
         }
     }
@@ -447,6 +449,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
                 int amount = vertex.Building == BuildingType.City ? 2 : 1;
                 players[owner].AddResource(tile.Resource, amount);
                 OnResourceChanged?.Invoke(owner, tile.Resource, players[owner].Resources[tile.Resource]);
+                OnResourceGainedFromTile?.Invoke(owner, tile.Resource, tile.Coord);
                 SFXManager.Instance?.Play(SFXType.ResourceGain);
             }
         }

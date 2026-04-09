@@ -121,6 +121,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
 #pragma warning restore CS0067
     public event Action<int> OnTradeDeclined; // H3/H4: 거래 거절 알림 (declinerPlayerIndex)
     public event Action<string> OnTradeRequestFailed; // 거래 요청 서버 검증 실패 알림
+    public event Action<int, ResourceType, HexCoord> OnResourceGainedFromTile;
     public event Action<int, int> OnDiscardRequired;
     public event Action<int, string> OnPlayerDisconnected;
     public event Action OnHostDisconnected;
@@ -482,6 +483,12 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
                 OnResourceChanged?.Invoke(pi, rt, count);
         };
 
+        hostLGM.OnResourceGainedFromTile += (pi, rt, coord) =>
+        {
+            // 타일→핸드 연출은 각 클라이언트 로컬에서 처리
+            NotifyResourceGainedFromTileClientRpc(pi, (int)rt, coord.Q, coord.R);
+        };
+
         hostLGM.OnVPChanged += (pi, vp) =>
         {
             if (pi < netPlayerVP.Count)
@@ -694,6 +701,12 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
             edge.HasRoad = true;
         }
         OnRoadPlaced?.Invoke(playerIndex, edgeId);
+    }
+
+    [ClientRpc]
+    void NotifyResourceGainedFromTileClientRpc(int playerIndex, int resourceType, int q, int r)
+    {
+        OnResourceGainedFromTile?.Invoke(playerIndex, (ResourceType)resourceType, new HexCoord(q, r));
     }
 
     [ClientRpc]

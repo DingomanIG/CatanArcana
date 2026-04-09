@@ -60,6 +60,7 @@ namespace ArcanaCatan.UI.CardHand
         private bool isDragging;
         private float idleTimer;
         private Tween currentScaleTween;
+        private int tweenId; // DOTween ID for cleanup
 
         // Fan stack
         private List<GameObject> fanCards = new List<GameObject>();
@@ -67,11 +68,13 @@ namespace ArcanaCatan.UI.CardHand
         private GameObject badgeObj;
         private Text badgeText;
 
+
         private void Awake()
         {
             rectTransform = GetComponent<RectTransform>();
             if (visualContainer == null)
                 visualContainer = rectTransform;
+            tweenId = GetInstanceID();
         }
 
         private void OnEnable()
@@ -84,7 +87,7 @@ namespace ArcanaCatan.UI.CardHand
         {
             if (baseCard == null) return;
             UnsubscribeEvents();
-            DOTween.Kill(transform);
+            DOTween.Kill(tweenId);
         }
 
         public void Initialize(BaseCard card)
@@ -313,40 +316,44 @@ namespace ArcanaCatan.UI.CardHand
         {
             isHovering = true;
             currentScaleTween?.Kill();
-            currentScaleTween = rectTransform.DOScale(hoverScale, hoverDuration).SetEase(Ease.OutBack);
+            currentScaleTween = rectTransform.DOScale(hoverScale, hoverDuration)
+                .SetEase(Ease.OutBack).SetId(tweenId).SetAutoKill(true);
 
             visualContainer.DOShakeRotation(0.3f, new Vector3(0, 0, 3f), 10, 90f, false)
-                .SetEase(Ease.OutQuad);
+                .SetEase(Ease.OutQuad).SetId(tweenId);
         }
 
         private void HandleHoverExit()
         {
             isHovering = false;
             currentScaleTween?.Kill();
-            currentScaleTween = rectTransform.DOScale(1f, hoverDuration).SetEase(Ease.OutQuad);
-            visualContainer.DOLocalRotate(Vector3.zero, 0.2f);
+            currentScaleTween = rectTransform.DOScale(1f, hoverDuration)
+                .SetEase(Ease.OutQuad).SetId(tweenId).SetAutoKill(true);
+            visualContainer.DOLocalRotate(Vector3.zero, 0.2f).SetId(tweenId);
         }
 
         private void HandleSelect()
         {
-            rectTransform.DOPunchScale(Vector3.one * selectPunchScale, selectDuration, 6, 0.5f);
+            rectTransform.DOPunchScale(Vector3.one * selectPunchScale, selectDuration, 6, 0.5f)
+                .SetId(tweenId);
         }
 
         private void HandleDeselect()
         {
-            rectTransform.DOScale(isHovering ? hoverScale : 1f, 0.15f);
+            rectTransform.DOScale(isHovering ? hoverScale : 1f, 0.15f).SetId(tweenId);
         }
 
         private void HandleDragStart()
         {
             isDragging = true;
-            rectTransform.DOScale(1.1f, 0.1f);
+            rectTransform.DOScale(1.1f, 0.1f).SetId(tweenId);
         }
 
         private void HandleDragEnd()
         {
             isDragging = false;
-            rectTransform.DOScale(isHovering ? hoverScale : 1f, 0.2f).SetEase(Ease.OutBack);
+            rectTransform.DOScale(isHovering ? hoverScale : 1f, 0.2f)
+                .SetEase(Ease.OutBack).SetId(tweenId);
         }
 
         /// <summary>사용 불가 — 좌우 흔들림 후 핸드로 복귀</summary>
@@ -354,8 +361,8 @@ namespace ArcanaCatan.UI.CardHand
         {
             isDragging = false;
             rectTransform.DOShakeAnchorPos(0.4f, new Vector2(20f, 0), 12, 90f, false, true)
-                .SetEase(Ease.OutQuad);
-            rectTransform.DOScale(1f, 0.3f).SetEase(Ease.OutBack);
+                .SetEase(Ease.OutQuad).SetId(tweenId);
+            rectTransform.DOScale(1f, 0.3f).SetEase(Ease.OutBack).SetId(tweenId);
         }
     }
 }

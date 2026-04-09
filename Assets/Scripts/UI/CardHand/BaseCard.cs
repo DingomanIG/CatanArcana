@@ -104,6 +104,27 @@ namespace ArcanaCatan.UI.CardHand
             // 매니저에게 물어봐서 이 카드가 최상위인지 확인
             if (!handManager.IsTopmostCardAt(eventData.position, this)) return;
 
+            // 디스카드 모드: 자원카드만 선택 가능
+            if (handManager.CurrentSelectionMode == CardHandManager.SelectionMode.MultiSelect_Discard)
+            {
+                if (CardData?.Category != CardCategory.Resource) return;
+
+                IsSelected = !IsSelected;
+                if (IsSelected)
+                {
+                    OnSelect?.Invoke();
+                    handManager?.OnDiscardCardToggled(this, true);
+                }
+                else
+                {
+                    OnDeselect?.Invoke();
+                    handManager?.OnDiscardCardToggled(this, false);
+                }
+                handManager?.OnCardSelected(this);
+                return;
+            }
+
+            // 일반 모드
             IsSelected = !IsSelected;
             if (IsSelected)
             {
