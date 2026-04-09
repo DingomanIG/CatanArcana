@@ -5,6 +5,8 @@ namespace ArcanaCatan.UI.CardHand
 {
     /// <summary>
     /// 카드 핸드 테스트용 — 키보드로 카드 추가/제거.
+    /// Space: 자원 추가 (순환), D: 발전카드 추가, B: 보너스 추가
+    /// Backspace: 마지막 카드 제거, R: 선택 카드 제거
     /// </summary>
     public class CardHandTester : MonoBehaviour
     {
@@ -33,13 +35,13 @@ namespace ArcanaCatan.UI.CardHand
             var keyboard = Keyboard.current;
             if (keyboard == null) return;
 
-            // Space: 자원 카드 추가 (순환)
+            // Space: 자원 카드 추가 (순환 — 같은 타입은 스택됨)
             if (keyboard.spaceKey.wasPressedThisFrame && testResourceCards)
             {
                 var type = resourceTypes[resIndex % resourceTypes.Length];
-                handManager.AddCard(CardData.Resource(type));
+                var card = handManager.AddCard(CardData.Resource(type));
                 resIndex++;
-                Debug.Log($"[Test] 자원 추가: {type} (총 {handManager.CardCount})");
+                Debug.Log($"[Test] 자원 추가: {type} (스택: x{card.StackCount}, 슬롯: {handManager.CardCount}, 총자원: {handManager.TotalResourceCardCount})");
             }
 
             // D: 발전 카드 추가 (순환)
@@ -48,23 +50,25 @@ namespace ArcanaCatan.UI.CardHand
                 var type = devTypes[devIndex % devTypes.Length];
                 handManager.AddCard(CardData.Development(type));
                 devIndex++;
-                Debug.Log($"[Test] 발전카드 추가: {type} (총 {handManager.CardCount})");
+                Debug.Log($"[Test] 발전카드 추가: {type} (슬롯: {handManager.CardCount})");
             }
 
             // B: 보너스 카드 추가
             if (keyboard.bKey.wasPressedThisFrame)
             {
                 handManager.AddCard(CardData.Bonus(BonusCardType.LongestRoad));
-                Debug.Log($"[Test] 최장도로 추가");
+                Debug.Log($"[Test] 최장도로 추가 (슬롯: {handManager.CardCount})");
             }
 
-            // Backspace: 마지막 카드 제거
+            // Backspace: 마지막 카드 제거 (자원이면 스택 감소)
             if (keyboard.backspaceKey.wasPressedThisFrame)
             {
                 if (handManager.CardCount > 0)
                 {
                     var cards = handManager.Cards;
-                    handManager.RemoveCard(cards[cards.Count - 1]);
+                    var lastCard = cards[cards.Count - 1];
+                    handManager.RemoveCard(lastCard);
+                    Debug.Log($"[Test] 카드 제거 (남은 슬롯: {handManager.CardCount})");
                 }
             }
 

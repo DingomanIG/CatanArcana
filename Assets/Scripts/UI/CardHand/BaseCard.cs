@@ -32,10 +32,21 @@ namespace ArcanaCatan.UI.CardHand
         public event Action<Vector2> OnDragUpdate;
         public event Action OnDragStart;
         public event Action OnDragEnd;
+        public event Action<int> OnStackCountChanged;
 
         public bool IsSelected { get; private set; }
         public bool IsDragging { get; private set; }
         public bool IsHovering { get; private set; }
+
+        /// <summary>자원 카드 스택 수량 (1 = 단일 카드)</summary>
+        public int StackCount { get; private set; } = 1;
+
+        /// <summary>스택 수량 변경</summary>
+        public void SetStackCount(int count)
+        {
+            StackCount = Mathf.Max(0, count);
+            OnStackCountChanged?.Invoke(StackCount);
+        }
 
         private CardHandManager handManager;
         private RectTransform rectTransform;

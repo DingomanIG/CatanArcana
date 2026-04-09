@@ -399,6 +399,7 @@ MonoBehaviour:
   cardImage: {fileID: 6323019826741094263}
   shadowImage: {fileID: 482878297571175733}
   visualContainer: {fileID: 6539558564414366645}
+  borderImage: {fileID: 0}
   followSpeed: 15
   idleRotationAmount: 3
   idleSpeed: 1
@@ -409,6 +410,15 @@ MonoBehaviour:
   selectDuration: 0.2
   shadowOffset: {x: 5, y: -10}
   shadowDragOffset: -30
+  fanOffsetX: 3
+  fanOffsetY: 1
+  maxFanCards: 5
+  fanBorderSize: {x: 124, y: 184}
+  fanBgSize: {x: 122, y: 182}
+  fanBgColor: {r: 0.15, g: 0.15, b: 0.2, a: 0.95}
+  resourceBorderColor: {r: 0.3, g: 0.7, b: 0.35, a: 1}
+  developmentBorderColor: {r: 0.55, g: 0.3, b: 0.75, a: 1}
+  bonusBorderColor: {r: 0.9, g: 0.75, b: 0.3, a: 1}
 --- !u!1 &3701818428397338645
 GameObject:
   m_ObjectHideFlags: 0

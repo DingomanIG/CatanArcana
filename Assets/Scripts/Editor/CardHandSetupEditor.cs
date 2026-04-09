@@ -136,6 +136,7 @@ namespace ArcanaCatan.Editor
             so.FindProperty("cardImage").objectReferenceValue = bg.GetComponent<Image>();
             so.FindProperty("shadowImage").objectReferenceValue = shadow.GetComponent<Image>();
             so.FindProperty("visualContainer").objectReferenceValue = vcRT;
+            so.FindProperty("borderImage").objectReferenceValue = border.GetComponent<Image>();
             so.ApplyModifiedPropertiesWithoutUndo();
 
             return root;

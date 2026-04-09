@@ -57,15 +57,15 @@ public class CardData
     /// <summary>발전 카드 생성</summary>
     public static CardData Development(DevCardType type)
     {
-        // 정렬: Knight=0, RoadBuilding=1, YearOfPlenty=2, Monopoly=3, VictoryPoint=4
+        // 정렬: 100번대 — 자원(0-4)과 겹치지 않도록 분리
         int order = type switch
         {
-            DevCardType.Knight       => 0,
-            DevCardType.RoadBuilding => 1,
-            DevCardType.YearOfPlenty => 2,
-            DevCardType.Monopoly     => 3,
-            DevCardType.VictoryPoint => 4,
-            _ => 99
+            DevCardType.Knight       => 100,
+            DevCardType.RoadBuilding => 101,
+            DevCardType.YearOfPlenty => 102,
+            DevCardType.Monopoly     => 103,
+            DevCardType.VictoryPoint => 104,
+            _ => 199
         };
         return new CardData(CardCategory.Development, order) { DevCardType = type };
     }
@@ -73,7 +73,8 @@ public class CardData
     /// <summary>보너스 카드 생성</summary>
     public static CardData Bonus(BonusCardType type)
     {
-        int order = type == BonusCardType.LongestRoad ? 10 : 11;
+        // 정렬: 200번대 — 항상 핸드 맨 오른쪽
+        int order = type == BonusCardType.LongestRoad ? 200 : 201;
         return new CardData(CardCategory.Bonus, order) { BonusType = type };
     }
 

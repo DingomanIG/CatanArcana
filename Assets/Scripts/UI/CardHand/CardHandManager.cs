@@ -7,9 +7,8 @@ using System.Collections.Generic;
 namespace ArcanaCatan.UI.CardHand
 {
     /// <summary>
-    /// 카드 핸드(손패) 관리.
-    /// 부채꼴 배열, 카드 추가/제거, 호버 감지, 드래그 스왑.
-    /// 호버는 매니저가 Update에서 직접 판별 (겹침 문제 해결).
+    /// 싱글 핸드 카드 관리.
+    /// 부채꼴 배열, 자원 팬 스택, 카테고리 그룹 간격, 호버/드래그.
     /// </summary>
     public class CardHandManager : MonoBehaviour
     {
@@ -19,7 +18,10 @@ namespace ArcanaCatan.UI.CardHand
         [Header("Layout")]
         [SerializeField] private RectTransform cardContainer;
         [SerializeField] private float cardWidth = 120f;
-        [SerializeField] private float cardSpacing = -30f; // 카드 겹침 (음수)
+        [SerializeField] private float cardSpacing = -30f;
+
+        [Header("Category Spacing")]
+        [SerializeField] private float categoryGapWidth = 40f;
 
         [Header("Hand Curve (부채꼴)")]
         [SerializeField] private AnimationCurve curveY = AnimationCurve.EaseInOut(0f, -20f, 1f, -20f);
@@ -32,6 +34,7 @@ namespace ArcanaCatan.UI.CardHand
         [SerializeField] private float rearrangeDuration = 0.2f;
 
         private List<BaseCard> cards = new List<BaseCard>();
+        private Dictionary<ResourceType, BaseCard> resourceStacks = new Dictionary<ResourceType, BaseCard>();
         private bool isDirty;
         private BaseCard currentHoveredCard;
         private Canvas rootCanvas;
@@ -39,17 +42,14 @@ namespace ArcanaCatan.UI.CardHand
 
         private void Awake()
         {
-            // LayoutGroup 비활성화 — 위치를 직접 계산
             var layoutGroup = GetComponent<HorizontalLayoutGroup>();
             if (layoutGroup != null)
                 layoutGroup.enabled = false;
 
-            // ContentSizeFitter도 비활성화
             var csf = GetComponent<ContentSizeFitter>();
             if (csf != null)
                 csf.enabled = false;
 
-            // 커브가 비어있을 때만 기본값 설정
             if (curveY.keys.Length == 0)
             {
                 curveY = new AnimationCurve(
@@ -87,15 +87,12 @@ namespace ArcanaCatan.UI.CardHand
             }
         }
 
-        /// <summary>
-        /// 매 프레임 마우스 위치로 최상위 카드 판별하여 호버 처리.
-        /// 오른쪽(나중) 카드가 위에 렌더링되므로, 역순으로 검사하여 첫 히트 = 최상위.
-        /// </summary>
+        // === Hover ===
+
         private void UpdateHover()
         {
             if (Mouse.current == null) return;
 
-            // 드래그 중이면 호버 처리 안 함
             if (cards.Exists(c => c.IsDragging))
             {
                 if (currentHoveredCard != null)
@@ -108,14 +105,11 @@ namespace ArcanaCatan.UI.CardHand
             }
 
             Vector2 mouseScreenPos = Mouse.current.position.ReadValue();
-
             BaseCard topCard = null;
 
-            // 역순 검사: 오른쪽(높은 인덱스) 카드가 위에 렌더링됨
             for (int i = cards.Count - 1; i >= 0; i--)
             {
                 if (cards[i].IsDragging) continue;
-
                 RectTransform rt = cards[i].RectTransform;
                 if (RectTransformUtility.RectangleContainsScreenPoint(rt, mouseScreenPos, canvasCamera))
                 {
@@ -124,10 +118,8 @@ namespace ArcanaCatan.UI.CardHand
                 }
             }
 
-            // 호버 상태 변경
             if (topCard != currentHoveredCard)
             {
-                // 이전 카드 호버 해제
                 if (currentHoveredCard != null)
                 {
                     currentHoveredCard.SetHover(false);
@@ -136,7 +128,6 @@ namespace ArcanaCatan.UI.CardHand
 
                 currentHoveredCard = topCard;
 
-                // 새 카드 호버 진입
                 if (currentHoveredCard != null)
                 {
                     currentHoveredCard.SetHover(true);
@@ -147,7 +138,6 @@ namespace ArcanaCatan.UI.CardHand
             }
         }
 
-        /// <summary>특정 스크린 위치에서 이 카드가 최상위인지 확인 (클릭 검증용)</summary>
         public bool IsTopmostCardAt(Vector2 screenPos, BaseCard card)
         {
             for (int i = cards.Count - 1; i >= 0; i--)
@@ -168,7 +158,7 @@ namespace ArcanaCatan.UI.CardHand
             return AddCard(CardData.Development(type));
         }
 
-        /// <summary>통합 — CardData로 추가, 정렬 순서에 맞게 삽입</summary>
+        /// <summary>통합 — CardData로 추가. 자원카드는 팬 스택 처리.</summary>
         public BaseCard AddCard(CardData data)
         {
             if (cardPrefab == null)
@@ -177,17 +167,21 @@ namespace ArcanaCatan.UI.CardHand
                 return null;
             }
 
+            // 자원 카드 스택 처리
+            if (data.Category == CardCategory.Resource)
+            {
+                if (resourceStacks.TryGetValue(data.ResourceType, out BaseCard existing))
+                {
+                    existing.SetStackCount(existing.StackCount + 1);
+                    return existing;
+                }
+            }
+
+            // 새 카드 생성
             GameObject cardObj = Instantiate(cardPrefab, cardContainer);
             BaseCard baseCard = cardObj.GetComponent<BaseCard>();
 
-            // 정렬 순서에 맞는 삽입 위치 찾기
-            int insertIndex = 0;
-            for (int i = 0; i < cards.Count; i++)
-            {
-                if (cards[i].CardData != null && cards[i].CardData.SortOrder <= data.SortOrder)
-                    insertIndex = i + 1;
-            }
-
+            int insertIndex = FindInsertIndex(data);
             baseCard.Initialize(this, data, insertIndex);
 
             CardVisual visual = cardObj.GetComponentInChildren<CardVisual>();
@@ -197,26 +191,44 @@ namespace ArcanaCatan.UI.CardHand
             cards.Insert(insertIndex, baseCard);
             UpdateCardIndices();
 
-            // 부채꼴 목표 위치 계산
+            // 자원 스택 등록
+            if (data.Category == CardCategory.Resource)
+                resourceStacks[data.ResourceType] = baseCard;
+
+            // 딜 애니메이션
+            AnimateDeal(baseCard, insertIndex);
+
+            isDirty = true;
+            return baseCard;
+        }
+
+        /// <summary>정렬 순서에 맞는 삽입 위치</summary>
+        private int FindInsertIndex(CardData data)
+        {
+            int insertIndex = 0;
+            for (int i = 0; i < cards.Count; i++)
+            {
+                if (cards[i].CardData != null && cards[i].CardData.SortOrder <= data.SortOrder)
+                    insertIndex = i + 1;
+            }
+            return insertIndex;
+        }
+
+        private void AnimateDeal(BaseCard card, int index)
+        {
             int count = cards.Count;
-            int index = count - 1;
             float t = count == 1 ? 0.5f : (float)index / (count - 1);
             float targetX = GetCardX(index, count);
             float targetY = curveY.Evaluate(t) * curveYMultiplier;
             float targetRot = curveRotation.Evaluate(t) * curveRotationMultiplier;
 
-            // 아래에서 올라오는 딜 애니메이션
-            RectTransform rt = cardObj.GetComponent<RectTransform>();
+            RectTransform rt = card.GetComponent<RectTransform>();
             rt.anchoredPosition = new Vector2(targetX, targetY - 200f);
             rt.localScale = Vector3.zero;
             rt.localRotation = Quaternion.Euler(0, 0, targetRot);
 
             rt.DOAnchorPos(new Vector2(targetX, targetY), dealDuration).SetEase(Ease.OutBack);
             rt.DOScale(1f, dealDuration).SetEase(Ease.OutBack);
-
-            // 기존 카드들도 재배치 (새 카드 추가로 간격 변경)
-            isDirty = true;
-            return baseCard;
         }
 
         public void RemoveCard(BaseCard card)
@@ -225,6 +237,17 @@ namespace ArcanaCatan.UI.CardHand
 
             if (currentHoveredCard == card)
                 currentHoveredCard = null;
+
+            // 자원 스택 감소 처리
+            if (card.CardData?.Category == CardCategory.Resource && card.StackCount > 1)
+            {
+                card.SetStackCount(card.StackCount - 1);
+                return;
+            }
+
+            // 자원 스택 등록 해제
+            if (card.CardData?.Category == CardCategory.Resource)
+                resourceStacks.Remove(card.CardData.ResourceType);
 
             cards.Remove(card);
             RectTransform rt = card.GetComponent<RectTransform>();
@@ -239,14 +262,52 @@ namespace ArcanaCatan.UI.CardHand
                 });
         }
 
+        /// <summary>특정 자원 타입의 스택 카드 가져오기</summary>
+        public BaseCard GetResourceStack(ResourceType type)
+        {
+            resourceStacks.TryGetValue(type, out BaseCard card);
+            return card;
+        }
+
         // === Hand Curve ===
 
-        /// <summary>카드 i의 부채꼴 X 위치 계산 (중앙 정렬)</summary>
         private float GetCardX(int index, int count)
         {
             float step = cardWidth + cardSpacing;
-            float totalWidth = (count - 1) * step;
-            return -totalWidth / 2f + index * step;
+
+            // 카테고리 전환 횟수 계산 (전체 + 이 인덱스까지)
+            int totalGaps = CountCategoryGaps();
+            int gapsBefore = CountCategoryGapsBefore(index);
+
+            float totalWidth = (count - 1) * step + totalGaps * categoryGapWidth;
+            return -totalWidth / 2f + index * step + gapsBefore * categoryGapWidth;
+        }
+
+        private int CountCategoryGaps()
+        {
+            int gaps = 0;
+            for (int i = 1; i < cards.Count; i++)
+            {
+                if (GetCategory(i) != GetCategory(i - 1))
+                    gaps++;
+            }
+            return gaps;
+        }
+
+        private int CountCategoryGapsBefore(int index)
+        {
+            int gaps = 0;
+            for (int i = 1; i <= index && i < cards.Count; i++)
+            {
+                if (GetCategory(i) != GetCategory(i - 1))
+                    gaps++;
+            }
+            return gaps;
+        }
+
+        private CardCategory GetCategory(int index)
+        {
+            return cards[index].CardData?.Category ?? CardCategory.Resource;
         }
 
         private void ApplyHandCurve()
@@ -269,7 +330,6 @@ namespace ArcanaCatan.UI.CardHand
                 if (cards[i].IsSelected)
                     yOffset += cards[i].SelectionOffsetY;
 
-                // 기존 트윈 kill 후 새로 생성
                 DOTween.Kill(rt.GetInstanceID() + 0);
                 DOTween.Kill(rt.GetInstanceID() + 1);
 
@@ -283,43 +343,11 @@ namespace ArcanaCatan.UI.CardHand
             }
         }
 
-        // === Drag & Swap ===
+        // === Drag (스왑 비활성화 — 정렬 순서 고정) ===
 
         public void CheckCardSwap(BaseCard draggedCard)
         {
-            int dragIndex = cards.IndexOf(draggedCard);
-            if (dragIndex < 0) return;
-
-            float dragX = draggedCard.RectTransform.anchoredPosition.x;
-            int count = cards.Count;
-
-            if (dragIndex > 0)
-            {
-                float neighborX = GetCardX(dragIndex - 1, count);
-                if (dragX < neighborX)
-                {
-                    SwapCards(dragIndex, dragIndex - 1);
-                    return;
-                }
-            }
-
-            if (dragIndex < count - 1)
-            {
-                float neighborX = GetCardX(dragIndex + 1, count);
-                if (dragX > neighborX)
-                {
-                    SwapCards(dragIndex, dragIndex + 1);
-                }
-            }
-        }
-
-        private void SwapCards(int indexA, int indexB)
-        {
-            (cards[indexA], cards[indexB]) = (cards[indexB], cards[indexA]);
-            cards[indexA].transform.SetSiblingIndex(indexA);
-            cards[indexB].transform.SetSiblingIndex(indexB);
-            UpdateCardIndices();
-            isDirty = true;
+            // 싱글 핸드: 정렬 순서 고정, 스왑 비활성화
         }
 
         private void UpdateCardIndices()
@@ -341,16 +369,9 @@ namespace ArcanaCatan.UI.CardHand
         public void OnCardDragEnd(BaseCard card)
         {
             SetCardSortingOverride(card, false);
-
-            // isDirty가 ApplyHandCurve에서 전부 처리
-
             isDirty = true;
         }
 
-        /// <summary>
-        /// 카드에 Canvas override를 추가/제거하여 렌더 순서만 변경.
-        /// sibling 순서를 건드리지 않으므로 LayoutGroup 배치에 영향 없음.
-        /// </summary>
         private void SetCardSortingOverride(BaseCard card, bool onTop)
         {
             Canvas cardCanvas = card.GetComponent<Canvas>();
@@ -361,7 +382,6 @@ namespace ArcanaCatan.UI.CardHand
                 cardCanvas.overrideSorting = true;
                 cardCanvas.sortingOrder = 100;
 
-                // Canvas 추가 시 GraphicRaycaster도 필요
                 if (card.GetComponent<GraphicRaycaster>() == null)
                     card.gameObject.AddComponent<GraphicRaycaster>();
             }
@@ -389,6 +409,18 @@ namespace ArcanaCatan.UI.CardHand
         {
             foreach (var card in cards)
                 card.SetHover(false);
+        }
+
+        /// <summary>총 자원 카드 수 (스택 합산)</summary>
+        public int TotalResourceCardCount
+        {
+            get
+            {
+                int total = 0;
+                foreach (var kv in resourceStacks)
+                    total += kv.Value.StackCount;
+                return total;
+            }
         }
     }
 }
