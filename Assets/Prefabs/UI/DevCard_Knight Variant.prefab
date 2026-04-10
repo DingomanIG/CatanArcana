@@ -219,6 +219,14 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7418509183824022054, guid: f3bc934ff862c0d4c8a8321eed7574e0, type: 3}
+      propertyPath: fanOffsetX
+      value: -3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7418509183824022054, guid: f3bc934ff862c0d4c8a8321eed7574e0, type: 3}
+      propertyPath: fanOffsetY
+      value: -1
+      objectReference: {fileID: 0}
     - target: {fileID: 8950203703632353631, guid: f3bc934ff862c0d4c8a8321eed7574e0, type: 3}
       propertyPath: m_IsActive
       value: 0

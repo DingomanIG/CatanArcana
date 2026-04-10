@@ -16,6 +16,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: ResCard_Sheep Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 3797778370194462400, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
+      propertyPath: m_Text
+      value: SHEEP
+      objectReference: {fileID: 0}
     - target: {fileID: 3887623583742200764, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
       propertyPath: m_IsActive
       value: 0

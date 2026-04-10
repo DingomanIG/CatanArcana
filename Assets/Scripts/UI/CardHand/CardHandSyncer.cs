@@ -6,6 +6,7 @@ namespace ArcanaCatan.UI.CardHand
     /// <summary>
     /// IGameManager 이벤트 → CardHandManager 동기화.
     /// 자원 변화, 발전카드 구매, 디스카드 모드 등을 핸드에 반영.
+    /// 자원카드는 개별 인스턴스로 관리 (스택 없음).
     /// </summary>
     public class CardHandSyncer : MonoBehaviour
     {
@@ -26,7 +27,6 @@ namespace ArcanaCatan.UI.CardHand
 
         private void Update()
         {
-            // GameManager가 늦게 초기화될 수 있으므로 매 프레임 체크
             if (!subscribed && GameServices.GameManager != null)
             {
                 gm = GameServices.GameManager;
@@ -41,8 +41,6 @@ namespace ArcanaCatan.UI.CardHand
 
         private void Subscribe()
         {
-            // 초기 상태를 먼저 동기화 (prevResources 세팅)
-            // → 이후 이벤트 구독 시 delta 계산이 정확해짐
             SyncInitialState();
 
             gm.OnResourceChanged += HandleResourceChanged;
@@ -80,19 +78,24 @@ namespace ArcanaCatan.UI.CardHand
                 prevResources[kv.Key] = kv.Value;
             }
 
-            // 보너스 카드 초기 동기화
             if (ps.HasLongestRoad)
                 handManager.AddCard(CardData.Bonus(BonusCardType.LongestRoad));
             if (ps.HasLargestArmy)
                 handManager.AddCard(CardData.Bonus(BonusCardType.LargestArmy));
         }
 
+        /// <summary>외부에서 카드를 직접 제거한 경우 prevResources 동기화 (이중 제거 방지)</summary>
+        public void AdjustPrevResource(ResourceType type, int removedCount)
+        {
+            if (prevResources.ContainsKey(type))
+                prevResources[type] = Mathf.Max(0, prevResources[type] - removedCount);
+        }
+
         // === Event Handlers ===
 
-        /// <summary>자원 변화 → 핸드 카드 증감</summary>
+        /// <summary>자원 변화 → 개별 카드 추가/제거</summary>
         private void HandleResourceChanged(int playerIndex, ResourceType type, int newAmount)
         {
-            // 로컬 플레이어만 처리
             if (playerIndex != gm.LocalPlayerIndex) return;
             if (type == ResourceType.None || type == ResourceType.Sea) return;
 
@@ -102,18 +105,18 @@ namespace ArcanaCatan.UI.CardHand
 
             if (delta > 0)
             {
-                // 자원 획득 — 카드 추가 (스택 증가)
+                // 자원 획득 — 개별 카드 추가
                 for (int i = 0; i < delta; i++)
                     handManager.AddCard(CardData.Resource(type));
             }
             else if (delta < 0)
             {
-                // 자원 소모 — 카드 제거 (스택 감소)
-                var stack = handManager.GetResourceStack(type);
-                if (stack != null)
+                // 자원 소모 — 개별 카드 제거
+                for (int i = 0; i < -delta; i++)
                 {
-                    for (int i = 0; i < -delta; i++)
-                        handManager.RemoveCard(stack);
+                    var card = handManager.FindResourceCard(type);
+                    if (card != null)
+                        handManager.RemoveCard(card);
                 }
             }
         }

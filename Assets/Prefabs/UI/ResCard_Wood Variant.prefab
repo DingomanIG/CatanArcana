@@ -12,14 +12,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: ResCard_Wood Variant
       objectReference: {fileID: 0}
-    - target: {fileID: 3704773285468395690, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 122
-      objectReference: {fileID: 0}
-    - target: {fileID: 3704773285468395690, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 182
-      objectReference: {fileID: 0}
     - target: {fileID: 3887623583742200764, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -106,7 +98,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6944493442985689487, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
       propertyPath: fanOffsetX
-      value: 2
+      value: -3
       objectReference: {fileID: 0}
     - target: {fileID: 6944493442985689487, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
       propertyPath: fanOffsetY
@@ -119,6 +111,14 @@ PrefabInstance:
     - target: {fileID: 6944493442985689487, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
       propertyPath: fanBgSize.y
       value: 182
+      objectReference: {fileID: 0}
+    - target: {fileID: 8825881896771175824, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
+      propertyPath: ShakeMainDirection.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8825881896771175824, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
+      propertyPath: ShakeMainDirection.y
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

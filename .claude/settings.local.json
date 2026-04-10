@@ -87,7 +87,8 @@
       "Bash(find c:UsersbonekDocumentsAntigravityFolderArcanaCatanArcanaCatanAssetsScriptsUI -name *HUD* -o -name *GameHUD*)",
       "Bash(grep -E \"\\\\.cs$\")",
       "Bash(grep -l \"CardVisual\" \"c:\\\\Users\\\\bonek\\\\Documents\\\\AntigravityFolder\\\\ArcanaCatan\\\\ArcanaCatan\\\\Assets\\\\Prefabs\\\\UI\"/*.prefab)",
-      "Bash(find /c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Assets -maxdepth 3 -name *.unity)"
+      "Bash(find /c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Assets -maxdepth 3 -name *.unity)",
+      "Bash(find /c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Assets/Prefabs -name *ard* -o -name *Card*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\$BASE\\Art",

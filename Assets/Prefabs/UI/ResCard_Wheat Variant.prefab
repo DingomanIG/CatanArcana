@@ -8,17 +8,49 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 344678645006302234, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 979255833331622767, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1368078155698396096, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1503911287371412539, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 40755259, guid: 5aa8a0525242d164bad2ac12bee74923, type: 3}
+    - target: {fileID: 1965713394320208057, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2571762881636120080, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2757921336428263392, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
       propertyPath: m_Name
       value: ResCard_Wheat Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 3567587443914302428, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3699429834074688811, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3797778370194462400, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
       propertyPath: m_Text
       value: WHEAT
+      objectReference: {fileID: 0}
+    - target: {fileID: 3887623583742200764, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3887623583742200764, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
       propertyPath: m_IsActive
@@ -108,6 +140,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4633433441442562246, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5842290467908840670, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
       propertyPath: m_Color.b
       value: 0.23104309
@@ -119,6 +155,14 @@ PrefabInstance:
     - target: {fileID: 5842290467908840670, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
       propertyPath: m_Color.r
       value: 0.8301887
+      objectReference: {fileID: 0}
+    - target: {fileID: 7138315382821223177, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8834267976545374966, guid: 64c1bf0070d9fdc419876a0b3f7a07ec, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

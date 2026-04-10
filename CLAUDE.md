@@ -76,7 +76,18 @@ Docs/
 - 대답은 매우 간략하게, 위트 있는 대화 스타일로
 - 일은 즐겁게!
 
+## Animation Workflow
+- 애니메이션/연출이 필요한 작업이 생기면 **반드시 유저에게 먼저 물어볼 것**:
+  - "이 연출을 DOTween으로 빠르게 구현할까요, 아니면 Feel로 직접 하실 건가요?"
+- **DOTween 선택 시**: Claude Code가 프로토타입 구현
+- **Feel 선택 시**: Claude Code가 아래 가이드를 제공
+  1. 필요한 Feedback 종류 (MMF_Scale, MMF_Position, MMF_Rotation 등)
+  2. 권장 파라미터 (Duration, Curve, Delay 등)
+  3. Feedback 조합 순서 (MMF_Player에 어떤 순서로 넣을지)
+  4. 트리거 타이밍 (어떤 이벤트에서 PlayFeedbacks() 호출할지)
+
 ## Rules
+- **⚠️ 필수**: 유저 요청을 받으면 코드 수정 전에 반드시 1) 어떻게 이해했는지 설명하고 2) 진행해도 되는지 확인을 받을 것. 절대 바로 수정하지 말 것!
 - UI/코드/문서에 "카탄(Catan)" 명칭 사용 금지 (라이센스 이슈)
 - 커밋 후 push는 유저에게 확인 후 수행
 - Unity .meta 파일 포함하여 커밋

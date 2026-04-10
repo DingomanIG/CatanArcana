@@ -21,9 +21,6 @@ namespace ArcanaCatan.UI.CardHand
         /// <summary>통합 카드 데이터</summary>
         public CardData CardData { get; private set; }
 
-        [Header("Selection")]
-        [SerializeField] private float selectionOffsetY = 30f;
-
         [Header("Card Use (발전카드)")]
         [SerializeField] private float useThresholdRatio = 0.6f; // 화면 높이의 60%
 
@@ -35,7 +32,6 @@ namespace ArcanaCatan.UI.CardHand
         public event Action<Vector2> OnDragUpdate;
         public event Action OnDragStart;
         public event Action OnDragEnd;
-        public event Action<int> OnStackCountChanged;
 
         /// <summary>카드 사용 성공 (날아가기 연출 트리거)</summary>
         public event Action OnCardUsed;
@@ -45,16 +41,6 @@ namespace ArcanaCatan.UI.CardHand
         public bool IsSelected { get; private set; }
         public bool IsDragging { get; private set; }
         public bool IsHovering { get; private set; }
-
-        /// <summary>자원 카드 스택 수량 (1 = 단일 카드)</summary>
-        public int StackCount { get; private set; } = 1;
-
-        /// <summary>스택 수량 변경</summary>
-        public void SetStackCount(int count)
-        {
-            StackCount = Mathf.Max(0, count);
-            OnStackCountChanged?.Invoke(StackCount);
-        }
 
         private CardHandManager handManager;
         private RectTransform rectTransform;
@@ -104,21 +90,25 @@ namespace ArcanaCatan.UI.CardHand
             // 매니저에게 물어봐서 이 카드가 최상위인지 확인
             if (!handManager.IsTopmostCardAt(eventData.position, this)) return;
 
-            // 디스카드 모드: 자원카드만 선택 가능
+            // 디스카드 모드: 자원카드만 선택/해제 토글
             if (handManager.CurrentSelectionMode == CardHandManager.SelectionMode.MultiSelect_Discard)
             {
                 if (CardData?.Category != CardCategory.Resource) return;
 
-                IsSelected = !IsSelected;
                 if (IsSelected)
                 {
-                    OnSelect?.Invoke();
-                    handManager?.OnDiscardCardToggled(this, true);
+                    // 올라간 카드 클릭 → 내려옴
+                    IsSelected = false;
+                    OnDeselect?.Invoke();
+                    handManager?.OnDiscardCardToggled(this, false);
                 }
                 else
                 {
-                    OnDeselect?.Invoke();
-                    handManager?.OnDiscardCardToggled(this, false);
+                    // 핸드 카드 클릭 → 올라감
+                    if (!handManager.CanSelectMoreDiscard()) return;
+                    IsSelected = true;
+                    OnSelect?.Invoke();
+                    handManager?.OnDiscardCardToggled(this, true);
                 }
                 handManager?.OnCardSelected(this);
                 return;
@@ -142,6 +132,8 @@ namespace ArcanaCatan.UI.CardHand
         {
             if (eventData.button != PointerEventData.InputButton.Left) return;
             if (CardData != null && !CardData.IsDraggable) return;
+            // 디스카드 모드에서는 드래그 비활성화
+            if (handManager.CurrentSelectionMode == CardHandManager.SelectionMode.MultiSelect_Discard) return;
             IsDragging = true;
 
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
@@ -173,6 +165,7 @@ namespace ArcanaCatan.UI.CardHand
 
         public void OnEndDrag(PointerEventData eventData)
         {
+            if (!IsDragging) return;
             IsDragging = false;
             GetComponent<CanvasGroup>().blocksRaycasts = true;
 
@@ -188,7 +181,7 @@ namespace ArcanaCatan.UI.CardHand
                     if (success)
                     {
                         OnCardUsed?.Invoke();
-                        return; // 매니저가 카드 제거 처리
+                        return;
                     }
                     else
                     {
@@ -201,6 +194,12 @@ namespace ArcanaCatan.UI.CardHand
             handManager?.OnCardDragEnd(this);
         }
 
-        public float SelectionOffsetY => selectionOffsetY;
+        /// <summary>선택 강제 해제 (매니저에서 호출)</summary>
+        public void ForceDeselect()
+        {
+            if (!IsSelected) return;
+            IsSelected = false;
+            OnDeselect?.Invoke();
+        }
     }
 }

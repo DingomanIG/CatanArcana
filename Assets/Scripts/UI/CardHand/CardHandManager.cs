@@ -9,7 +9,8 @@ namespace ArcanaCatan.UI.CardHand
 {
     /// <summary>
     /// 싱글 핸드 카드 관리.
-    /// 부채꼴 배열, 자원 팬 스택, 카테고리 그룹 간격, 호버/드래그.
+    /// 부채꼴 배열, 개별 카드 인스턴스, 카테고리 그룹 간격, 호버/드래그.
+    /// 자원카드도 한 장씩 개별 오브젝트로 관리 (스택 없음).
     /// </summary>
     public class CardHandManager : MonoBehaviour
     {
@@ -52,8 +53,10 @@ namespace ArcanaCatan.UI.CardHand
         [SerializeField] private float dealDuration = 0.3f;
         [SerializeField] private float rearrangeDuration = 0.2f;
 
+        [Header("Discard Selection")]
+        [SerializeField] private float discardOffsetY = 150f;
+
         private List<BaseCard> cards = new List<BaseCard>();
-        private Dictionary<ResourceType, BaseCard> resourceStacks = new Dictionary<ResourceType, BaseCard>();
         private Dictionary<BonusCardType, BaseCard> bonusCards = new Dictionary<BonusCardType, BaseCard>();
         private bool isDirty;
         private BaseCard currentHoveredCard;
@@ -62,7 +65,6 @@ namespace ArcanaCatan.UI.CardHand
 
         private void Awake()
         {
-            // WebGL 최적화: DOTween 재활용 활성화
             DOTween.SetTweensCapacity(200, 50);
 
             var layoutGroup = GetComponent<HorizontalLayoutGroup>();
@@ -220,10 +222,8 @@ namespace ArcanaCatan.UI.CardHand
             return AddCard(CardData.Development(type));
         }
 
-        /// <summary>통합 — CardData로 추가. 자원카드는 팬 스택 처리.</summary>
-        public BaseCard AddCard(CardData data) => AddCardInternal(data, skipDealAnim: false);
-
-        private BaseCard AddCardInternal(CardData data, bool skipDealAnim)
+        /// <summary>통합 — CardData로 추가. 모든 카드 개별 인스턴스.</summary>
+        public BaseCard AddCard(CardData data)
         {
             var prefab = GetPrefabForCard(data);
             if (prefab == null)
@@ -232,18 +232,6 @@ namespace ArcanaCatan.UI.CardHand
                 return null;
             }
 
-            // 자원 카드 스택 처리
-            if (data.Category == CardCategory.Resource)
-            {
-                if (resourceStacks.TryGetValue(data.ResourceType, out BaseCard existing))
-                {
-                    PlayStackAddAnimation(existing);
-                    existing.SetStackCount(existing.StackCount + 1);
-                    return existing;
-                }
-            }
-
-            // 새 카드 생성 — 타입별 프리팹 사용
             GameObject cardObj = Instantiate(prefab, cardContainer);
             BaseCard baseCard = cardObj.GetComponent<BaseCard>();
 
@@ -257,14 +245,7 @@ namespace ArcanaCatan.UI.CardHand
             cards.Insert(insertIndex, baseCard);
             UpdateCardIndices();
 
-            // 자원 스택 등록
-            if (data.Category == CardCategory.Resource)
-                resourceStacks[data.ResourceType] = baseCard;
-
-            // 딜 애니메이션 (fly-in 사용 시 건너뜀)
-            if (!skipDealAnim)
-                AnimateDeal(baseCard, insertIndex);
-
+            AnimateDeal(baseCard, insertIndex);
             isDirty = true;
             return baseCard;
         }
@@ -291,11 +272,10 @@ namespace ArcanaCatan.UI.CardHand
 
             RectTransform rt = card.GetComponent<RectTransform>();
             int tid = rt.GetInstanceID();
-            rt.anchoredPosition = new Vector2(targetX, targetY - 200f);
+            rt.anchoredPosition = new Vector2(targetX, targetY + 300f);
             rt.localScale = Vector3.zero;
             rt.localRotation = Quaternion.Euler(0, 0, targetRot);
 
-            // ID 체계: +0=position, +1=rotation, +2=scale
             rt.DOAnchorPos(new Vector2(targetX, targetY), dealDuration)
                 .SetEase(Ease.OutBack).SetId(tid + 0);
             rt.DOScale(1f, dealDuration)
@@ -308,18 +288,6 @@ namespace ArcanaCatan.UI.CardHand
 
             if (currentHoveredCard == card)
                 currentHoveredCard = null;
-
-            // 자원 스택 감소 처리
-            if (card.CardData?.Category == CardCategory.Resource && card.StackCount > 1)
-            {
-                PlayStackRemoveAnimation(card);
-                card.SetStackCount(card.StackCount - 1);
-                return;
-            }
-
-            // 자원 스택 등록 해제
-            if (card.CardData?.Category == CardCategory.Resource)
-                resourceStacks.Remove(card.CardData.ResourceType);
 
             cards.Remove(card);
             RectTransform rt = card.GetComponent<RectTransform>();
@@ -339,84 +307,16 @@ namespace ArcanaCatan.UI.CardHand
                 });
         }
 
-        /// <summary>스택 증가 시 고스트 카드가 위에서 내려와 스택에 합류하는 연출</summary>
-        private void PlayStackAddAnimation(BaseCard card)
+        /// <summary>특정 자원 타입의 카드 1장 찾기 (제거용)</summary>
+        public BaseCard FindResourceCard(ResourceType type)
         {
-            GameObject prefab = GetPrefabForCard(card.CardData);
-            GameObject ghost = Instantiate(prefab, cardContainer);
-            ghost.name = "GhostCard_StackAdd";
-
-            // 인터랙션 차단
-            var bc = ghost.GetComponent<BaseCard>();
-            if (bc != null) Destroy(bc);
-            var vis = ghost.GetComponent<CardVisual>();
-            if (vis != null) Destroy(vis);
-            var cg = ghost.GetComponent<CanvasGroup>();
-            if (cg == null) cg = ghost.AddComponent<CanvasGroup>();
-            cg.blocksRaycasts = false;
-            cg.interactable = false;
-
-            // 스택 카드 위 200px에서 시작
-            RectTransform ghostRT = ghost.GetComponent<RectTransform>();
-            RectTransform srcRT = card.RectTransform;
-            Vector2 targetPos = srcRT.anchoredPosition;
-            ghostRT.anchoredPosition = targetPos + new Vector2(0, 200f);
-            ghostRT.localScale = Vector3.zero;
-            ghostRT.localRotation = srcRT.localRotation;
-
-            // 내려오며 합류
-            int tid = ghostRT.GetInstanceID();
-            ghostRT.DOAnchorPos(targetPos, dealDuration)
-                .SetEase(Ease.OutBack).SetId(tid);
-            ghostRT.DOScale(1f, dealDuration)
-                .SetEase(Ease.OutBack).SetId(tid + 2)
-                .OnComplete(() =>
-                {
-                    Destroy(ghost);
-                    // 합류 임팩트 — 원본 카드 펀치 스케일
-                    srcRT.DOPunchScale(Vector3.one * 0.1f, 0.2f, 6, 0.5f)
-                        .SetId(srcRT.GetInstanceID() + 3);
-                });
-        }
-
-        /// <summary>스택 감소 시 고스트 카드가 위로 날아가며 사라지는 연출</summary>
-        private void PlayStackRemoveAnimation(BaseCard card)
-        {
-            GameObject prefab = GetPrefabForCard(card.CardData);
-            GameObject ghost = Instantiate(prefab, cardContainer);
-            ghost.name = "GhostCard_StackRemove";
-
-            // 인터랙션 차단
-            var baseCard = ghost.GetComponent<BaseCard>();
-            if (baseCard != null) Destroy(baseCard);
-            var visual = ghost.GetComponent<CardVisual>();
-            if (visual != null) Destroy(visual);
-            var cg = ghost.GetComponent<CanvasGroup>();
-            if (cg == null) cg = ghost.AddComponent<CanvasGroup>();
-            cg.blocksRaycasts = false;
-            cg.interactable = false;
-
-            // 원본 카드 위치에서 시작
-            RectTransform ghostRT = ghost.GetComponent<RectTransform>();
-            RectTransform srcRT = card.RectTransform;
-            ghostRT.anchoredPosition = srcRT.anchoredPosition;
-            ghostRT.localScale = srcRT.localScale;
-            ghostRT.localRotation = srcRT.localRotation;
-
-            // 위로 날아가며 페이드아웃
-            int tid = ghostRT.GetInstanceID();
-            ghostRT.DOAnchorPos(ghostRT.anchoredPosition + new Vector2(0, 200f), 0.35f)
-                .SetEase(Ease.InBack).SetId(tid);
-            cg.DOFade(0f, 0.35f).SetEase(Ease.InQuad).SetId(tid + 1);
-            ghostRT.DOScale(0.5f, 0.35f).SetEase(Ease.InBack).SetId(tid + 2)
-                .OnComplete(() => Destroy(ghost));
-        }
-
-        /// <summary>특정 자원 타입의 스택 카드 가져오기</summary>
-        public BaseCard GetResourceStack(ResourceType type)
-        {
-            resourceStacks.TryGetValue(type, out BaseCard card);
-            return card;
+            for (int i = cards.Count - 1; i >= 0; i--)
+            {
+                if (cards[i].CardData?.Category == CardCategory.Resource
+                    && cards[i].CardData.ResourceType == type)
+                    return cards[i];
+            }
+            return null;
         }
 
         // === Bonus Cards ===
@@ -442,16 +342,45 @@ namespace ArcanaCatan.UI.CardHand
 
         // === Hand Curve ===
 
+        /// <summary>컨테이너 폭에 맞춰 카드 간격을 동적으로 계산</summary>
+        private float GetDynamicStep(int count)
+        {
+            float defaultStep = cardWidth + cardSpacing;
+            if (count <= 1) return defaultStep;
+
+            // rootCanvas 기준 화면 폭 사용 (컨테이너 rect가 불안정할 수 있음)
+            float canvasWidth = rootCanvas != null
+                ? (rootCanvas.transform as RectTransform).rect.width
+                : Screen.width;
+            float availableWidth = canvasWidth * 0.4f; // 화면의 40% 사용
+
+            int totalGaps = CountCategoryGaps();
+            float gapTotal = totalGaps * categoryGapWidth;
+            // 전체 폭 = 카드간 간격 + 마지막 카드 폭 + 카테고리 갭
+            float neededWidth = (count - 1) * defaultStep + cardWidth + gapTotal;
+
+            if (neededWidth <= availableWidth)
+                return defaultStep;
+
+            // 카드 폭과 갭을 빼고 남은 공간을 간격으로 분배
+            float maxStep = (availableWidth - cardWidth - gapTotal) / Mathf.Max(1, count - 1);
+            return Mathf.Min(defaultStep, maxStep);
+        }
+
         private float GetCardX(int index, int count)
         {
-            float step = cardWidth + cardSpacing;
+            float step = GetDynamicStep(count);
 
-            // 카테고리 전환 횟수 계산 (전체 + 이 인덱스까지)
             int totalGaps = CountCategoryGaps();
             int gapsBefore = CountCategoryGapsBefore(index);
 
-            float totalWidth = (count - 1) * step + totalGaps * categoryGapWidth;
-            return -totalWidth / 2f + index * step + gapsBefore * categoryGapWidth;
+            // 카테고리 갭도 축소 비율 적용
+            float defaultStep = cardWidth + cardSpacing;
+            float ratio = defaultStep > 0 ? step / defaultStep : 1f;
+            float dynamicGap = categoryGapWidth * ratio;
+
+            float totalWidth = (count - 1) * step + totalGaps * dynamicGap;
+            return -totalWidth / 2f + index * step + gapsBefore * dynamicGap;
         }
 
         private int CountCategoryGaps()
@@ -498,8 +427,9 @@ namespace ArcanaCatan.UI.CardHand
 
                 RectTransform rt = cards[i].RectTransform;
 
+                // 디스카드 선택 → 크게 위로 올라감
                 if (cards[i].IsSelected)
-                    yOffset += cards[i].SelectionOffsetY;
+                    yOffset += discardOffsetY;
 
                 DOTween.Kill(rt.GetInstanceID() + 0);
                 DOTween.Kill(rt.GetInstanceID() + 1);
@@ -508,7 +438,9 @@ namespace ArcanaCatan.UI.CardHand
                     .SetEase(Ease.OutQuad)
                     .SetId(rt.GetInstanceID() + 0);
 
-                rt.DOLocalRotate(new Vector3(0, 0, zRotation), rearrangeDuration)
+                // 선택된 카드는 회전 제거 (똑바로 올라감)
+                float targetRot = cards[i].IsSelected ? 0f : zRotation;
+                rt.DOLocalRotate(new Vector3(0, 0, targetRot), rearrangeDuration)
                     .SetEase(Ease.OutQuad)
                     .SetId(rt.GetInstanceID() + 1);
             }
@@ -526,7 +458,6 @@ namespace ArcanaCatan.UI.CardHand
             for (int i = 0; i < cards.Count; i++)
             {
                 cards[i].cardIndex = i;
-                // Hierarchy 순서 = 렌더 순서. 왼쪽(index 0)이 뒤, 오른쪽이 앞.
                 cards[i].transform.SetSiblingIndex(i);
             }
         }
@@ -597,7 +528,7 @@ namespace ArcanaCatan.UI.CardHand
                 DevCardType.RoadBuilding => gm.TryUseRoadBuilding(),
                 DevCardType.YearOfPlenty => gm.TryUseYearOfPlenty(default, default),
                 DevCardType.Monopoly => gm.TryUseMonopoly(default),
-                _ => false // VictoryPoint, Hidden 등은 사용 불가
+                _ => false
             };
 
             if (success)
@@ -624,7 +555,6 @@ namespace ArcanaCatan.UI.CardHand
             DOTween.Kill(tid + 1);
             DOTween.Kill(tid + 2);
 
-            // 위로 날아가며 사라짐
             rt.DOAnchorPos(rt.anchoredPosition + new Vector2(0, 400f), 0.4f)
                 .SetEase(Ease.InBack).SetId(tid + 0);
             rt.DOScale(0.3f, 0.4f).SetEase(Ease.InBack).SetId(tid + 2)
@@ -660,7 +590,9 @@ namespace ArcanaCatan.UI.CardHand
             foreach (var card in cards)
             {
                 if (card.IsSelected)
-                    card.SetHover(false); // deselect 트리거
+                {
+                    card.ForceDeselect();
+                }
             }
 
             OnDiscardModeChanged?.Invoke(true);
@@ -677,14 +609,20 @@ namespace ArcanaCatan.UI.CardHand
             foreach (var card in cards)
             {
                 if (card.IsSelected)
-                    card.SetHover(false);
+                    card.ForceDeselect();
             }
 
             OnDiscardModeChanged?.Invoke(false);
             isDirty = true;
         }
 
-        /// <summary>디스카드 모드에서 카드 선택 처리 (CardHandManager 내부에서 호출)</summary>
+        /// <summary>아직 더 선택 가능한지</summary>
+        public bool CanSelectMoreDiscard()
+        {
+            return CurrentDiscardSelected < RequiredDiscardCount;
+        }
+
+        /// <summary>디스카드 모드에서 카드 선택/해제 처리</summary>
         public void OnDiscardCardToggled(BaseCard card, bool selected)
         {
             if (CurrentSelectionMode != SelectionMode.MultiSelect_Discard) return;
@@ -695,21 +633,50 @@ namespace ArcanaCatan.UI.CardHand
             OnDiscardSelectionChanged?.Invoke(CurrentDiscardSelected, RequiredDiscardCount);
         }
 
-        /// <summary>디스카드 확인 — 선택된 자원 제거</summary>
+        /// <summary>디스카드 확인 — 선택된 카드 날아가는 연출 + 리스트에서 제거. GM 자원 감소는 HUD에서 별도 호출.</summary>
         public bool ConfirmDiscard()
         {
             if (CurrentSelectionMode != SelectionMode.MultiSelect_Discard) return false;
             if (CurrentDiscardSelected < RequiredDiscardCount) return false;
 
-            var selected = GetSelectedCards();
+            // 선택된 카드 연출 제거 (리스트에서도 즉시 빼서 Syncer 이중 제거 방지)
+            var selected = new List<BaseCard>(cards.FindAll(c => c.IsSelected && c.CardData?.Category == CardCategory.Resource));
             foreach (var card in selected)
             {
-                if (card.CardData?.Category == CardCategory.Resource)
-                    RemoveCard(card);
+                if (currentHoveredCard == card)
+                    currentHoveredCard = null;
+                cards.Remove(card);
+                AnimateDiscardRemove(card);
             }
 
+            UpdateCardIndices();
             ExitDiscardMode();
             return true;
+        }
+
+        /// <summary>디스카드 카드 위로 날아가며 사라지는 연출</summary>
+        private void AnimateDiscardRemove(BaseCard card)
+        {
+            SetCardSortingOverride(card, true);
+            RectTransform rt = card.RectTransform;
+            int tid = rt.GetInstanceID();
+            DOTween.Kill(tid + 0);
+            DOTween.Kill(tid + 1);
+            DOTween.Kill(tid + 2);
+
+            var cg = card.GetComponent<CanvasGroup>();
+            if (cg == null) cg = card.gameObject.AddComponent<CanvasGroup>();
+
+            // 위로 날아가며 축소 + 페이드아웃
+            rt.DOAnchorPos(rt.anchoredPosition + new Vector2(0, 300f), 0.4f)
+                .SetEase(Ease.InBack).SetId(tid + 0);
+            rt.DOScale(0.3f, 0.4f).SetEase(Ease.InBack).SetId(tid + 2);
+            cg.DOFade(0f, 0.35f).SetEase(Ease.InQuad).SetId(tid + 1)
+                .OnComplete(() =>
+                {
+                    Destroy(card.gameObject);
+                    isDirty = true;
+                });
         }
 
         // === Public API ===
@@ -725,20 +692,25 @@ namespace ArcanaCatan.UI.CardHand
         public void DeselectAll()
         {
             foreach (var card in cards)
-                card.SetHover(false);
+            {
+                if (card.IsSelected)
+                    card.ForceDeselect();
+            }
         }
 
-        /// <summary>총 자원 카드 수 (스택 합산)</summary>
+        /// <summary>총 자원 카드 수 (개별 카드이므로 단순 카운트)</summary>
         public int TotalResourceCardCount
         {
             get
             {
                 int total = 0;
-                foreach (var kv in resourceStacks)
-                    total += kv.Value.StackCount;
+                foreach (var card in cards)
+                {
+                    if (card.CardData?.Category == CardCategory.Resource)
+                        total++;
+                }
                 return total;
             }
         }
     }
 }
-

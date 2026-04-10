@@ -41,7 +41,7 @@ namespace ArcanaCatan.UI.CardHand
                 var type = resourceTypes[resIndex % resourceTypes.Length];
                 var card = handManager.AddCard(CardData.Resource(type));
                 resIndex++;
-                Debug.Log($"[Test] 자원 추가: {type} (스택: x{card.StackCount}, 슬롯: {handManager.CardCount}, 총자원: {handManager.TotalResourceCardCount})");
+                Debug.Log($"[Test] 자원 추가: {type} (슬롯: {handManager.CardCount}, 총자원: {handManager.TotalResourceCardCount})");
             }
 
             // D: 발전 카드 추가 (순환)
