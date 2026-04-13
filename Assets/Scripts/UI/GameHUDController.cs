@@ -504,75 +504,47 @@ public class GameHUDController : MonoBehaviour
     // EVENTS
     // ========================
 
-    void SubscribeToEvents()
-    {
-        if (GM != null)
-        {
-            GM.OnTurnChanged += HandleTurnChanged;
-            GM.OnPhaseChanged += HandlePhaseChanged;
-            GM.OnDiceRolled += HandleDiceRolled;
-            GM.OnPlayerListChanged += HandlePlayerListChanged;
-            GM.OnResourceChanged += HandleResourceChanged;
-            GM.OnVPChanged += HandleVPChanged;
-            GM.OnDevCardPurchased += HandleDevCardPurchased;
-            GM.OnDevCardUsed += HandleDevCardUsed;
-            if (GM is NetworkGameManager ngm)
-            {
-                ngm.OnDevCardCountChanged += HandleDevCardCountChanged;
-                ngm.OnBankResourcesChanged += HandleBankResourcesChanged;
-            }
-            GM.OnLongestRoadChanged += HandleLongestRoadChanged;
-            GM.OnLargestArmyChanged += HandleLargestArmyChanged;
-            GM.OnRobberMoved += HandleRobberMoved;
-            GM.OnRobberSteal += HandleRobberSteal;
-            GM.OnBankTrade += HandleBankTrade;
-            GM.OnPlayerTrade += HandlePlayerTrade;
-            GM.OnBuildingPlaced += HandleBuildingPlaced;
-            GM.OnRoadPlaced += HandleRoadPlaced;
-            GM.OnIncomingTradeProposal += HandleIncomingTradeProposal;
-            GM.OnIncomingTradeCancelled += HandleIncomingTradeCancelled;
-            GM.OnTradeDeclined += HandleTradeDeclined;
-            GM.OnDiscardRequired += HandleDiscardRequired;
-            GM.OnPlayerDisconnected += HandlePlayerDisconnected;
-            GM.OnHostDisconnected += HandleHostDisconnected;
-            if (GM is NetworkGameManager ngm3)
-                ngm3.OnTradeRequestFailed += HandleTradeRequestFailed;
-        }
-    }
+    void SubscribeToEvents() => BindEvents(subscribe: true);
+    void UnsubscribeFromEvents() => BindEvents(subscribe: false);
 
-    void UnsubscribeFromEvents()
+    void BindEvents(bool subscribe)
     {
-        if (GM != null)
+        if (GM == null) return;
+
+        Bind(h => GM.OnTurnChanged += h, h => GM.OnTurnChanged -= h, HandleTurnChanged);
+        Bind(h => GM.OnPhaseChanged += h, h => GM.OnPhaseChanged -= h, HandlePhaseChanged);
+        Bind(h => GM.OnDiceRolled += h, h => GM.OnDiceRolled -= h, HandleDiceRolled);
+        Bind(h => GM.OnPlayerListChanged += h, h => GM.OnPlayerListChanged -= h, HandlePlayerListChanged);
+        Bind(h => GM.OnResourceChanged += h, h => GM.OnResourceChanged -= h, HandleResourceChanged);
+        Bind(h => GM.OnVPChanged += h, h => GM.OnVPChanged -= h, HandleVPChanged);
+        Bind(h => GM.OnDevCardPurchased += h, h => GM.OnDevCardPurchased -= h, HandleDevCardPurchased);
+        Bind(h => GM.OnDevCardUsed += h, h => GM.OnDevCardUsed -= h, HandleDevCardUsed);
+        Bind(h => GM.OnLongestRoadChanged += h, h => GM.OnLongestRoadChanged -= h, HandleLongestRoadChanged);
+        Bind(h => GM.OnLargestArmyChanged += h, h => GM.OnLargestArmyChanged -= h, HandleLargestArmyChanged);
+        Bind(h => GM.OnRobberMoved += h, h => GM.OnRobberMoved -= h, HandleRobberMoved);
+        Bind(h => GM.OnRobberSteal += h, h => GM.OnRobberSteal -= h, HandleRobberSteal);
+        Bind(h => GM.OnBankTrade += h, h => GM.OnBankTrade -= h, HandleBankTrade);
+        Bind(h => GM.OnPlayerTrade += h, h => GM.OnPlayerTrade -= h, HandlePlayerTrade);
+        Bind(h => GM.OnBuildingPlaced += h, h => GM.OnBuildingPlaced -= h, HandleBuildingPlaced);
+        Bind(h => GM.OnRoadPlaced += h, h => GM.OnRoadPlaced -= h, HandleRoadPlaced);
+        Bind(h => GM.OnIncomingTradeProposal += h, h => GM.OnIncomingTradeProposal -= h, HandleIncomingTradeProposal);
+        Bind(h => GM.OnIncomingTradeCancelled += h, h => GM.OnIncomingTradeCancelled -= h, HandleIncomingTradeCancelled);
+        Bind(h => GM.OnTradeDeclined += h, h => GM.OnTradeDeclined -= h, HandleTradeDeclined);
+        Bind(h => GM.OnDiscardRequired += h, h => GM.OnDiscardRequired -= h, HandleDiscardRequired);
+        Bind(h => GM.OnPlayerDisconnected += h, h => GM.OnPlayerDisconnected -= h, HandlePlayerDisconnected);
+        Bind(h => GM.OnHostDisconnected += h, h => GM.OnHostDisconnected -= h, HandleHostDisconnected);
+
+        if (GM is NetworkGameManager ngm)
         {
-            GM.OnTurnChanged -= HandleTurnChanged;
-            GM.OnPhaseChanged -= HandlePhaseChanged;
-            GM.OnDiceRolled -= HandleDiceRolled;
-            GM.OnPlayerListChanged -= HandlePlayerListChanged;
-            GM.OnResourceChanged -= HandleResourceChanged;
-            GM.OnVPChanged -= HandleVPChanged;
-            GM.OnDevCardPurchased -= HandleDevCardPurchased;
-            GM.OnDevCardUsed -= HandleDevCardUsed;
-            if (GM is NetworkGameManager ngm2)
-            {
-                ngm2.OnDevCardCountChanged -= HandleDevCardCountChanged;
-                ngm2.OnBankResourcesChanged -= HandleBankResourcesChanged;
-            }
-            GM.OnLongestRoadChanged -= HandleLongestRoadChanged;
-            GM.OnLargestArmyChanged -= HandleLargestArmyChanged;
-            GM.OnRobberMoved -= HandleRobberMoved;
-            GM.OnRobberSteal -= HandleRobberSteal;
-            GM.OnBankTrade -= HandleBankTrade;
-            GM.OnPlayerTrade -= HandlePlayerTrade;
-            GM.OnBuildingPlaced -= HandleBuildingPlaced;
-            GM.OnRoadPlaced -= HandleRoadPlaced;
-            GM.OnIncomingTradeProposal -= HandleIncomingTradeProposal;
-            GM.OnIncomingTradeCancelled -= HandleIncomingTradeCancelled;
-            GM.OnTradeDeclined -= HandleTradeDeclined;
-            GM.OnDiscardRequired -= HandleDiscardRequired;
-            GM.OnPlayerDisconnected -= HandlePlayerDisconnected;
-            GM.OnHostDisconnected -= HandleHostDisconnected;
-            if (GM is NetworkGameManager ngm3)
-                ngm3.OnTradeRequestFailed -= HandleTradeRequestFailed;
+            Bind(h => ngm.OnDevCardCountChanged += h, h => ngm.OnDevCardCountChanged -= h, HandleDevCardCountChanged);
+            Bind(h => ngm.OnBankResourcesChanged += h, h => ngm.OnBankResourcesChanged -= h, HandleBankResourcesChanged);
+            Bind(h => ngm.OnTradeRequestFailed += h, h => ngm.OnTradeRequestFailed -= h, HandleTradeRequestFailed);
+        }
+
+        void Bind<T>(Action<T> add, Action<T> remove, T handler) where T : Delegate
+        {
+            if (subscribe) add(handler);
+            else remove(handler);
         }
     }
 
