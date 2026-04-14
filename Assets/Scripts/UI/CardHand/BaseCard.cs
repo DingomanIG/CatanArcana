@@ -129,18 +129,7 @@ namespace ArcanaCatan.UI.CardHand
                 return;
             }
 
-            // 자원카드: 기존 선택 토글
-            IsSelected = !IsSelected;
-            if (IsSelected)
-            {
-                OnSelect?.Invoke();
-                handManager?.OnCardSelected(this);
-            }
-            else
-            {
-                OnDeselect?.Invoke();
-                handManager?.OnCardDeselected(this);
-            }
+            // 자원카드: 일반 모드에서는 선택 불가 (디스카드 모드에서만 선택)
         }
 
         /// <summary>선택 강제 해제 (매니저에서 호출)</summary>

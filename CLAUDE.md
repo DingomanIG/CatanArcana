@@ -76,11 +76,16 @@ Docs/
 - 일은 즐겁게!
 
 ## Animation Workflow
+- **역할 분담 (필수)**:
+  - **DOTween**: 스케일, 이동, 회전 — Transform 조작 전담
+  - **Feel (MMF_Player)**: 색상, 파티클, 사운드, 이미지 효과 등 부가 연출 전담
+  - **⚠️ Feel에 MMF_Scale/MMF_Position/MMF_Rotation 사용 금지** — DOTween과 충돌
+  - Feel 피드백 필드는 항상 `추가 효과` 용도, 미할당 시 DOTween만으로 동작
 - 애니메이션/연출이 필요한 작업이 생기면 **반드시 유저에게 먼저 물어볼 것**:
   - "이 연출을 DOTween으로 빠르게 구현할까요, 아니면 Feel로 직접 하실 건가요?"
 - **DOTween 선택 시**: Claude Code가 프로토타입 구현
 - **Feel 선택 시**: Claude Code가 아래 가이드를 제공
-  1. 필요한 Feedback 종류 (MMF_Scale, MMF_Position, MMF_Rotation 등)
+  1. 필요한 Feedback 종류 (MMF_ImageColor, MMF_Sound, MMF_Particles 등)
   2. 권장 파라미터 (Duration, Curve, Delay 등)
   3. Feedback 조합 순서 (MMF_Player에 어떤 순서로 넣을지)
   4. 트리거 타이밍 (어떤 이벤트에서 PlayFeedbacks() 호출할지)

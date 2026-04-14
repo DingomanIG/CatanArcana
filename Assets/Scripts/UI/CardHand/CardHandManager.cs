@@ -110,25 +110,44 @@ namespace ArcanaCatan.UI.CardHand
                 ApplyHandCurve();
                 isDirty = false;
             }
+
+            // 호버/선택 카드 회전 강제 (Canvas 리빌드 후에도 보장)
+            if (currentHoveredCard != null)
+                currentHoveredCard.RectTransform.localRotation = Quaternion.identity;
+            foreach (var card in cards)
+            {
+                if (card.IsSelected)
+                    card.RectTransform.localRotation = Quaternion.identity;
+            }
         }
 
         // === Hover ===
 
         private void UpdateHover()
         {
-            if (Pointer.current == null) return;
-
-            Vector2 mouseScreenPos = Pointer.current.position.ReadValue();
             BaseCard topCard = null;
 
-            for (int i = cards.Count - 1; i >= 0; i--)
+            if (Pointer.current != null)
             {
-                RectTransform rt = cards[i].RectTransform;
-                if (RectTransformUtility.RectangleContainsScreenPoint(rt, mouseScreenPos, canvasCamera))
+                Vector2 mouseScreenPos = Pointer.current.position.ReadValue();
+
+                for (int i = cards.Count - 1; i >= 0; i--)
                 {
-                    topCard = cards[i];
-                    break;
+                    RectTransform rt = cards[i].RectTransform;
+                    if (rt != null && RectTransformUtility.RectangleContainsScreenPoint(rt, mouseScreenPos, canvasCamera))
+                    {
+                        topCard = cards[i];
+                        break;
+                    }
                 }
+            }
+
+            // 현재 호버 카드가 리스트에서 제거됐으면 강제 해제
+            if (currentHoveredCard != null && !cards.Contains(currentHoveredCard))
+            {
+                currentHoveredCard.SetHover(false);
+                SetCardSortingOverride(currentHoveredCard, false);
+                currentHoveredCard = null;
             }
 
             if (topCard != currentHoveredCard)
@@ -412,22 +431,33 @@ namespace ArcanaCatan.UI.CardHand
 
                 RectTransform rt = cards[i].RectTransform;
 
-                // 디스카드 선택 → 크게 위로 올라감
+                // 선택 → 위로 올라감
                 if (cards[i].IsSelected)
                     yOffset += discardOffsetY;
+
+                Vector2 targetPos = new Vector2(xPos, yOffset);
+                // 선택 또는 호버 시 회전 제거 (똑바로)
+                float targetRot = (cards[i].IsSelected || cards[i].IsHovering) ? 0f : zRotation;
 
                 DOTween.Kill(rt.GetInstanceID() * 4 + 0);
                 DOTween.Kill(rt.GetInstanceID() * 4 + 1);
 
-                rt.DOAnchorPos(new Vector2(xPos, yOffset), rearrangeDuration)
+                rt.DOAnchorPos(targetPos, rearrangeDuration)
                     .SetEase(Ease.OutQuad)
                     .SetId(rt.GetInstanceID() * 4 + 0);
 
-                // 선택된 카드는 회전 제거 (똑바로 올라감)
-                float targetRot = cards[i].IsSelected ? 0f : zRotation;
-                rt.DOLocalRotate(new Vector3(0, 0, targetRot), rearrangeDuration)
-                    .SetEase(Ease.OutQuad)
-                    .SetId(rt.GetInstanceID() * 4 + 1);
+                if (cards[i].IsHovering || cards[i].IsSelected)
+                {
+                    // 호버/선택: 즉시 회전 0 (트윈 충돌 방지)
+                    DOTween.Kill(rt.GetInstanceID() * 4 + 1);
+                    rt.localRotation = Quaternion.Euler(0, 0, 0);
+                }
+                else
+                {
+                    rt.DOLocalRotate(new Vector3(0, 0, targetRot), rearrangeDuration)
+                        .SetEase(Ease.OutQuad)
+                        .SetId(rt.GetInstanceID() * 4 + 1);
+                }
             }
         }
 

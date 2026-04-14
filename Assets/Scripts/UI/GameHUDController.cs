@@ -42,7 +42,6 @@ public class GameHUDController : MonoBehaviour
     Button btnEndTurn;
     Button btnTrade;
     Button btnBuyDevCard;
-    Button btnUseDevCard;
 
     // Build Section Header
     VisualElement buildHeader;
@@ -293,7 +292,7 @@ public class GameHUDController : MonoBehaviour
         if (cardHandManager != null)
         {
             cardHandManager.OnDiscardSelectionChanged += HandleDiscardSelectionFromHand;
-            cardHandManager.OnDevCardSelectionChanged += HandleDevCardSelectionChanged;
+            cardHandManager.OnDevCardUseRequested += HandleDevCardUseFromHand;
         }
 
         SubscribeToEvents();
@@ -321,7 +320,7 @@ public class GameHUDController : MonoBehaviour
         if (cardHandManager != null)
         {
             cardHandManager.OnDiscardSelectionChanged -= HandleDiscardSelectionFromHand;
-            cardHandManager.OnDevCardSelectionChanged -= HandleDevCardSelectionChanged;
+            cardHandManager.OnDevCardUseRequested -= HandleDevCardUseFromHand;
         }
     }
 
@@ -427,7 +426,6 @@ public class GameHUDController : MonoBehaviour
         btnSelectOre = root.Q<Button>("btn-select-ore");
 
         devCardQuickSlotBar = root.Q<VisualElement>("devcard-quickslot-bar");
-        btnUseDevCard = root.Q<Button>("btn-use-devcard");
 
         btnTradeTabBank = root.Q<Button>("btn-trade-tab-bank");
         btnTradeTabPlayer = root.Q<Button>("btn-trade-tab-player");
@@ -597,7 +595,6 @@ public class GameHUDController : MonoBehaviour
         btnEndTurn.clicked += OnEndTurnClicked;
         btnTrade.clicked += OnTradeClicked;
         btnBuyDevCard.clicked += OnBuyDevCardClicked;
-        btnUseDevCard.clicked += OnUseDevCardClicked;
         btnCloseTrade.clicked += OnCloseTradeClicked;
         btnRules.clicked += OnRulesClicked;
         btnCloseRules.clicked += OnCloseRulesClicked;
@@ -1166,22 +1163,30 @@ public class GameHUDController : MonoBehaviour
     }
 
     // ========================
-    // DEV CARD HAND USE BUTTON
+    // DEV CARD USE FROM HAND
     // ========================
 
-    void HandleDevCardSelectionChanged(ArcanaCatan.UI.CardHand.BaseCard card)
+    /// <summary>카드 핸드에서 발전카드 사용 요청 → GM 호출 + 카드 제거</summary>
+    void HandleDevCardUseFromHand(DevCardType type, ArcanaCatan.UI.CardHand.BaseCard uiCard)
     {
-        bool show = card != null;
-        SetVisible(btnUseDevCard, show);
-        if (show)
-            btnUseDevCard.text = $"{card.CardData.DisplayName} 사용";
-    }
+        if (GM == null) return;
 
-    void OnUseDevCardClicked()
-    {
-        SFXManager.Instance?.Play(SFXType.ButtonClick);
-        if (cardHandManager != null)
-            cardHandManager.TryUseSelectedDevCard();
+        // PlayerState에서 해당 타입의 사용 가능한 DevelopmentCard 찾기
+        var state = GM.GetPlayerState(GM.LocalPlayerIndex);
+        if (state == null) return;
+
+        var devCard = state.DevCards.Find(c => !c.IsUsed && c.Type == type && c.CanUseOnTurn(GM.TurnNumber));
+        if (devCard == null)
+        {
+            uiCard.NotifyCardUseRejected();
+            return;
+        }
+
+        // GM에 카드 사용 요청
+        UseDevCard(devCard);
+
+        // 카드 핸드에서 제거
+        cardHandManager?.ConfirmDevCardUsed(uiCard);
     }
 
     // ========================

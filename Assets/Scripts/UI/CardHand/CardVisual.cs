@@ -8,7 +8,7 @@ namespace ArcanaCatan.UI.CardHand
 {
     /// <summary>
     /// 카드 비주얼 담당.
-    /// 호버/선택 애니메이션, 카테고리 테두리 색상, 디스카드 빨간 테두리.
+    /// 스케일/이동/회전 → DOTween, 나머지 효과(색상/파티클/사운드 등) → Feel 피드백.
     /// </summary>
     public class CardVisual : MonoBehaviour
     {
@@ -22,26 +22,36 @@ namespace ArcanaCatan.UI.CardHand
         [SerializeField] private float idleRotationAmount = 3f;
         [SerializeField] private float idleSpeed = 1f;
 
-        [Header("Hover Animation")]
+        [Header("Hover Animation (DOTween)")]
         [SerializeField] private float hoverScale = 1.15f;
         [SerializeField] private float hoverDuration = 0.15f;
         [SerializeField] private float hoverRotationAmount = 15f;
 
-        [Header("Select Animation (Feel)")]
+        [Header("Feel — 추가 효과 (색상/파티클/사운드 등)")]
+        [Tooltip("호버 시작 추가 효과")]
+        [SerializeField] private MMF_Player hoverEnterFeedback;
+        [Tooltip("호버 해제 추가 효과")]
+        [SerializeField] private MMF_Player hoverExitFeedback;
+        [Tooltip("선택 시 추가 효과")]
         [SerializeField] private MMF_Player selectFeedback;
+        [Tooltip("선택 해제 추가 효과")]
         [SerializeField] private MMF_Player deselectFeedback;
 
-        [Header("Dev Card Usable Border (Feel)")]
-        [Tooltip("발전카드가 사용 가능할 때 테두리 효과 (루프 재생)")]
+        [Header("Feel — 발전카드 테두리")]
+        [Tooltip("사용 가능할 때 테두리 효과 (루프)")]
         [SerializeField] private MMF_Player usableBorderFeedback;
-        [Tooltip("발전카드가 사용 불가능해질 때 테두리 효과 해제")]
+        [Tooltip("사용 불가능해질 때 테두리 해제")]
         [SerializeField] private MMF_Player usableBorderStopFeedback;
 
-        [Header("Dev Card Use (Feel)")]
-        [Tooltip("사용 성공 — 위로 날아가며 제거")]
+        [Header("Feel — 발전카드 사용")]
+        [Tooltip("사용 성공 추가 효과")]
         [SerializeField] private MMF_Player cardUsedFeedback;
-        [Tooltip("사용 불가 — 좌우 흔들림 후 핸드 복귀")]
+        [Tooltip("사용 거부 추가 효과")]
         [SerializeField] private MMF_Player cardUseRejectedFeedback;
+
+        [Header("Dev Card Use Button")]
+        [Tooltip("발전카드 선택 시 표시되는 '사용' 버튼 (프리팹에 배치)")]
+        [SerializeField] private Button useButton;
 
         [Header("Shadow")]
         [SerializeField] private Vector2 shadowOffset = new Vector2(5f, -10f);
@@ -60,11 +70,18 @@ namespace ArcanaCatan.UI.CardHand
                 visualContainer = rectTransform;
             tweenId = GetInstanceID();
             idleTimer = Random.Range(0f, Mathf.PI * 2f);
+
+            if (useButton != null)
+            {
+                useButton.gameObject.SetActive(false);
+                useButton.onClick.AddListener(OnUseButtonClicked);
+            }
         }
 
         private void OnEnable()
         {
             if (baseCard == null) return;
+            UnsubscribeEvents();
             SubscribeEvents();
         }
 
@@ -138,7 +155,8 @@ namespace ArcanaCatan.UI.CardHand
             UpdateUsableBorder();
         }
 
-        /// <summary>발전카드 사용 가능 여부에 따라 테두리 피드백 재생/중지</summary>
+        // === Usable Border ===
+
         private void UpdateUsableBorder()
         {
             if (usableBorderFeedback == null) return;
@@ -178,54 +196,73 @@ namespace ArcanaCatan.UI.CardHand
         private void HandleHoverEnter()
         {
             isHovering = true;
+            // DOTween: 스케일
             currentScaleTween?.Kill();
             currentScaleTween = rectTransform.DOScale(hoverScale, hoverDuration)
                 .SetEase(Ease.OutBack).SetId(tweenId).SetAutoKill(true);
-
-            visualContainer.DOShakeRotation(0.3f, new Vector3(0, 0, 3f), 10, 90f, false)
-                .SetEase(Ease.OutQuad).SetId(tweenId);
+            // Feel: 추가 효과 (shake 등은 여기서)
+            hoverEnterFeedback?.PlayFeedbacks();
         }
 
         private void HandleHoverExit()
         {
             isHovering = false;
+            // DOTween: 스케일 복구
             currentScaleTween?.Kill();
             currentScaleTween = rectTransform.DOScale(1f, hoverDuration)
                 .SetEase(Ease.OutQuad).SetId(tweenId).SetAutoKill(true);
             visualContainer.DOLocalRotate(Vector3.zero, 0.2f).SetId(tweenId);
+            // Feel: 추가 효과
+            hoverExitFeedback?.PlayFeedbacks();
         }
 
         private void HandleSelect()
         {
+            // Feel: 추가 효과
             selectFeedback?.PlayFeedbacks();
+            ShowUseButton(true);
         }
 
         private void HandleDeselect()
         {
-            if (deselectFeedback != null)
-                deselectFeedback.PlayFeedbacks();
-            else
-                rectTransform.DOScale(isHovering ? hoverScale : 1f, 0.15f).SetId(tweenId);
+            ShowUseButton(false);
+            // Feel: 추가 효과
+            deselectFeedback?.PlayFeedbacks();
         }
 
-        /// <summary>사용 성공 — Feel 피드백 재생</summary>
         private void HandleCardUsed()
         {
+            ShowUseButton(false);
             StopUsableBorder();
+            // Feel: 추가 효과
             cardUsedFeedback?.PlayFeedbacks();
         }
 
-        /// <summary>사용 불가 — Feel 피드백 재생 (좌우 흔들림)</summary>
         private void HandleCardUseRejected()
         {
-            if (cardUseRejectedFeedback != null)
-                cardUseRejectedFeedback.PlayFeedbacks();
-            else
-            {
-                rectTransform.DOShakeAnchorPos(0.4f, new Vector2(20f, 0), 12, 90f, false, true)
-                    .SetEase(Ease.OutQuad).SetId(tweenId);
-                rectTransform.DOScale(1f, 0.3f).SetEase(Ease.OutBack).SetId(tweenId);
-            }
+            // DOTween: 좌우 흔들림
+            rectTransform.DOShakeAnchorPos(0.4f, new Vector2(20f, 0), 12, 90f, false, true)
+                .SetEase(Ease.OutQuad).SetId(tweenId);
+            rectTransform.DOScale(1f, 0.3f).SetEase(Ease.OutBack).SetId(tweenId);
+            // Feel: 추가 효과
+            cardUseRejectedFeedback?.PlayFeedbacks();
+        }
+
+        // === Use Button ===
+
+        private void ShowUseButton(bool show)
+        {
+            if (useButton == null) return;
+            if (show && baseCard?.CardData?.Category != CardCategory.Development)
+                return;
+            useButton.gameObject.SetActive(show);
+        }
+
+        private void OnUseButtonClicked()
+        {
+            if (baseCard == null) return;
+            var manager = baseCard.GetComponentInParent<CardHandManager>();
+            manager?.TryUseSelectedDevCard();
         }
     }
 }

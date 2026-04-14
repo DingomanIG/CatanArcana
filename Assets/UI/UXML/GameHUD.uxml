@@ -154,7 +154,6 @@
                 <ui:Label name="stat-vp" text="0" class="resource-count resource-count--vp"/>
             </ui:VisualElement>
             <ui:VisualElement name="devcard-quickslot-bar" class="devcard-quickslot-bar"/>
-            <ui:Button name="btn-use-devcard" text="사용" class="action-btn devcard-use-btn" style="display: none;"/>
         </ui:VisualElement>
         <ui:VisualElement name="trade-overlay" class="overlay overlay--hidden">
             <ui:VisualElement class="overlay-panel trade-panel">
