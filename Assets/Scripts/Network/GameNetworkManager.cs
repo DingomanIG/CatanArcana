@@ -157,10 +157,17 @@ public class GameNetworkManager : MonoBehaviour
 
     void OnDestroy()
     {
-        if (NetworkManager.Singleton != null)
+        try
         {
-            NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnect;
-            NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
+            if (NetworkManager.Singleton != null)
+            {
+                NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnect;
+                NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
+            }
+        }
+        catch (Exception)
+        {
+            // Unity 종료 시 NetworkManager가 먼저 파괴된 경우 무시
         }
     }
 }

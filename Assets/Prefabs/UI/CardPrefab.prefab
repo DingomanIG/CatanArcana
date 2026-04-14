@@ -382,7 +382,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb3a9864d931d844e8c0db5e60c187ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ArcanaCatan.UI.CardHand.BaseCard
-  cardType: 0
   cardIndex: 0
   useThresholdRatio: 0.6
 --- !u!114 &7418509183824022054
@@ -408,6 +407,10 @@ MonoBehaviour:
   hoverRotationAmount: 15
   selectFeedback: {fileID: 8123678440448939510}
   deselectFeedback: {fileID: 9188623879797237861}
+  usableBorderFeedback: {fileID: 0}
+  usableBorderStopFeedback: {fileID: 0}
+  cardUsedFeedback: {fileID: 0}
+  cardUseRejectedFeedback: {fileID: 0}
   shadowOffset: {x: 5, y: -10}
   shadowDragOffset: -30
 --- !u!1 &3701818428397338645
@@ -1059,14 +1062,14 @@ MonoBehaviour:
           ButtonText: 
         Owner: {fileID: 8123678440448939510}
         DebugActive: 0
-        BoundImage: {fileID: 0}
+        BoundImage: {fileID: 1453426176580553566}
         Mode: 2
         Duration: 0.2
         AllowAdditivePlays: 0
         ModifyColor: 1
         ColorOverTime:
           serializedVersion: 2
-          key0: {r: 1, g: 0, b: 0, a: 1}
+          key0: {r: 0.8207547, g: 0.22841759, b: 0.22841759, a: 1}
           key1: {r: 0.7607844, g: 0.73333335, b: 0.6392157, a: 1}
           key2: {r: 0, g: 0, b: 0, a: 0}
           key3: {r: 0, g: 0, b: 0, a: 0}
@@ -1548,7 +1551,7 @@ MonoBehaviour:
           ButtonText: 
         Owner: {fileID: 9188623879797237861}
         DebugActive: 0
-        BoundImage: {fileID: 0}
+        BoundImage: {fileID: 1453426176580553566}
         Mode: 2
         Duration: 0.2
         AllowAdditivePlays: 0
@@ -1556,7 +1559,7 @@ MonoBehaviour:
         ColorOverTime:
           serializedVersion: 2
           key0: {r: 0.7607844, g: 0.73333335, b: 0.6392157, a: 1}
-          key1: {r: 1, g: 0, b: 0, a: 1}
+          key1: {r: 0.8235294, g: 0.23137255, b: 0.23137255, a: 1}
           key2: {r: 0, g: 0, b: 0, a: 0}
           key3: {r: 0, g: 0, b: 0, a: 0}
           key4: {r: 0, g: 0, b: 0, a: 0}

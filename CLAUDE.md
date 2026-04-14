@@ -40,8 +40,7 @@ Assets/
       NetworkGameManager.cs     # IGameManager 네트워크 프록시 (핵심)
       NetworkSerializables.cs   # 직렬화 타입 (HexCoordNet, ResArray, BoardSnapshot 등)
       GameBootstrapper.cs       # 모드별 GameManager 생성 (로컬/네트워크 분기)
-      TurnManager.cs            # (레거시 — NGM에 흡수 예정)
-      NetworkTestUI.cs          # 임시 OnGUI (비활성화 예정)
+      NetLog.cs                 # 네트워크 디버그 로그 유틸리티
     HexGrid/
       HexCoord.cs, HexTile.cs, HexVertex.cs, HexEdge.cs
       HexGrid.cs, HexBoardSetup.cs

@@ -25,18 +25,30 @@ namespace ArcanaCatan.UI.CardHand
             { ResourceType.Ore, 0 },
         };
 
-        private void Update()
+        private void OnEnable()
         {
-            if (!subscribed && GameServices.GameManager != null)
-            {
-                gm = GameServices.GameManager;
-                Subscribe();
-            }
+            if (GameServices.GameManager != null)
+                HandleGameManagerReady(GameServices.GameManager);
+            else
+                GameServices.OnGameManagerReady += HandleGameManagerReady;
+        }
+
+        private void OnDisable()
+        {
+            GameServices.OnGameManagerReady -= HandleGameManagerReady;
         }
 
         private void OnDestroy()
         {
             if (subscribed) Unsubscribe();
+        }
+
+        private void HandleGameManagerReady(IGameManager manager)
+        {
+            if (subscribed) return;
+            gm = manager;
+            Subscribe();
+            GameServices.OnGameManagerReady -= HandleGameManagerReady;
         }
 
         private void Subscribe()
@@ -121,11 +133,11 @@ namespace ArcanaCatan.UI.CardHand
             }
         }
 
-        /// <summary>발전카드 구매 → 핸드에 추가</summary>
+        /// <summary>발전카드 구매 → 핸드에 추가 (구매 턴 기록)</summary>
         private void HandleDevCardPurchased(int playerIndex, DevCardType type)
         {
             if (playerIndex != gm.LocalPlayerIndex) return;
-            handManager.AddCard(CardData.Development(type));
+            handManager.AddCard(CardData.Development(type, gm.TurnNumber));
         }
 
         /// <summary>도적 디스카드 요구 → 다중 선택 모드 진입</summary>

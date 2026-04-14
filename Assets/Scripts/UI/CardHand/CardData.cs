@@ -32,6 +32,9 @@ public class CardData
     // 정렬 우선순위 (핸드 내 그룹핑용)
     public int SortOrder { get; }
 
+    // 발전카드: 구매한 턴 번호 (-1이면 턴 제한 없음)
+    public int PurchasedOnTurn { get; private set; } = -1;
+
     private CardData(CardCategory category, int sortOrder)
     {
         Category = category;
@@ -55,7 +58,7 @@ public class CardData
     }
 
     /// <summary>발전 카드 생성</summary>
-    public static CardData Development(DevCardType type)
+    public static CardData Development(DevCardType type, int purchasedOnTurn = -1)
     {
         // 정렬: 100번대 — 자원(0-4)과 겹치지 않도록 분리
         int order = type switch
@@ -67,7 +70,11 @@ public class CardData
             DevCardType.VictoryPoint => 104,
             _ => 199
         };
-        return new CardData(CardCategory.Development, order) { DevCardType = type };
+        return new CardData(CardCategory.Development, order)
+        {
+            DevCardType = type,
+            PurchasedOnTurn = purchasedOnTurn
+        };
     }
 
     /// <summary>보너스 카드 생성</summary>
@@ -110,6 +117,15 @@ public class CardData
 
     /// <summary>사용 가능한 카드인지 (보너스는 불가)</summary>
     public bool IsPlayable => Category != CardCategory.Bonus;
+
+    /// <summary>해당 턴에 사용 가능한지 (구매한 턴에는 사용 불가)</summary>
+    public bool CanUseOnTurn(int currentTurn)
+    {
+        if (Category != CardCategory.Development) return false;
+        if (DevCardType == DevCardType.VictoryPoint) return false;
+        if (PurchasedOnTurn < 0) return true; // 턴 정보 없으면 제한 없음
+        return PurchasedOnTurn < currentTurn;
+    }
 
     /// <summary>드래그 가능한 카드인지 (보너스는 불가)</summary>
     public bool IsDraggable => Category != CardCategory.Bonus;

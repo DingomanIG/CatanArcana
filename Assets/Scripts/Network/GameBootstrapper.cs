@@ -88,7 +88,7 @@ public class GameBootstrapper : MonoBehaviour
                     var aiCtrl = aiGO.AddComponent<AIController>();
                     // AIController.Start()에서 GameServices.GameManager (= NGM)를 자동으로 찾음
                     // 난이도는 NGM.SetupHost 후 재설정 필요 → 코루틴으로 대기
-                    StartCoroutine(SetupNetworkAI(aiCtrl));
+                    SetupNetworkAIWhenReady(aiCtrl);
                     Debug.Log("[GameBootstrapper] 네트워크 AIController 생성");
                 }
             }
@@ -99,23 +99,51 @@ public class GameBootstrapper : MonoBehaviour
         }
     }
 
-    System.Collections.IEnumerator SetupNetworkAI(AIController aiCtrl)
+    void SetupNetworkAIWhenReady(AIController aiCtrl)
     {
-        // NGM이 SetupHost를 완료할 때까지 대기
+        // GameServices.GameManager가 등록되면 (NGM.OnNetworkSpawn) 이벤트 구독
+        void TrySetup()
+        {
+            var ngm = GameServices.GameManager as NetworkGameManager;
+            if (ngm == null || ngm.PlayerCount == 0) return;
+
+            ngm.OnPlayerListChanged -= TrySetup;
+            var diffs = ngm.GetNetworkAIDifficulties();
+            aiCtrl.SetDifficulties(diffs);
+            Debug.Log($"[GameBootstrapper] 네트워크 AI 난이도 설정 완료: {string.Join(",", diffs)}");
+        }
+
+        // 이미 준비됐는지 먼저 확인
+        var existing = GameServices.GameManager as NetworkGameManager;
+        if (existing != null && existing.PlayerCount > 0)
+        {
+            var diffs = existing.GetNetworkAIDifficulties();
+            aiCtrl.SetDifficulties(diffs);
+            Debug.Log($"[GameBootstrapper] 네트워크 AI 난이도 즉시 설정: {string.Join(",", diffs)}");
+            return;
+        }
+
+        // 아직이면 이벤트 대기
+        StartCoroutine(WaitForNGMAndSubscribe(aiCtrl, TrySetup));
+    }
+
+    System.Collections.IEnumerator WaitForNGMAndSubscribe(AIController aiCtrl, System.Action onReady)
+    {
+        // NGM이 스폰될 때까지 최소 대기 (1~2프레임)
         NetworkGameManager ngm = null;
         while (ngm == null)
         {
-            ngm = FindFirstObjectByType<NetworkGameManager>();
-            if (ngm == null || ngm.PlayerCount == 0)
-            {
-                ngm = null;
-                yield return null;
-            }
+            ngm = GameServices.GameManager as NetworkGameManager;
+            if (ngm == null) yield return null;
         }
 
-        // NGM의 playerIndex 기준 AI 난이도 배열로 재설정
-        var diffs = ngm.GetNetworkAIDifficulties();
-        aiCtrl.SetDifficulties(diffs);
-        Debug.Log($"[GameBootstrapper] 네트워크 AI 난이도 설정 완료: {string.Join(",", diffs)}");
+        if (ngm.PlayerCount > 0)
+        {
+            onReady();
+        }
+        else
+        {
+            ngm.OnPlayerListChanged += onReady;
+        }
     }
 }

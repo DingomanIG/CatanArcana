@@ -116,25 +116,13 @@ namespace ArcanaCatan.UI.CardHand
 
         private void UpdateHover()
         {
-            if (Mouse.current == null) return;
+            if (Pointer.current == null) return;
 
-            if (cards.Exists(c => c.IsDragging))
-            {
-                if (currentHoveredCard != null)
-                {
-                    currentHoveredCard.SetHover(false);
-                    SetCardSortingOverride(currentHoveredCard, false);
-                    currentHoveredCard = null;
-                }
-                return;
-            }
-
-            Vector2 mouseScreenPos = Mouse.current.position.ReadValue();
+            Vector2 mouseScreenPos = Pointer.current.position.ReadValue();
             BaseCard topCard = null;
 
             for (int i = cards.Count - 1; i >= 0; i--)
             {
-                if (cards[i].IsDragging) continue;
                 RectTransform rt = cards[i].RectTransform;
                 if (RectTransformUtility.RectangleContainsScreenPoint(rt, mouseScreenPos, canvasCamera))
                 {
@@ -167,7 +155,6 @@ namespace ArcanaCatan.UI.CardHand
         {
             for (int i = cards.Count - 1; i >= 0; i--)
             {
-                if (cards[i].IsDragging) continue;
                 RectTransform rt = cards[i].RectTransform;
                 if (RectTransformUtility.RectangleContainsScreenPoint(rt, screenPos, canvasCamera))
                     return cards[i] == card;
@@ -277,9 +264,9 @@ namespace ArcanaCatan.UI.CardHand
             rt.localRotation = Quaternion.Euler(0, 0, targetRot);
 
             rt.DOAnchorPos(new Vector2(targetX, targetY), dealDuration)
-                .SetEase(Ease.OutBack).SetId(tid + 0);
+                .SetEase(Ease.OutBack).SetId(tid * 4 + 0);
             rt.DOScale(1f, dealDuration)
-                .SetEase(Ease.OutBack).SetId(tid + 2);
+                .SetEase(Ease.OutBack).SetId(tid * 4 + 2);
         }
 
         public void RemoveCard(BaseCard card)
@@ -292,13 +279,13 @@ namespace ArcanaCatan.UI.CardHand
             cards.Remove(card);
             RectTransform rt = card.GetComponent<RectTransform>();
             int tid = rt.GetInstanceID();
-            DOTween.Kill(tid + 0);
-            DOTween.Kill(tid + 1);
-            DOTween.Kill(tid + 2);
+            DOTween.Kill(tid * 4 + 0);
+            DOTween.Kill(tid * 4 + 1);
+            DOTween.Kill(tid * 4 + 2);
 
             rt.DOAnchorPos(rt.anchoredPosition + new Vector2(0, 200f), 0.3f)
-                .SetEase(Ease.InBack).SetId(tid + 0);
-            rt.DOScale(0f, 0.3f).SetEase(Ease.InBack).SetId(tid + 2)
+                .SetEase(Ease.InBack).SetId(tid * 4 + 0);
+            rt.DOScale(0f, 0.3f).SetEase(Ease.InBack).SetId(tid * 4 + 2)
                 .OnComplete(() =>
                 {
                     Destroy(card.gameObject);
@@ -417,8 +404,6 @@ namespace ArcanaCatan.UI.CardHand
 
             for (int i = 0; i < count; i++)
             {
-                if (cards[i].IsDragging) continue;
-
                 float t = count == 1 ? 0.5f : (float)i / (count - 1);
 
                 float xPos = GetCardX(i, count);
@@ -431,26 +416,19 @@ namespace ArcanaCatan.UI.CardHand
                 if (cards[i].IsSelected)
                     yOffset += discardOffsetY;
 
-                DOTween.Kill(rt.GetInstanceID() + 0);
-                DOTween.Kill(rt.GetInstanceID() + 1);
+                DOTween.Kill(rt.GetInstanceID() * 4 + 0);
+                DOTween.Kill(rt.GetInstanceID() * 4 + 1);
 
                 rt.DOAnchorPos(new Vector2(xPos, yOffset), rearrangeDuration)
                     .SetEase(Ease.OutQuad)
-                    .SetId(rt.GetInstanceID() + 0);
+                    .SetId(rt.GetInstanceID() * 4 + 0);
 
                 // 선택된 카드는 회전 제거 (똑바로 올라감)
                 float targetRot = cards[i].IsSelected ? 0f : zRotation;
                 rt.DOLocalRotate(new Vector3(0, 0, targetRot), rearrangeDuration)
                     .SetEase(Ease.OutQuad)
-                    .SetId(rt.GetInstanceID() + 1);
+                    .SetId(rt.GetInstanceID() * 4 + 1);
             }
-        }
-
-        // === Drag (스왑 비활성화 — 정렬 순서 고정) ===
-
-        public void CheckCardSwap(BaseCard draggedCard)
-        {
-            // 싱글 핸드: 정렬 순서 고정, 스왑 비활성화
         }
 
         private void UpdateCardIndices()
@@ -466,17 +444,6 @@ namespace ArcanaCatan.UI.CardHand
 
         public void OnCardSelected(BaseCard card) => isDirty = true;
         public void OnCardDeselected(BaseCard card) => isDirty = true;
-
-        public void OnCardDragStart(BaseCard card)
-        {
-            SetCardSortingOverride(card, true);
-        }
-
-        public void OnCardDragEnd(BaseCard card)
-        {
-            SetCardSortingOverride(card, false);
-            isDirty = true;
-        }
 
         private void SetCardSortingOverride(BaseCard card, bool onTop)
         {
@@ -501,11 +468,49 @@ namespace ArcanaCatan.UI.CardHand
             }
         }
 
-        // === Dev Card Use ===
+        // === Dev Card Selection & Use ===
+
+        /// <summary>현재 선택된 발전카드 (1장만)</summary>
+        public BaseCard SelectedDevCard { get; private set; }
+
+        /// <summary>발전카드 선택/해제 알림 (선택된 카드 or null)</summary>
+        public event Action<BaseCard> OnDevCardSelectionChanged;
+
+        /// <summary>발전카드 사용 요청 (대상 선택이 필요한 카드용). HUD에서 구독.</summary>
+        public event Action<DevCardType, BaseCard> OnDevCardUseRequested;
+
+        /// <summary>발전카드 선택됨 (BaseCard에서 호출)</summary>
+        public void OnDevCardSelected(BaseCard card)
+        {
+            // 기존 선택 해제 (1장만 허용)
+            if (SelectedDevCard != null && SelectedDevCard != card)
+                SelectedDevCard.ForceDeselect();
+
+            SelectedDevCard = card;
+            OnDevCardSelectionChanged?.Invoke(card);
+            isDirty = true;
+        }
+
+        /// <summary>발전카드 선택 해제됨 (BaseCard에서 호출)</summary>
+        public void OnDevCardDeselected(BaseCard card)
+        {
+            if (SelectedDevCard == card)
+                SelectedDevCard = null;
+            OnDevCardSelectionChanged?.Invoke(null);
+            isDirty = true;
+        }
+
+        /// <summary>선택된 발전카드 사용 시도. HUD "사용" 버튼에서 호출.</summary>
+        public bool TryUseSelectedDevCard()
+        {
+            if (SelectedDevCard == null) return false;
+            return TryUseDevCard(SelectedDevCard);
+        }
 
         /// <summary>
         /// 발전카드 사용 시도. IGameManager 연동.
-        /// 성공 시 카드 제거 + true, 실패 시 false (shake 트리거는 BaseCard에서).
+        /// 즉시 실행 가능한 카드(RoadBuilding)는 바로 처리.
+        /// 대상 선택 필요한 카드(Knight/YearOfPlenty/Monopoly)는 이벤트 발행.
         /// </summary>
         public bool TryUseDevCard(BaseCard card)
         {
@@ -515,29 +520,65 @@ namespace ArcanaCatan.UI.CardHand
             if (gm == null)
             {
                 Debug.LogWarning("[CardHand] GameManager 없음 — 테스트 모드에서는 항상 성공");
+                card.NotifyCardUsed();
                 RemoveCardWithUseAnimation(card);
                 return true;
             }
 
             if (!gm.IsMyTurn() || gm.CurrentPhase != GamePhase.Action)
+            {
+                card.NotifyCardUseRejected();
                 return false;
-
-            bool success = card.CardData.DevCardType switch
-            {
-                DevCardType.Knight => gm.TryUseKnight(default),
-                DevCardType.RoadBuilding => gm.TryUseRoadBuilding(),
-                DevCardType.YearOfPlenty => gm.TryUseYearOfPlenty(default, default),
-                DevCardType.Monopoly => gm.TryUseMonopoly(default),
-                _ => false
-            };
-
-            if (success)
-            {
-                RemoveCardWithUseAnimation(card);
-                return true;
             }
 
-            return false;
+            if (!card.CardData.CanUseOnTurn(gm.TurnNumber))
+            {
+                card.NotifyCardUseRejected();
+                return false;
+            }
+
+            switch (card.CardData.DevCardType)
+            {
+                case DevCardType.RoadBuilding:
+                    if (gm.TryUseRoadBuilding())
+                    {
+                        card.NotifyCardUsed();
+                        ClearDevCardSelection();
+                        RemoveCardWithUseAnimation(card);
+                        return true;
+                    }
+                    card.NotifyCardUseRejected();
+                    return false;
+
+                case DevCardType.Knight:
+                case DevCardType.YearOfPlenty:
+                case DevCardType.Monopoly:
+                    OnDevCardUseRequested?.Invoke(card.CardData.DevCardType, card);
+                    ClearDevCardSelection();
+                    return true;
+
+                default:
+                    card.NotifyCardUseRejected();
+                    return false;
+            }
+        }
+
+        /// <summary>대상 선택 완료 후 호출 — 카드 제거 연출</summary>
+        public void ConfirmDevCardUsed(BaseCard card)
+        {
+            card.NotifyCardUsed();
+            RemoveCardWithUseAnimation(card);
+        }
+
+        /// <summary>발전카드 선택 해제 (내부용)</summary>
+        private void ClearDevCardSelection()
+        {
+            if (SelectedDevCard != null)
+            {
+                SelectedDevCard.ForceDeselect();
+                SelectedDevCard = null;
+                OnDevCardSelectionChanged?.Invoke(null);
+            }
         }
 
         /// <summary>카드 사용 성공 — 위로 날아가며 제거</summary>
@@ -551,13 +592,13 @@ namespace ArcanaCatan.UI.CardHand
 
             RectTransform rt = card.RectTransform;
             int tid = rt.GetInstanceID();
-            DOTween.Kill(tid + 0);
-            DOTween.Kill(tid + 1);
-            DOTween.Kill(tid + 2);
+            DOTween.Kill(tid * 4 + 0);
+            DOTween.Kill(tid * 4 + 1);
+            DOTween.Kill(tid * 4 + 2);
 
             rt.DOAnchorPos(rt.anchoredPosition + new Vector2(0, 400f), 0.4f)
-                .SetEase(Ease.InBack).SetId(tid + 0);
-            rt.DOScale(0.3f, 0.4f).SetEase(Ease.InBack).SetId(tid + 2)
+                .SetEase(Ease.InBack).SetId(tid * 4 + 0);
+            rt.DOScale(0.3f, 0.4f).SetEase(Ease.InBack).SetId(tid * 4 + 2)
                 .OnComplete(() =>
                 {
                     Destroy(card.gameObject);
@@ -660,18 +701,18 @@ namespace ArcanaCatan.UI.CardHand
             SetCardSortingOverride(card, true);
             RectTransform rt = card.RectTransform;
             int tid = rt.GetInstanceID();
-            DOTween.Kill(tid + 0);
-            DOTween.Kill(tid + 1);
-            DOTween.Kill(tid + 2);
+            DOTween.Kill(tid * 4 + 0);
+            DOTween.Kill(tid * 4 + 1);
+            DOTween.Kill(tid * 4 + 2);
 
             var cg = card.GetComponent<CanvasGroup>();
             if (cg == null) cg = card.gameObject.AddComponent<CanvasGroup>();
 
             // 위로 날아가며 축소 + 페이드아웃
             rt.DOAnchorPos(rt.anchoredPosition + new Vector2(0, 300f), 0.4f)
-                .SetEase(Ease.InBack).SetId(tid + 0);
-            rt.DOScale(0.3f, 0.4f).SetEase(Ease.InBack).SetId(tid + 2);
-            cg.DOFade(0f, 0.35f).SetEase(Ease.InQuad).SetId(tid + 1)
+                .SetEase(Ease.InBack).SetId(tid * 4 + 0);
+            rt.DOScale(0.3f, 0.4f).SetEase(Ease.InBack).SetId(tid * 4 + 2);
+            cg.DOFade(0f, 0.35f).SetEase(Ease.InQuad).SetId(tid * 4 + 1)
                 .OnComplete(() =>
                 {
                     Destroy(card.gameObject);

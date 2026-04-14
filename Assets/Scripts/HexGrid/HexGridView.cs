@@ -55,7 +55,7 @@ public class HexGridView : MonoBehaviour
         grid = new HexGrid(hexSize);
         grid.GenerateHexagonal(boardRadius);
         HexBoardSetup.SetupStandardBoard(grid);
-        AddSeaRings();
+        AddSeaBorder();
         HexBoardSetup.SetupPorts(grid, boardRadius);
 
         BuildVisuals();
@@ -443,13 +443,28 @@ public class HexGridView : MonoBehaviour
     {
         foreach (var go in tileViews.Values)
         {
-            if (go != null) Destroy(go);
+            if (go != null)
+            {
+                DestroyMaterials(go);
+                Destroy(go);
+            }
         }
         tileViews.Clear();
 
         for (int i = transform.childCount - 1; i >= 0; i--)
         {
-            Destroy(transform.GetChild(i).gameObject);
+            var child = transform.GetChild(i).gameObject;
+            DestroyMaterials(child);
+            Destroy(child);
+        }
+    }
+
+    void DestroyMaterials(GameObject go)
+    {
+        foreach (var mr in go.GetComponentsInChildren<MeshRenderer>())
+        {
+            if (mr.material != null)
+                Destroy(mr.material);
         }
     }
 
@@ -460,21 +475,46 @@ public class HexGridView : MonoBehaviour
         return new Material(shader);
     }
 
-    /// <summary>바다 타일 링 추가 (육지 바깥)</summary>
-    void AddSeaRings()
+    /// <summary>
+    /// 임의 형태 보드 외곽에 바다 타일 추가 (BFS flood-fill)
+    /// 육지 타일의 빈 이웃을 바다로 채우고, seaRings만큼 반복 확장
+    /// </summary>
+    void AddSeaBorder()
     {
-        for (int ring = boardRadius + 1; ring <= boardRadius + seaRings; ring++)
+        // 현재 프레임의 확장 대상 = 아직 바다가 없는 빈 이웃 좌표
+        var frontier = new HashSet<HexCoord>();
+
+        // 첫 번째 링: 모든 육지 타일의 빈 이웃
+        foreach (var coord in grid.Tiles.Keys)
         {
-            var coords = HexCoord.Ring(HexCoord.Zero, ring);
-            foreach (var coord in coords)
+            foreach (var neighbor in coord.GetNeighbors())
+            {
+                if (!grid.Tiles.ContainsKey(neighbor))
+                    frontier.Add(neighbor);
+            }
+        }
+
+        // seaRings만큼 BFS 확장
+        for (int ring = 0; ring < seaRings; ring++)
+        {
+            var nextFrontier = new HashSet<HexCoord>();
+            foreach (var coord in frontier)
             {
                 if (!grid.Tiles.ContainsKey(coord))
                 {
-                    var tile = new HexTile(coord) { Resource = ResourceType.Sea };
-                    grid.Tiles[coord] = tile;
+                    grid.Tiles[coord] = new HexTile(coord) { Resource = ResourceType.Sea };
+                }
+
+                // 다음 링 후보
+                foreach (var neighbor in coord.GetNeighbors())
+                {
+                    if (!grid.Tiles.ContainsKey(neighbor) && !frontier.Contains(neighbor))
+                        nextFrontier.Add(neighbor);
                 }
             }
+            frontier = nextFrontier;
         }
+
         grid.RebuildTopology();
     }
 
@@ -553,7 +593,7 @@ public class HexGridView : MonoBehaviour
         {
             HexBoardSetup.SetupStandardBoard(grid);
         }
-        AddSeaRings();
+        AddSeaBorder();
         HexBoardSetup.SetupPorts(grid, boardRadius);
         BuildVisuals();
     }

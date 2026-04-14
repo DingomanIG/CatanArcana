@@ -100,7 +100,7 @@ public class HexGrid
         }
         foreach (var tile in Tiles.Values)
         {
-            tile.HasRobber = tile.Resource == ResourceType.None && tile.Resource != ResourceType.Sea;
+            tile.HasRobber = tile.Resource == ResourceType.None;
         }
     }
 

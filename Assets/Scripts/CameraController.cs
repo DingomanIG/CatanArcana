@@ -56,7 +56,7 @@ public class CameraController : MonoBehaviour
         if (target == null || isPanning) return;
 
         Vector3 desiredPosition = target.position + offset;
-        Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
+        Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, 1f - Mathf.Pow(1f - smoothSpeed, Time.deltaTime * 60f));
         transform.position = smoothedPosition;
     }
 

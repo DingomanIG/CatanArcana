@@ -107,11 +107,11 @@ public static class HexBoardSetup
     const float EDGES_PER_PORT = 3.33f;
 
     /// <summary>
-    /// 해안 변에 항구 배치 (토폴로지 기반, 보드 크기 자동 적응)
+    /// 해안 변에 항구 배치 (토폴로지 기반, 임의 형태 보드 자동 적응)
     /// 1) 해안 엣지 = 정확히 1개 육지 타일에 인접한 엣지
-    /// 2) 그래프 워킹으로 링 순회 (각도 수학 없음)
-    /// 3) 해안 엣지 수에 비례하여 항구 개수/타입 자동 결정
-    /// 4) 균등 간격 배치 + 타입 셔플
+    /// 2) 다중 해안선 감지 (섬, 호수 등)
+    /// 3) 가장 큰 해안선(외곽)에 항구 배치
+    /// 4) 균등 간격 + 최소 2엣지 간격 보장 + 타입 셔플
     /// </summary>
     public static void SetupPorts(HexGrid grid, int boardRadius = 2, System.Random random = null)
     {
@@ -135,24 +135,47 @@ public static class HexBoardSetup
             return;
         }
 
-        // 2. 그래프 워킹으로 해안 링 순회
-        var orderedEdges = WalkBoundaryRing(coastalEdges);
-        if (orderedEdges.Count == 0)
+        // 2. 다중 해안선 감지 → 가장 큰 해안선 선택
+        var coastlines = FindAllCoastlines(coastalEdges);
+        if (coastlines.Count == 0)
         {
             UnityEngine.Debug.LogWarning("[HexBoardSetup] 해안 링 구성 실패");
             return;
         }
 
-        // 3. 보드 크기에 맞는 항구 타입 배열 생성
-        var portTypes = BuildPortTypes(orderedEdges.Count);
+        // 가장 긴 해안선 = 외곽 (내부 호수보다 항상 길다)
+        var mainCoast = coastlines[0];
+        for (int i = 1; i < coastlines.Count; i++)
+        {
+            if (coastlines[i].Count > mainCoast.Count)
+                mainCoast = coastlines[i];
+        }
 
-        // 4. 균등 간격으로 항구 엣지 선택
-        float spacing = (float)orderedEdges.Count / portTypes.Length;
+        // 3. 보드 크기에 맞는 항구 타입 배열 생성
+        var portTypes = BuildPortTypes(mainCoast.Count);
+
+        // 4. 균등 간격 + 최소 2엣지 간격 보장
+        float spacing = (float)mainCoast.Count / portTypes.Length;
         var portEdges = new List<HexEdge>(portTypes.Length);
+        var usedIndices = new HashSet<int>();
+
         for (int i = 0; i < portTypes.Length; i++)
         {
-            int index = UnityEngine.Mathf.FloorToInt(i * spacing);
-            portEdges.Add(orderedEdges[index % orderedEdges.Count]);
+            int ideal = UnityEngine.Mathf.FloorToInt(i * spacing);
+            int index = ideal % mainCoast.Count;
+
+            // 최소 2엣지 간격 보장 (겹침/인접 방지)
+            int attempts = 0;
+            while (usedIndices.Contains(index) ||
+                   usedIndices.Contains((index + 1) % mainCoast.Count) ||
+                   usedIndices.Contains((index - 1 + mainCoast.Count) % mainCoast.Count))
+            {
+                index = (index + 1) % mainCoast.Count;
+                if (++attempts >= mainCoast.Count) break;
+            }
+
+            portEdges.Add(mainCoast[index]);
+            usedIndices.Add(index);
         }
 
         // 5. 항구 타입 셔플 후 버텍스에 할당
@@ -164,14 +187,14 @@ public static class HexBoardSetup
         }
 
         UnityEngine.Debug.Log($"[HexBoardSetup] 항구 {portEdges.Count}개 배치 " +
-            $"(해안 엣지 {orderedEdges.Count}개, 간격 {spacing:F1})");
+            $"(해안선 {coastlines.Count}개, 외곽 엣지 {mainCoast.Count}개, 간격 {spacing:F1})");
     }
 
     /// <summary>
-    /// 해안 엣지를 그래프 연결 순서대로 정렬
-    /// 각 해안 버텍스는 정확히 2개 해안 엣지에 연결 → 단순 링 워킹
+    /// 해안 엣지를 연결 컴포넌트별로 분리하여 각각 링 워킹
+    /// 여러 해안선(외곽, 내부 호수, 섬 등)을 모두 감지
     /// </summary>
-    static List<HexEdge> WalkBoundaryRing(List<HexEdge> coastalEdges)
+    static List<List<HexEdge>> FindAllCoastlines(List<HexEdge> coastalEdges)
     {
         // 버텍스ID → 연결된 해안 엣지 룩업
         var vertexToEdges = new Dictionary<int, List<HexEdge>>();
@@ -181,33 +204,92 @@ public static class HexBoardSetup
             AddToVertexMap(vertexToEdges, edge.VertexB.Id, edge);
         }
 
-        // 결정론적 시작점: Z 최대(북쪽) → X 최대(동쪽)
-        var start = coastalEdges[0];
+        var globalVisited = new HashSet<int>();
+        var coastlines = new List<List<HexEdge>>();
+
         foreach (var edge in coastalEdges)
         {
-            if (edge.MidPoint.z > start.MidPoint.z + 0.001f ||
-                (UnityEngine.Mathf.Abs(edge.MidPoint.z - start.MidPoint.z) < 0.001f
-                 && edge.MidPoint.x > start.MidPoint.x))
+            if (globalVisited.Contains(edge.Id)) continue;
+
+            // 이 컴포넌트의 시작점: 미방문 엣지 중 Z 최대 → X 최대
+            var componentEdges = FloodCollect(edge, vertexToEdges, globalVisited);
+            if (componentEdges.Count == 0) continue;
+
+            // 결정론적 시작점 선택
+            var start = componentEdges[0];
+            foreach (var e in componentEdges)
             {
-                start = edge;
+                if (e.MidPoint.z > start.MidPoint.z + 0.001f ||
+                    (UnityEngine.Mathf.Abs(e.MidPoint.z - start.MidPoint.z) < 0.001f
+                     && e.MidPoint.x > start.MidPoint.x))
+                {
+                    start = e;
+                }
+            }
+
+            // 링 워킹
+            var ring = WalkRingFrom(start, componentEdges, vertexToEdges);
+            if (ring.Count > 0)
+                coastlines.Add(ring);
+        }
+
+        return coastlines;
+    }
+
+    /// <summary>시작 엣지에서 연결된 모든 해안 엣지를 BFS로 수집</summary>
+    static List<HexEdge> FloodCollect(HexEdge start,
+        Dictionary<int, List<HexEdge>> vertexToEdges, HashSet<int> globalVisited)
+    {
+        var result = new List<HexEdge>();
+        var queue = new Queue<HexEdge>();
+        queue.Enqueue(start);
+        globalVisited.Add(start.Id);
+
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+            result.Add(current);
+
+            // VertexA, VertexB를 통해 연결된 해안 엣지 탐색
+            foreach (var vertexId in new[] { current.VertexA.Id, current.VertexB.Id })
+            {
+                if (!vertexToEdges.TryGetValue(vertexId, out var neighbors)) continue;
+                foreach (var neighbor in neighbors)
+                {
+                    if (!globalVisited.Contains(neighbor.Id))
+                    {
+                        globalVisited.Add(neighbor.Id);
+                        queue.Enqueue(neighbor);
+                    }
+                }
             }
         }
 
-        var ordered = new List<HexEdge>(coastalEdges.Count) { start };
+        return result;
+    }
+
+    /// <summary>시작 엣지에서 링 워킹으로 해안선 순서 정렬</summary>
+    static List<HexEdge> WalkRingFrom(HexEdge start, List<HexEdge> componentEdges,
+        Dictionary<int, List<HexEdge>> vertexToEdges)
+    {
+        var edgeSet = new HashSet<int>();
+        foreach (var e in componentEdges) edgeSet.Add(e.Id);
+
+        var ordered = new List<HexEdge>(componentEdges.Count) { start };
         var visited = new HashSet<int> { start.Id };
 
         // 시작 방향: X가 큰 버텍스 쪽으로 진행
         var nextVertex = start.VertexA.Position.x >= start.VertexB.Position.x
             ? start.VertexA : start.VertexB;
 
-        for (int i = 0; i < coastalEdges.Count; i++)
+        for (int i = 0; i < componentEdges.Count; i++)
         {
             HexEdge next = null;
             if (vertexToEdges.TryGetValue(nextVertex.Id, out var candidates))
             {
                 foreach (var c in candidates)
                 {
-                    if (!visited.Contains(c.Id))
+                    if (!visited.Contains(c.Id) && edgeSet.Contains(c.Id))
                     {
                         next = c;
                         break;

@@ -37,6 +37,9 @@ public class BuildingVisuals : MonoBehaviour
     Transform buildingsParent;
     Transform highlightsParent;
 
+    // 플레이어 색상별 공유 머티리얼 캐시
+    readonly Dictionary<int, Material> playerMaterials = new();
+
     readonly Dictionary<int, GameObject> settlementObjects = new();
     readonly Dictionary<int, GameObject> roadObjects = new();
     readonly List<GameObject> highlightObjects = new();
@@ -80,15 +83,15 @@ public class BuildingVisuals : MonoBehaviour
         // 임시 프리미티브에서 메시만 추출 후 즉시 파괴 (Awake에서 1회만)
         var tmpSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         cachedSphereMesh = tmpSphere.GetComponent<MeshFilter>().sharedMesh;
-        DestroyImmediate(tmpSphere);
+        Destroy(tmpSphere);
 
         var tmpCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
         cachedCubeMesh = tmpCube.GetComponent<MeshFilter>().sharedMesh;
-        DestroyImmediate(tmpCube);
+        Destroy(tmpCube);
 
         var tmpCylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         cachedCylinderMesh = tmpCylinder.GetComponent<MeshFilter>().sharedMesh;
-        DestroyImmediate(tmpCylinder);
+        Destroy(tmpCylinder);
     }
 
     /// <summary>캐싱된 메시로 가벼운 GameObject 생성 (콜라이더 없음)</summary>
@@ -106,6 +109,18 @@ public class BuildingVisuals : MonoBehaviour
         return playerIndex >= 0 && playerIndex < PLAYER_COLORS.Length
             ? PLAYER_COLORS[playerIndex]
             : Color.gray;
+    }
+
+    /// <summary>플레이어 색상 공유 머티리얼 (캐싱)</summary>
+    Material GetPlayerMaterial(int playerIndex)
+    {
+        if (!playerMaterials.TryGetValue(playerIndex, out var mat))
+        {
+            mat = new Material(defaultMaterial);
+            mat.color = GetPlayerColor(playerIndex);
+            playerMaterials[playerIndex] = mat;
+        }
+        return mat;
     }
 
     // ========================
@@ -129,12 +144,9 @@ public class BuildingVisuals : MonoBehaviour
             go.transform.localScale = new Vector3(0.25f, 0.25f, 0.25f);
         }
         go.name = $"Settlement_P{playerIndex}_V{vertex.Id}";
-        go.transform.SetParent(buildingsParent);
         go.transform.position = vertex.Position + Vector3.up * 0.15f;
 
-        var mr = go.GetComponent<MeshRenderer>();
-        mr.material = new Material(defaultMaterial);
-        mr.material.color = GetPlayerColor(playerIndex);
+        go.GetComponent<MeshRenderer>().sharedMaterial = GetPlayerMaterial(playerIndex);
 
         settlementObjects[vertex.Id] = go;
     }
@@ -159,12 +171,9 @@ public class BuildingVisuals : MonoBehaviour
             go.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
         }
         go.name = $"City_P{playerIndex}_V{vertex.Id}";
-        go.transform.SetParent(buildingsParent);
         go.transform.position = vertex.Position + Vector3.up * 0.2f;
 
-        var mr = go.GetComponent<MeshRenderer>();
-        mr.material = new Material(defaultMaterial);
-        mr.material.color = GetPlayerColor(playerIndex);
+        go.GetComponent<MeshRenderer>().sharedMaterial = GetPlayerMaterial(playerIndex);
 
         settlementObjects[vertex.Id] = go;
     }
@@ -189,13 +198,10 @@ public class BuildingVisuals : MonoBehaviour
             go.transform.localScale = new Vector3(0.1f, dir.magnitude / 2f, 0.1f);
         }
         go.name = $"Road_P{playerIndex}_E{edge.Id}";
-        go.transform.SetParent(buildingsParent);
         go.transform.position = edge.MidPoint + Vector3.up * 0.05f;
         go.transform.rotation = Quaternion.LookRotation(dir) * Quaternion.Euler(90f, 0f, 0f);
 
-        var mr = go.GetComponent<MeshRenderer>();
-        mr.material = new Material(defaultMaterial);
-        mr.material.color = GetPlayerColor(playerIndex);
+        go.GetComponent<MeshRenderer>().sharedMaterial = GetPlayerMaterial(playerIndex);
 
         roadObjects[edge.Id] = go;
     }

@@ -10,7 +10,7 @@ public class LobbyManager : MonoBehaviour
     public static LobbyManager Instance { get; private set; }
 
     [Header("Settings")]
-    public string lobbyName = "CatanRoom";
+    public string lobbyName = "ArcanaRoom";
     public int maxPlayers = 4;
 
     public Lobby CurrentLobby { get; private set; }
@@ -24,8 +24,10 @@ public class LobbyManager : MonoBehaviour
 
     float heartbeatTimer;
     float lobbyPollTimer;
+    int pollFailCount;
     const float HEARTBEAT_INTERVAL = 15f;
     const float LOBBY_POLL_INTERVAL = 2f;
+    const int MAX_POLL_FAILURES = 5;
 
     void Awake()
     {
@@ -192,11 +194,18 @@ public class LobbyManager : MonoBehaviour
             try
             {
                 CurrentLobby = await LobbyService.Instance.GetLobbyAsync(CurrentLobby.Id);
+                pollFailCount = 0;
             }
             catch (Exception e)
             {
-                Debug.LogWarning($"[Lobby] 폴링 실패: {e.Message}");
-                CurrentLobby = null;
+                pollFailCount++;
+                Debug.LogWarning($"[Lobby] 폴링 실패 ({pollFailCount}/{MAX_POLL_FAILURES}): {e.Message}");
+                if (pollFailCount >= MAX_POLL_FAILURES)
+                {
+                    Debug.LogError("[Lobby] 폴링 연속 실패 — 로비 연결 해제");
+                    CurrentLobby = null;
+                    pollFailCount = 0;
+                }
             }
         }
     }

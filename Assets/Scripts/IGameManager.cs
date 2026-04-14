@@ -113,7 +113,21 @@ public interface IGameManager
 /// <summary>글로벌 게임 매니저 참조</summary>
 public static class GameServices
 {
-    public static IGameManager GameManager { get; set; }
+    private static IGameManager gameManager;
+
+    public static IGameManager GameManager
+    {
+        get => gameManager;
+        set
+        {
+            gameManager = value;
+            if (value != null)
+                OnGameManagerReady?.Invoke(value);
+        }
+    }
+
+    /// <summary>GameManager 등록 시 알림 (폴링 대신 사용)</summary>
+    public static event Action<IGameManager> OnGameManagerReady;
 }
 
 public enum GamePhase

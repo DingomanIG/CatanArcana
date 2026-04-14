@@ -277,14 +277,12 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         if (currentPhase != GamePhase.Action) return;
 
         CancelBuildMode();
-        // 안전장치: AI가 간접적으로 생성한 하이라이트도 확실히 정리
-        if (!SuppressUICommands) BuildModeController.Instance?.CancelBuildMode();
         devCardUseState = DevCardUseState.None;
         freeRoadsRemaining = 0;
         players[currentPlayerIndex].HasUsedDevCardThisTurn = false;
 
         currentPlayerIndex = (currentPlayerIndex + 1) % playerCount;
-        if (currentPlayerIndex == 0) turnNumber++;
+        if (currentPlayerIndex == firstPlayerIndex) turnNumber++;
 
         SetPhase(GamePhase.RollDice);
         OnTurnChanged?.Invoke(currentPlayerIndex);
@@ -624,10 +622,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         StealRandomResource(currentPlayerIndex, victimIndex);
         robberStealCandidates.Clear();
 
-        if (returnToActionAfterSteal)
-            SetPhase(GamePhase.Action);
-        else
-            SetPhase(GamePhase.Action);
+        SetPhase(GamePhase.Action);
 
         return true;
     }
@@ -1210,9 +1205,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         int rate = GetTradeRate(give);
 
         if (player.Resources[give] < rate)
-        {
-                return false;
-        }
+            return false;
 
         // K3: 은행 거래 성사 → 관련 거래 제안 자동 취소 (제안자 또는 대상이 은행거래 시)
         if (pendingIncomingTrade != null &&

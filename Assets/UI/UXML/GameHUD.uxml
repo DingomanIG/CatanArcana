@@ -43,7 +43,7 @@
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="middle-area" class="middle-area" style="flex-direction: row; justify-content: space-between; align-self: auto; align-content: auto; align-items: flex-end;">
+        <ui:VisualElement name="middle-area" class="middle-area" style="flex-direction: row; justify-content: space-between; align-self: auto; align-content: auto; align-items: flex-end; border-top-width: 0; border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0;">
             <ui:VisualElement name="left-panel" class="left-panel" style="left: 18px; bottom: 22px; width: 305px;">
                 <ui:VisualElement name="utility-bar" class="utility-bar" style="flex-direction: row; background-color: rgba(42, 36, 32, 0);">
                     <ui:Button name="btn-options" text="⚙" tooltip="옵션" class="utility-btn"/>
@@ -61,39 +61,39 @@
                 <ui:Button name="btn-build-road" text="" class="action-btn" style="flex-direction: row; align-self: auto; align-items: stretch; justify-content: flex-start;">
                     <ui:Label name="build-road-count" text="0" style="font-size: 16px; margin-top: 0; margin-right: 6px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
                     <ui:Label text="도로 건설" style="font-size: 16px; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
-                    <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse;">
-                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=1568936095&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_brick" class="image--size"/>
-                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=-815898445&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_wood" class="image--size"/>
+                    <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse; align-self: center;">
+                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=1682770138&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_brick" tint-color="rgb(255, 102, 109)" class="image--size" style="height: 22px; width: 24px;"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=1099497379&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_wood" tint-color="rgb(88, 217, 79)" class="image--size" style="height: 22px; width: 24px; margin-right: 0; align-self: flex-start; flex-direction: column; align-items: auto;"/>
                     </ui:VisualElement>
                 </ui:Button>
                 <ui:Button name="btn-build-settlement" text="" class="action-btn" style="flex-direction: row; align-self: auto; align-items: stretch; justify-content: flex-start;">
                     <ui:Label name="build-settlement-count" text="0" style="font-size: 16px; margin-top: 0; margin-right: 6px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
                     <ui:Label text="마을 건설" style="font-size: 16px; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
-                    <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse;">
-                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=40755259&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_wheat" class="image--size"/>
-                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=217937409&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_sheep" class="image--size"/>
-                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=1568936095&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_brick" class="image--size"/>
-                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=-815898445&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_wood" class="image--size"/>
+                    <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse; align-self: center;">
+                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=1613024120&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_wheat" tint-color="rgb(255, 215, 59)" class="image--size" style="height: 22px; width: 22px;"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-166389527&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_sheep" tint-color="rgb(246, 255, 208)" class="image--size" style="height: 22px; width: 23px; margin-right: 0;"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=1682770138&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_brick" tint-color="rgb(255, 103, 110)" class="image--size" style="height: 22px; width: 24px; margin-right: 0;"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=1099497379&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_wood" tint-color="rgb(88, 217, 79)" class="image--size" style="height: 22px; width: 24px; margin-right: 0;"/>
                     </ui:VisualElement>
                 </ui:Button>
                 <ui:Button name="btn-build-city" text="" class="action-btn" style="flex-direction: row; align-self: auto; align-items: stretch; justify-content: flex-start;">
                     <ui:Label name="build-city-count" text="0" style="font-size: 16px; margin-top: 0; margin-right: 6px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
                     <ui:Label text="도시 건설" style="font-size: 16px; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
-                    <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse;">
-                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=-1948509397&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_ore" class="image--size"/>
-                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=-1948509397&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_ore" class="image--size"/>
-                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=-1948509397&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_ore" class="image--size"/>
-                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=40755259&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_wheat" class="image--size"/>
-                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=40755259&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_wheat" class="image--size"/>
+                    <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse; align-self: center;">
+                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-508890140&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_ore" tint-color="rgb(149, 153, 183)" class="image--size" style="height: 22px; width: 24px;"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-508890140&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_ore" tint-color="rgb(167, 165, 207)" class="image--size" style="height: 22px; width: 24px; margin-right: 0;"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-508890140&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_ore" tint-color="rgb(167, 165, 207)" class="image--size" style="height: 22px; width: 24px; margin-right: 0;"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=1613024120&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_wheat" tint-color="rgb(255, 212, 42)" class="image--size" style="height: 22px; width: 22px;"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=1613024120&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_wheat" tint-color="rgb(255, 212, 42)" class="image--size" style="height: 22px; justify-content: flex-start; width: 22px;"/>
                     </ui:VisualElement>
                 </ui:Button>
                 <ui:Button name="btn-buy-devcard" text="" class="action-btn" style="flex-direction: row; align-self: auto; align-items: stretch; justify-content: flex-start;">
                     <ui:Label name="build-devcard-count" text="0" style="font-size: 16px; margin-top: 0; margin-right: 6px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
                     <ui:Label text="발전카드 구매" style="font-size: 16px; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
-                    <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse;">
-                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=-1948509397&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_ore" class="image--size"/>
-                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=40755259&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_wheat" class="image--size"/>
-                        <ui:Image source="project://database/Assets/Art/Sprites/Icon01.png?fileID=217937409&amp;guid=5aa8a0525242d164bad2ac12bee74923&amp;type=3#Icon_sheep" class="image--size"/>
+                    <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse; align-self: center;">
+                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-508890140&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_ore" tint-color="rgb(167, 165, 207)" class="image--size" style="height: 22px; width: 24px;"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=1613024120&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_wheat" tint-color="rgb(255, 212, 42)" class="image--size" style="height: 22px; width: 22px;"/>
+                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-166389527&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_sheep" tint-color="rgb(246, 255, 208)" class="image--size" style="height: 22px; width: 23px;"/>
                     </ui:VisualElement>
                 </ui:Button>
                 <ui:VisualElement class="action-separator"/>
@@ -154,6 +154,7 @@
                 <ui:Label name="stat-vp" text="0" class="resource-count resource-count--vp"/>
             </ui:VisualElement>
             <ui:VisualElement name="devcard-quickslot-bar" class="devcard-quickslot-bar"/>
+            <ui:Button name="btn-use-devcard" text="사용" class="action-btn devcard-use-btn" style="display: none;"/>
         </ui:VisualElement>
         <ui:VisualElement name="trade-overlay" class="overlay overlay--hidden">
             <ui:VisualElement class="overlay-panel trade-panel">

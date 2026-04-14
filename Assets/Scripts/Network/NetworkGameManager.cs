@@ -83,7 +83,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     public int FirstPlayerIndex => netFirstPlayerIndex.Value;
     public int PlayerCount => netPlayerCount.Value;
     public GamePhase CurrentPhase => (GamePhase)netCurrentPhase.Value;
-    public new bool IsHost => IsServer;
+    bool IGameManager.IsHost => IsServer;
     public BuildMode CurrentBuildMode => (BuildMode)netCurrentBuildMode.Value;
     public DevCardUseState DevCardState => (DevCardUseState)netDevCardState.Value;
     public int DevCardDeckRemaining => netDevCardDeckRemaining.Value;
@@ -966,6 +966,38 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
         return pi;
     }
 
+    bool ValidateVertexId(int vertexId)
+    {
+        var grid = hostLGM?.GetGrid();
+        if (grid == null || vertexId < 0 || vertexId >= grid.Vertices.Count)
+        {
+            Debug.LogWarning($"[NGM] 잘못된 vertexId: {vertexId}");
+            return false;
+        }
+        return true;
+    }
+
+    bool ValidateEdgeId(int edgeId)
+    {
+        var grid = hostLGM?.GetGrid();
+        if (grid == null || edgeId < 0 || edgeId >= grid.Edges.Count)
+        {
+            Debug.LogWarning($"[NGM] 잘못된 edgeId: {edgeId}");
+            return false;
+        }
+        return true;
+    }
+
+    bool ValidatePlayerIndex(int targetIndex)
+    {
+        if (targetIndex < 0 || targetIndex >= netPlayerCount.Value)
+        {
+            Debug.LogWarning($"[NGM] 잘못된 playerIndex: {targetIndex}");
+            return false;
+        }
+        return true;
+    }
+
     [ServerRpc(RequireOwnership = false)]
     void RegisterPlayerNameServerRpc(string playerName, ServerRpcParams rpcParams = default)
     {
@@ -1038,6 +1070,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
+        if (!ValidateVertexId(vertexId)) return;
         if (!TryAcquireActionLock(rpcParams)) return;
         NetLog.ServerRpc("BuildSettlement", pi, $"v{vertexId}");
         try { hostLGM.TryBuildSettlement(vertexId); }
@@ -1049,6 +1082,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
+        if (!ValidateVertexId(vertexId)) return;
         if (!TryAcquireActionLock(rpcParams)) return;
         NetLog.ServerRpc("BuildCity", pi, $"v{vertexId}");
         try { hostLGM.TryBuildCity(vertexId); }
@@ -1060,6 +1094,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
+        if (!ValidateEdgeId(edgeId)) return;
         if (!TryAcquireActionLock(rpcParams)) return;
         NetLog.ServerRpc("BuildRoad", pi, $"e{edgeId}");
         try { hostLGM.TryBuildRoad(edgeId); }
@@ -1159,6 +1194,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
             NotifyTradeRequestFailedClientRpc("현재 당신의 턴이 아닙니다.", failParams);
             return;
         }
+        if (!ValidatePlayerIndex(otherPlayer)) return;
         NetLog.ServerRpc("PlayerTrade", pi, $"→P{otherPlayer}");
         bool success = hostLGM.TryPlayerTrade(otherPlayer, offer.ToDict(), request.ToDict());
         if (!success && hostLGM.PendingTradeTarget < 0)
@@ -1204,6 +1240,7 @@ public class NetworkGameManager : NetworkBehaviour, IGameManager
     {
         int pi = ValidateSender(rpcParams);
         if (!ValidateTurn(pi)) return;
+        if (!ValidatePlayerIndex(victimIndex)) return;
         NetLog.ServerRpc("StealFromPlayer", pi, $"→P{victimIndex}");
         hostLGM.TryStealFromPlayer(victimIndex);
     }
