@@ -64,7 +64,7 @@ public class PlayerState
             }
             foreach (var card in DevCards)
             {
-                if (card.Type == DevCardType.VictoryPoint) vp += 1;
+                if (card.Type.IsVictoryPoint()) vp += 1;
             }
             if (HasLongestRoad) vp += 2;
             if (HasLargestArmy) vp += 2;
@@ -116,7 +116,7 @@ public class PlayerState
         if (HasUsedDevCardThisTurn) return false;
         foreach (var card in DevCards)
         {
-            if (card.Type != DevCardType.VictoryPoint && card.CanUseOnTurn(currentTurn))
+            if (!card.Type.IsVictoryPoint() && card.CanUseOnTurn(currentTurn))
                 return true;
         }
         return false;

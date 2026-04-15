@@ -855,7 +855,7 @@ public class LocalGameManager : MonoBehaviour, IGameManager
         OnDevCardPurchased?.Invoke(currentPlayerIndex, cardType.Value);
         SFXManager.Instance?.Play(SFXType.DevCardBuy);
 
-        if (cardType.Value == DevCardType.VictoryPoint)
+        if (cardType.Value.IsVictoryPoint())
             CheckVictory(currentPlayerIndex);
 
         Debug.Log($"[Local] {GetPlayerName(currentPlayerIndex)} 발전카드 구매: {cardType.Value}");

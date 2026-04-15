@@ -1230,8 +1230,9 @@ public class GameHUDController : MonoBehaviour
             && !state.HasUsedDevCardThisTurn
             && (GM.CurrentPhase == GamePhase.Action || GM.CurrentPhase == GamePhase.RollDice);
 
-        // 표시 순서: 기사 → 도로건설 → 풍년 → 독점 → 승리점
-        DevCardType[] order = { DevCardType.Knight, DevCardType.RoadBuilding, DevCardType.YearOfPlenty, DevCardType.Monopoly, DevCardType.VictoryPoint };
+        // 표시 순서: 기사 → 도로건설 → 풍년 → 독점 → 승점 5종
+        DevCardType[] order = { DevCardType.Knight, DevCardType.RoadBuilding, DevCardType.YearOfPlenty, DevCardType.Monopoly,
+            DevCardType.Chapel, DevCardType.Library, DevCardType.Market, DevCardType.GreatHall, DevCardType.University };
         foreach (var type in order)
         {
             if (!counts.TryGetValue(type, out int count)) continue;
@@ -1249,7 +1250,7 @@ public class GameHUDController : MonoBehaviour
             btn.Add(countLabel);
             btn.Add(nameLabel);
 
-            bool isVP = type == DevCardType.VictoryPoint;
+            bool isVP = type.IsVictoryPoint();
             bool usable = canUseCard && !isVP;
 
             // 사용 불가 이유 힌트 (내 턴인데 못 쓸 때만)
@@ -2301,20 +2302,28 @@ public class GameHUDController : MonoBehaviour
     static string GetDevCardName(DevCardType type) => type switch
     {
         DevCardType.Knight => "기사",
-        DevCardType.VictoryPoint => "승리점",
         DevCardType.RoadBuilding => "도로건설",
         DevCardType.YearOfPlenty => "풍년",
         DevCardType.Monopoly => "독점",
+        DevCardType.Chapel => "예배당",
+        DevCardType.Library => "도서관",
+        DevCardType.Market => "시장",
+        DevCardType.GreatHall => "대회당",
+        DevCardType.University => "대학",
         _ => type.ToString()
     };
 
     static string GetDevCardDesc(DevCardType type) => type switch
     {
         DevCardType.Knight => "도적을 이동합니다",
-        DevCardType.VictoryPoint => "즉시 1 승리점",
         DevCardType.RoadBuilding => "도로 2개를 무료로 건설",
         DevCardType.YearOfPlenty => "원하는 자원 2개 획득",
         DevCardType.Monopoly => "선택한 자원을 전부 약탈",
+        DevCardType.Chapel => "즉시 1 승리점",
+        DevCardType.Library => "즉시 1 승리점",
+        DevCardType.Market => "즉시 1 승리점",
+        DevCardType.GreatHall => "즉시 1 승리점",
+        DevCardType.University => "즉시 1 승리점",
         _ => ""
     };
 
@@ -2623,7 +2632,7 @@ public class GameHUDController : MonoBehaviour
 
         int vpCards = 0;
         foreach (var c in state.DevCards)
-            if (c.Type == DevCardType.VictoryPoint) vpCards++;
+            if (c.Type.IsVictoryPoint()) vpCards++;
         if (vpCards > 0) parts.Add($"VP카드{vpCards}");
 
         return string.Join(" / ", parts);

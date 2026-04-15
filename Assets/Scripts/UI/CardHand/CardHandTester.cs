@@ -22,9 +22,11 @@ namespace ArcanaCatan.UI.CardHand
         };
 
         private DevCardType[] devTypes = {
-            DevCardType.Knight, DevCardType.VictoryPoint,
-            DevCardType.RoadBuilding, DevCardType.YearOfPlenty,
-            DevCardType.Monopoly
+            DevCardType.Knight, DevCardType.RoadBuilding,
+            DevCardType.YearOfPlenty, DevCardType.Monopoly,
+            DevCardType.Chapel, DevCardType.Library,
+            DevCardType.Market, DevCardType.GreatHall,
+            DevCardType.University
         };
 
         private int resIndex;

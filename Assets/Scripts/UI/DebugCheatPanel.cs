@@ -16,7 +16,7 @@ public class DebugCheatPanel : MonoBehaviour
     int selectedPlayer;
     int selectedResource; // 0~4: Wood,Brick,Wool,Wheat,Ore
     int resourceAmount = 5;
-    int selectedCardType; // 0~4: Knight,VP,RoadBuilding,YearOfPlenty,Monopoly
+    int selectedCardType; // 0~8: Knight,RoadBuilding,YearOfPlenty,Monopoly,Chapel,Library,Market,GreatHall,University
     int cheatRoads = 2;
     int cheatSettlements = 1;
     int cheatCities = 1;
@@ -24,7 +24,7 @@ public class DebugCheatPanel : MonoBehaviour
     int selectedPhase;
 
     static readonly string[] resourceNames = { "Wood", "Brick", "Wool", "Wheat", "Ore" };
-    static readonly string[] cardNames = { "Knight", "VP", "RoadBuilding", "YearOfPlenty", "Monopoly" };
+    static readonly string[] cardNames = { "Knight", "RoadBuilding", "YearOfPlenty", "Monopoly", "Chapel", "Library", "Market", "GreatHall", "University" };
     static readonly string[] phaseNames = { "WaitingForPlayers", "InitialPlacement", "RollDice", "Action", "MoveRobber", "StealResource", "GameOver" };
 
     IGameManager GM => GameServices.GameManager;
@@ -162,20 +162,20 @@ public class DebugCheatPanel : MonoBehaviour
     {
         var ps = GM.GetPlayerState(selectedPlayer);
         if (ps == null) return;
-        int k = 0, v = 0, rb = 0, yp = 0, m = 0;
+        int k = 0, vp = 0, rb = 0, yp = 0, m = 0;
         foreach (var card in ps.DevCards)
         {
             if (card.IsUsed) continue;
+            if (card.Type.IsVictoryPoint()) { vp++; continue; }
             switch (card.Type)
             {
                 case DevCardType.Knight: k++; break;
-                case DevCardType.VictoryPoint: v++; break;
                 case DevCardType.RoadBuilding: rb++; break;
                 case DevCardType.YearOfPlenty: yp++; break;
                 case DevCardType.Monopoly: m++; break;
             }
         }
-        GUILayout.Label($"  Knight:{k} VP:{v} Road:{rb} Plenty:{yp} Monopoly:{m}");
+        GUILayout.Label($"  Knight:{k} VP:{vp} Road:{rb} Plenty:{yp} Monopoly:{m}");
     }
 
     void DrawBuildingStock()

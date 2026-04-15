@@ -67,7 +67,11 @@ public class CardData
             DevCardType.RoadBuilding => 101,
             DevCardType.YearOfPlenty => 102,
             DevCardType.Monopoly     => 103,
-            DevCardType.VictoryPoint => 104,
+            DevCardType.Chapel       => 104,
+            DevCardType.Library      => 105,
+            DevCardType.Market       => 106,
+            DevCardType.GreatHall    => 107,
+            DevCardType.University   => 108,
             _ => 199
         };
         return new CardData(CardCategory.Development, order)
@@ -103,7 +107,11 @@ public class CardData
             DevCardType.RoadBuilding => "도로건설",
             DevCardType.YearOfPlenty => "풍년",
             DevCardType.Monopoly     => "독점",
-            DevCardType.VictoryPoint => "승리점",
+            DevCardType.Chapel       => "예배당",
+            DevCardType.Library      => "도서관",
+            DevCardType.Market       => "시장",
+            DevCardType.GreatHall    => "대회당",
+            DevCardType.University   => "대학",
             _ => "?"
         },
         CardCategory.Bonus => BonusType switch
@@ -122,7 +130,7 @@ public class CardData
     public bool CanUseOnTurn(int currentTurn)
     {
         if (Category != CardCategory.Development) return false;
-        if (DevCardType == DevCardType.VictoryPoint) return false;
+        if (DevCardType.IsVictoryPoint()) return false;
         if (PurchasedOnTurn < 0) return true; // 턴 정보 없으면 제한 없음
         return PurchasedOnTurn < currentTurn;
     }

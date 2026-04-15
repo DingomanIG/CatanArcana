@@ -13,10 +13,15 @@ public class DevCardDeck
     {
         // 카탄 기본 25장
         for (int i = 0; i < 14; i++) cards.Add(DevCardType.Knight);
-        for (int i = 0; i < 5; i++) cards.Add(DevCardType.VictoryPoint);
         for (int i = 0; i < 2; i++) cards.Add(DevCardType.RoadBuilding);
         for (int i = 0; i < 2; i++) cards.Add(DevCardType.YearOfPlenty);
         for (int i = 0; i < 2; i++) cards.Add(DevCardType.Monopoly);
+        // 승점 카드 5종 (각 1장)
+        cards.Add(DevCardType.Chapel);
+        cards.Add(DevCardType.Library);
+        cards.Add(DevCardType.Market);
+        cards.Add(DevCardType.GreatHall);
+        cards.Add(DevCardType.University);
 
         Shuffle();
     }

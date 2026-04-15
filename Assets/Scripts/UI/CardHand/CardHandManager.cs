@@ -29,7 +29,13 @@ namespace ArcanaCatan.UI.CardHand
         [SerializeField] private GameObject prefabDevRoadBuilding;
         [SerializeField] private GameObject prefabDevYearOfPlenty;
         [SerializeField] private GameObject prefabDevMonopoly;
-        [SerializeField] private GameObject prefabDevVictoryPoint;
+
+        [Header("Prefabs — Victory Point")]
+        [SerializeField] private GameObject prefabDevChapel;
+        [SerializeField] private GameObject prefabDevLibrary;
+        [SerializeField] private GameObject prefabDevMarket;
+        [SerializeField] private GameObject prefabDevGreatHall;
+        [SerializeField] private GameObject prefabDevUniversity;
 
         [Header("Prefabs — Bonus")]
         [SerializeField] private GameObject prefabBonusLongestRoad;
@@ -205,7 +211,11 @@ namespace ArcanaCatan.UI.CardHand
                     DevCardType.RoadBuilding => prefabDevRoadBuilding,
                     DevCardType.YearOfPlenty => prefabDevYearOfPlenty,
                     DevCardType.Monopoly     => prefabDevMonopoly,
-                    DevCardType.VictoryPoint => prefabDevVictoryPoint,
+                    DevCardType.Chapel       => prefabDevChapel,
+                    DevCardType.Library      => prefabDevLibrary,
+                    DevCardType.Market       => prefabDevMarket,
+                    DevCardType.GreatHall    => prefabDevGreatHall,
+                    DevCardType.University   => prefabDevUniversity,
                     _ => null
                 },
                 CardCategory.Bonus => data.BonusType switch
