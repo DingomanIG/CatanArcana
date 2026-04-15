@@ -1,3 +1,11 @@
+---
+tags:
+  - type/TODO
+  - phase/1-3
+  - status/진행중
+created: 2025-01-01
+updated: 2026-04-15
+---
 # ArcanaCatan - 작업 현황
 
 ## 우선순위 기준
@@ -70,7 +78,7 @@
 
 ## Phase 1_3: 온라인 멀티플레이 ⬅️ NOW
 
-> 설계서: `Docs/Design/MULTIPLAYER_DESIGN.md`
+> 설계서: [[MULTIPLAYER_DESIGN]]
 
 ### 1단계: 기반 인프라
 - [x] P0: 멀티플레이 설계서 작성
@@ -214,3 +222,11 @@
 - 파티클 이펙트
 - BGM / SFX
 - UI 스킨 (아르카나스톡 세계관)
+
+---
+
+## 관련 문서
+- [[ROADMAP]] — 개발 로드맵
+- [[MULTIPLAYER_DESIGN]] — 멀티플레이 설계서
+- [[CARD_HAND_SYSTEM]] — 카드 핸드 시스템 설계
+- [[todo]] — 수동 작업 TODO

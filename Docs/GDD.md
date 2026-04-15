@@ -1,3 +1,11 @@
+---
+tags:
+  - type/기획
+  - phase/1
+  - status/완료
+created: 2025-01-01
+updated: 2026-04-15
+---
 # ArcanaCatan - 온라인 카탄 게임 기획서
 
 ## 개요
@@ -128,3 +136,13 @@
 - **Claude Code**: AI 기반 개발 어시스턴트로 코드 생성/리팩토링/디버깅 전반에 활용
 - **CLAUDE.md**: 프로젝트 루트의 컨텍스트 문서로 프로젝트 구조, 컨벤션, 기술 스택 정보를 Claude에게 제공. 세션 간 일관된 개발 품질 유지
 - **unity-cli**: CLI를 통해 Claude Code에서 Unity Editor 직접 제어 (플레이/빌드/콘솔/스크린샷 등)
+
+---
+
+## 관련 문서
+- [[CatanRules]] — 상세 게임 규칙
+- [[TERMINOLOGY]] — 영한 용어 대조표
+- [[ROADMAP]] — 개발 로드맵
+- [[TASKS]] — 작업 현황
+- [[AI_STRATEGY]] — AI 전략 가이드
+- [[AGENTS]] — 에이전트 설계

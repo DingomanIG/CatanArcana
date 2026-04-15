@@ -117,5 +117,15 @@ Docs/
 - 플랫폼 분기: `#if` 남발 금지, PlatformHelper 한 곳에서 관리
 - 데이터/뷰 분리 패턴 유지 (UI 교체 용이)
 
+## Obsidian 연동
+- `Docs/` 폴더 = Obsidian 볼트 (실시간 동기화)
+- **문서 수정 시 Obsidian Local REST API 우선 사용**
+  - 엔드포인트: `http://localhost:27123`
+  - API 키: `ecb6a6f41800e12fb57a7b7cec3f002bfed8d234ba5722b80d9828235eb014d0`
+  - 읽기: `curl -H "Authorization: Bearer {key}" http://localhost:27123/vault/{path}`
+  - ⚠️ **한글 쓰기 주의**: curl로 직접 본문 전송 시 인코딩 깨짐 → UTF-8 임시 파일 경유하여 `--data-binary @file` 방식 사용
+- API 불가 시 Write tool로 직접 파일 수정 (Obsidian이 파일 변경 자동 감지)
+- **작성 규칙**: `Docs/OBSIDIAN_RULES.md` 참조 (태그/템플릿/체크박스/링크 규칙)
+
 ## Related
 - ArcanaStock 기획서: `C:\Users\bonek\Documents\AntigravityFolder\ArcanaStock\CLAUDE.md`

@@ -79,3 +79,5 @@ Thumbs.db
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+Docs/.obsidian/
+Docs/.smart-env/

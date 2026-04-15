@@ -1,3 +1,10 @@
+---
+tags:
+  - type/기획
+  - status/진행중
+created: 2025-01-01
+updated: 2026-04-15
+---
 # ArcanaCatan → Arcana Board Module 로드맵
 
 > 아르카나스톡의 보드게임 모듈. 카탄을 베이스로 경제 시뮬레이션 요소를 단계적으로 접목.
@@ -30,7 +37,7 @@ Claude Code + Unity 워크플로우 검증용 기본 카탄 구현.
 
 ## Phase 1_3: 온라인 멀티플레이 ⬅️ NOW
 
-P2P Relay 기반 온라인 대전. 프록시 패턴으로 로컬 로직 재활용. 설계서: `Docs/Design/MULTIPLAYER_DESIGN.md`
+P2P Relay 기반 온라인 대전. 프록시 패턴으로 로컬 로직 재활용. 설계서: [[MULTIPLAYER_DESIGN]]
 
 - [x] 기반 인프라 (직렬화 타입, GameBootstrapper, LGM 리팩토링, ParrelSync)
 - [x] NetworkGameManager 코어 (스켈레톤 + 전체 RPC + 보드 동기화)
@@ -170,3 +177,10 @@ P2P Relay → 서버 기반 아키텍처 전환.
 - [ ] 이벤트턴 (섹터 주사위 2d6 → 시세 방향 결정)
 - [ ] 시즌 3막 구조 (개척기/성장기/결산기)
 - [ ] 시즌 보상 및 리셋 시스템
+
+---
+
+## 관련 문서
+- [[GDD]] — 게임 기획서
+- [[TASKS]] — 작업 현황
+- [[MULTIPLAYER_DESIGN]] — 멀티플레이 설계서

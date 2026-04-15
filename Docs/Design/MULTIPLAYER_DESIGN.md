@@ -1,3 +1,12 @@
+---
+tags:
+  - type/설계
+  - domain/네트워크
+  - phase/1-3
+  - status/진행중
+created: 2026-02-01
+updated: 2026-04-15
+---
 # 온라인 멀티플레이 설계서
 
 > Phase 1_3: P2P Relay 기반 온라인 대전. 로컬 로직 재활용 (프록시 패턴).
@@ -335,3 +344,11 @@ void Awake()
 - 턴 관리와 게임 로직 분리 시 상태 불일치 위험
 - NetworkGameManager가 동일한 NetworkVariable 관리
 - LocalGameManager도 턴을 내부 관리 → 구조 일관성
+
+---
+
+## 관련 문서
+- [[GDD]] — 게임 기획서
+- [[TASKS]] — 작업 현황
+- [[ROADMAP]] — 개발 로드맵
+- [[MULTIPLAYER_TEST]] — 멀티플레이 테스트 목록

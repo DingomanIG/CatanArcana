@@ -1,3 +1,10 @@
+---
+tags:
+  - type/레퍼런스
+  - status/완료
+created: 2025-01-01
+updated: 2026-04-15
+---
 # 게임 용어 대조표 (English / 한글)
 
 ## 자원 (Resources)
@@ -63,3 +70,9 @@
 | Player Trade | 플레이어 거래 |
 | Initial Placement | 초기 배치 |
 | Victory Point (VP) | 승리점 |
+
+---
+
+## 관련 문서
+- [[GDD]] — 게임 기획서
+- [[CatanRules]] — 상세 게임 규칙

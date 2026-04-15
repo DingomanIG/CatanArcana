@@ -88,7 +88,23 @@
       "Bash(grep -E \"\\\\.cs$\")",
       "Bash(grep -l \"CardVisual\" \"c:\\\\Users\\\\bonek\\\\Documents\\\\AntigravityFolder\\\\ArcanaCatan\\\\ArcanaCatan\\\\Assets\\\\Prefabs\\\\UI\"/*.prefab)",
       "Bash(find /c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Assets -maxdepth 3 -name *.unity)",
-      "Bash(find /c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Assets/Prefabs -name *ard* -o -name *Card*)"
+      "Bash(find /c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Assets/Prefabs -name *ard* -o -name *Card*)",
+      "Bash(grep -E \"\\\\.\\(prefab|uxml|uss\\)$\")",
+      "Bash(\"/c/Program Files/Unity/Hub/Editor/6000.3.11f1/Editor/Unity.exe\" -batchmode -nographics -projectPath \"c:\\\\Users\\\\bonek\\\\Documents\\\\AntigravityFolder\\\\ArcanaCatan\\\\ArcanaCatan\" -buildTarget WebGL -logFile - -quit)",
+      "Bash(find /c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Assets/Scripts -type f -name \"*.cs\" -exec wc -l {} +)",
+      "Bash(for f:*)",
+      "Bash(do wc:*)",
+      "Bash(done)",
+      "Bash(find Assets/Scripts/UI -name \"*.cs\" -exec wc -l {} +)",
+      "Bash(wc -l Assets/Scripts/UI/*.cs Assets/Scripts/UI/CardHand/*.cs)",
+      "Bash(git clone:*)",
+      "Read(//tmp/**)",
+      "Bash(mkdir -p \"/c/Users/bonek/Documents/Obsidian Vault/.claude\")",
+      "Bash(cp -r /tmp/obsidian-skills/skills \"/c/Users/bonek/Documents/Obsidian Vault/.claude/\")",
+      "Bash(obsidian help:*)",
+      "WebFetch(domain:www.npmjs.com)",
+      "Read(//c/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/$APPDATA/Claude/**)",
+      "Bash(OBSIDIAN_API_KEY=\"ecb6a6f41800e12fb57a7b7cec3f002bfed8d234ba5722b80d9828235eb014d0\" \"C:/Users/bonek/Documents/AntigravityFolder/ArcanaCatan/ArcanaCatan/Docs/.obsidian/plugins/mcp-tools/bin/mcp-server.exe\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\$BASE\\Art",
@@ -96,7 +112,9 @@
       "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\$BGM_DIR",
       "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\.github",
       "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\Docs",
-      "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\Assets\\Scripts\\UI"
+      "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\Assets\\Scripts\\UI",
+      "c:\\Users\\bonek\\Documents\\AntigravityFolder\\ArcanaCatan\\ArcanaCatan\\Assets\\Scripts\\Network",
+      "C:\\Users\\bonek\\.claude"
     ]
   }
 }

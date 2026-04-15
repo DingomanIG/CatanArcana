@@ -1,3 +1,12 @@
+---
+tags:
+  - type/설계
+  - domain/카드
+  - phase/1-3
+  - status/완료
+created: 2026-03-01
+updated: 2026-04-15
+---
 # 카드 핸드 시스템 설계
 
 ## 개요
@@ -163,3 +172,10 @@ Balatro 스타일 부채꼴 싱글 핸드로 자원카드, 발전카드, 보너�
 - 좌표 변환: `Camera.WorldToScreenPoint` → `RectTransformUtility.ScreenPointToLocalPointInRectangle`
 - 데이터 소스: `PlayerState` (자원 배열), `DevelopmentCard` (발전카드 리스트)
 - 정렬: `CardData.SortOrder` — 카테고리 내 고정 순서, 카테고리 간 그룹핑
+
+---
+
+## 관련 문서
+- [[card_balatro]] — Balatro 구현 레퍼런스
+- [[TASKS]] — 작업 현황
+- [[GDD]] — 게임 기획서

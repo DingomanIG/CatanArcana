@@ -1,3 +1,12 @@
+---
+tags:
+  - type/QA
+  - type/가이드
+  - phase/1-3
+  - status/완료
+created: 2026-03-01
+updated: 2026-04-15
+---
 # Debug Cheat Panel 사용법
 
 > **토글**: `F9` | **조건**: `UNITY_EDITOR` 또는 `DEVELOPMENT_BUILD`에서만 활성화  
@@ -68,3 +77,9 @@
 - 치트는 **ServerRpc** 경유 → 호스트 LGM에서 실행 → **ClientRpc**로 동기화
 - ParrelSync 클론에서도 F9 패널 사용 가능하지만, 실제 조작은 호스트에서 처리됨
 - 클라이언트에서 치트 실행 시 호스트 측 상태가 변경되고 양쪽에 반영됨
+
+---
+
+## 관련 문서
+- [[MULTIPLAYER_TEST]] — 멀티플레이 테스트 목록
+- [[MULTIPLAYER_DESIGN]] — 멀티플레이 설계서
