@@ -137,3 +137,17 @@
     width: 24px;
     height: 20px;
 }
+
+.resource-item--board {
+    background-color: rgb(35, 31, 28);
+    border-top-width: 0;
+    border-left-width: 0;
+    border-bottom-width: 0;
+    border-right-width: 0;
+    height: 45px;
+    flex-direction: row-reverse;
+}
+
+.resource-icon--size {
+    left: -7px;
+}

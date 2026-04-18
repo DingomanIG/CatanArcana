@@ -462,116 +462,6 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: imo_wood
-      rect:
-        serializedVersion: 2
-        x: 73
-        y: 54
-        width: 208
-        height: 176
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 57e36e769c041bf40b6f31f67b67c378
-      internalID: 438181759
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: imo_brick
-      rect:
-        serializedVersion: 2
-        x: 345
-        y: 67
-        width: 210
-        height: 166
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: c21cb55a9298de84ca44c023846c5e58
-      internalID: -1518203695
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: imo_sheep
-      rect:
-        serializedVersion: 2
-        x: 608
-        y: 78
-        width: 198
-        height: 166
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 736472b5e3d4f6b4f87399937be2eaff
-      internalID: -2132395183
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: imo_wheat
-      rect:
-        serializedVersion: 2
-        x: 846
-        y: 54
-        width: 176
-        height: 162
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 4c814cb48fdef44488a34673c555f163
-      internalID: -458153896
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: imo_ore
-      rect:
-        serializedVersion: 2
-        x: 1082
-        y: 75
-        width: 197
-        height: 162
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: ff598946cea15e54daaf5a33f299b849
-      internalID: -1815142647
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
       name: board01_outline
       rect:
         serializedVersion: 2
@@ -690,7 +580,7 @@ TextureImporter:
         width: 669
         height: 748
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -712,7 +602,7 @@ TextureImporter:
         width: 586
         height: 719
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -721,6 +611,314 @@ TextureImporter:
       bones: []
       spriteID: 93e164c3e977c5d428cec424d434020c
       internalID: -2042142636
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: imo_wood
+      rect:
+        serializedVersion: 2
+        x: 136
+        y: 296
+        width: 183
+        height: 158
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c85d20cd51a346747a7df3543f13788f
+      internalID: 438181759
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: imo_brick
+      rect:
+        serializedVersion: 2
+        x: 351
+        y: 298
+        width: 183
+        height: 158
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 67628089a36e38d47a3feb31fb53ecd2
+      internalID: -1518203695
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: imo_sheep
+      rect:
+        serializedVersion: 2
+        x: 580
+        y: 297
+        width: 183
+        height: 158
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6d9dedb22e9de354b990efbf268c88ca
+      internalID: -2132395183
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: imo_wheat
+      rect:
+        serializedVersion: 2
+        x: 813
+        y: 292
+        width: 183
+        height: 167
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c7786be077b74ee4185349b28541846d
+      internalID: -458153896
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: imo_ore
+      rect:
+        serializedVersion: 2
+        x: 1032
+        y: 299
+        width: 183
+        height: 158
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c013874d968440e478e24c9f588893a2
+      internalID: -1815142647
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon_shild
+      rect:
+        serializedVersion: 2
+        x: 1257
+        y: 218
+        width: 357
+        height: 455
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5a1c527e382fae14fa4d0ae86f0a2228
+      internalID: 736196647
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon_res
+      rect:
+        serializedVersion: 2
+        x: 1525
+        y: 697
+        width: 305
+        height: 311
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dfcc1cb338c3ce849b8c8bb5d0fd8c75
+      internalID: -619676638
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon_dev
+      rect:
+        serializedVersion: 2
+        x: 1185
+        y: 707
+        width: 302
+        height: 303
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 04861b89357a10f48a9814190326455d
+      internalID: -653546525
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon_knight
+      rect:
+        serializedVersion: 2
+        x: 826
+        y: 691
+        width: 319
+        height: 317
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b101d98b4a4ee3148a41e691f124cc98
+      internalID: -80828236
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon_road
+      rect:
+        serializedVersion: 2
+        x: 472
+        y: 703
+        width: 319
+        height: 296
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 16a666da12436014eb5eb3668c5250a8
+      internalID: 735387186
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon_seal
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 695
+        width: 319
+        height: 320
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 087abb1a4dafadf46b5d3d32c3cbd378
+      internalID: -1734834314
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: board01_glow
+      rect:
+        serializedVersion: 2
+        x: 1869
+        y: 94
+        width: 441
+        height: 594
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 65, y: 65, z: 65, w: 65}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 77a96eebadc895b46a7b073b487032f8
+      internalID: -2008375045
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: img_cardBack
+      rect:
+        serializedVersion: 2
+        x: 249
+        y: 2458
+        width: 695
+        height: 768
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dcbff8cbc2ade84498f6e1f66edc3fd0
+      internalID: 1516827022
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: imo_dev
+      rect:
+        serializedVersion: 2
+        x: 1017
+        y: 506
+        width: 183
+        height: 169
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6ce1a91eb45e12949bee65abe97d9c5d
+      internalID: 937530822
       vertices: []
       indices: 
       edges: []
@@ -744,12 +942,20 @@ TextureImporter:
       Art03_15: -1218259673
       Art03_7: 396001857
       board01: 1927563866
+      board01_glow: -2008375045
       board01_outline: -1544532215
       board02: -1876760274
       board03: -355194695
       board04: 1754423174
+      icon_dev: -653546525
+      icon_knight: -80828236
+      icon_res: -619676638
+      icon_road: 735387186
+      icon_seal: -1734834314
+      icon_shild: 736196647
       img_Largknight: -2042142636
       img_brick: 131942939
+      img_cardBack: 1516827022
       img_chapel: -682296746
       img_hall: -1040184226
       img_knight: -492565048
@@ -765,6 +971,7 @@ TextureImporter:
       img_wood: -2112387269
       img_year: 124748908
       imo_brick: -1518203695
+      imo_dev: 937530822
       imo_ore: -1815142647
       imo_sheep: -2132395183
       imo_wheat: -458153896

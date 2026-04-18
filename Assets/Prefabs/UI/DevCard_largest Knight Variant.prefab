@@ -20,9 +20,19 @@ PrefabInstance:
       propertyPath: m_Color.r
       value: 0.5014779
       objectReference: {fileID: 0}
+    - target: {fileID: 143128104514801222, guid: 855c929444285214fa66df8c175172ab, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 2100000, guid: d230a46b0212b4245b675b5c1d50e674, type: 2}
     - target: {fileID: 1102159994557979912, guid: 855c929444285214fa66df8c175172ab, type: 3}
       propertyPath: m_Name
       value: DevCard_largest Knight Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 1187124595799828554, guid: 855c929444285214fa66df8c175172ab, type: 3}
+      propertyPath: m_text
+      value: '2
+
+'
       objectReference: {fileID: 0}
     - target: {fileID: 1309603061488482678, guid: 855c929444285214fa66df8c175172ab, type: 3}
       propertyPath: m_Pivot.x
@@ -108,6 +118,14 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: -2042142636, guid: 1fc897e77c849844bbead236967e7c90, type: 3}
+    - target: {fileID: 3291728972036600373, guid: 855c929444285214fa66df8c175172ab, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 4387533923813456030, guid: 855c929444285214fa66df8c175172ab, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6842350549569608769, guid: 855c929444285214fa66df8c175172ab, type: 3}
       propertyPath: m_text
       value: Largest Knight
@@ -146,23 +164,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8868066164730755000, guid: 855c929444285214fa66df8c175172ab, type: 3}
       propertyPath: m_LocalScale.x
-      value: 1.1649636
+      value: 1.3471189
       objectReference: {fileID: 0}
     - target: {fileID: 8868066164730755000, guid: 855c929444285214fa66df8c175172ab, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.4562047
+      value: 1.6838987
       objectReference: {fileID: 0}
     - target: {fileID: 8868066164730755000, guid: 855c929444285214fa66df8c175172ab, type: 3}
       propertyPath: m_LocalScale.z
-      value: 1.1649636
+      value: 1.3471189
       objectReference: {fileID: 0}
     - target: {fileID: 8868066164730755000, guid: 855c929444285214fa66df8c175172ab, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0.1
+      value: -4.1
       objectReference: {fileID: 0}
     - target: {fileID: 8868066164730755000, guid: 855c929444285214fa66df8c175172ab, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -23.6
+      value: -29.5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

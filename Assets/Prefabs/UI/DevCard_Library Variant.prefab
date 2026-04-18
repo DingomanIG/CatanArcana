@@ -24,6 +24,12 @@ PrefabInstance:
       propertyPath: m_Name
       value: DevCard_Library Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 1187124595799828554, guid: 855c929444285214fa66df8c175172ab, type: 3}
+      propertyPath: m_text
+      value: '1
+
+'
+      objectReference: {fileID: 0}
     - target: {fileID: 1309603061488482678, guid: 855c929444285214fa66df8c175172ab, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -108,6 +114,14 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 1455388307, guid: 1fc897e77c849844bbead236967e7c90, type: 3}
+    - target: {fileID: 3291728972036600373, guid: 855c929444285214fa66df8c175172ab, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 2100000, guid: f383f442b7b539647b307941d41bbed3, type: 2}
+    - target: {fileID: 4387533923813456030, guid: 855c929444285214fa66df8c175172ab, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6842350549569608769, guid: 855c929444285214fa66df8c175172ab, type: 3}
       propertyPath: m_text
       value: Library

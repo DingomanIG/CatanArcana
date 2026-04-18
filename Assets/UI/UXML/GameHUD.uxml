@@ -13,145 +13,161 @@
         <ui:VisualElement name="toast-container" picking-mode="Ignore" class="toast-container" style="top: auto; left: 50%; flex-direction: column-reverse; bottom: 10%;"/>
         <ui:VisualElement name="opponent-bar-wrapper" style="flex-direction: row; align-items: flex-start; padding: 10px;">
             <ui:VisualElement name="opponent-bar" class="opponent-bar" style="flex-direction: row; flex-grow: 1; justify-content: center;"/>
-            <ui:VisualElement name="bank-card" class="bank-card">
-                <ui:Label text="은행" class="bank-card__title"/>
-                <ui:VisualElement class="bank-card__row">
-                    <ui:VisualElement class="bank-res">
-                        <ui:VisualElement class="resource-icon resource-icon--wood bank-icon"/>
-                        <ui:Label name="bank-wood" text="19" class="bank-count"/>
-                    </ui:VisualElement>
-                    <ui:VisualElement class="bank-res">
-                        <ui:VisualElement class="resource-icon resource-icon--brick bank-icon"/>
-                        <ui:Label name="bank-brick" text="19" class="bank-count"/>
-                    </ui:VisualElement>
-                    <ui:VisualElement class="bank-res">
-                        <ui:VisualElement class="resource-icon resource-icon--wool bank-icon"/>
-                        <ui:Label name="bank-wool" text="19" class="bank-count"/>
-                    </ui:VisualElement>
-                    <ui:VisualElement class="bank-res">
-                        <ui:VisualElement class="resource-icon resource-icon--wheat bank-icon"/>
-                        <ui:Label name="bank-wheat" text="19" class="bank-count"/>
-                    </ui:VisualElement>
-                    <ui:VisualElement class="bank-res">
-                        <ui:VisualElement class="resource-icon resource-icon--ore bank-icon"/>
-                        <ui:Label name="bank-ore" text="19" class="bank-count"/>
-                    </ui:VisualElement>
-                </ui:VisualElement>
-                <ui:VisualElement class="bank-card__row" style="margin-top: 2px;">
-                    <ui:Label text="발전카드:" class="bank-card__devlabel"/>
-                    <ui:Label name="bank-devcard" text="25" class="bank-count"/>
-                </ui:VisualElement>
-            </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="middle-area" class="middle-area" style="flex-direction: row; justify-content: space-between; align-self: auto; align-content: auto; align-items: flex-end; border-top-width: 0; border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0;">
-            <ui:VisualElement name="left-panel" class="left-panel" style="left: 18px; bottom: 22px; width: 305px;">
+        <ui:VisualElement name="middle-area" class="middle-area" style="flex-direction: row; justify-content: space-between; align-self: auto; align-content: auto; align-items: stretch; border-top-width: 0; border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; margin-top: 16px; margin-right: 16px; margin-bottom: 16px; margin-left: 16px;">
+            <ui:VisualElement name="left-panel" class="left-panel" style="left: auto; bottom: auto; width: 305px; top: auto; display: flex; position: relative;">
                 <ui:VisualElement name="utility-bar" class="utility-bar" style="flex-direction: row; background-color: rgba(42, 36, 32, 0);">
                     <ui:Button name="btn-options" text="⚙" tooltip="옵션" class="utility-btn"/>
                     <ui:Button name="btn-rules" text="?" tooltip="규칙" class="utility-btn utility-btn--info"/>
                     <ui:Button name="btn-volume" text="♪" tooltip="음량" class="utility-btn"/>
                 </ui:VisualElement>
-                <ui:VisualElement name="event-log-panel" class="event-log-panel">
+                <ui:VisualElement name="event-log-panel" class="event-log-panel" style="flex-grow: 0; height: 823px;">
                     <ui:Label text="이벤트 로그" class="event-log-title"/>
                     <ui:ScrollView name="event-log-scroll" class="event-log-scroll"/>
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:Instance template="dice-display" style="right: 285px; left: auto; translate: 0% 0%; margin-left: 12px; margin-top: 12px; margin-bottom: 12px; margin-right: 12px; flex-direction: column; position: absolute; bottom: 0;"/>
-            <ui:VisualElement name="action-panel" class="action-panel" style="height: auto; width: 270px; background-color: rgb(35, 31, 28); justify-content: flex-end; flex-grow: 0; flex-shrink: 0; flex-direction: column; padding-top: 8px; padding-right: 8px; padding-bottom: 8px; padding-left: 8px; margin-left: 12px; margin-right: 12px; margin-bottom: 12px; margin-top: 12px; right: 0; position: absolute; bottom: 0; border-left-width: 0; border-top-left-radius: 8px; border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-bottom-left-radius: 8px;">
-                <ui:Label text="건설" name="build-header" class="panel-title" style="border-bottom-width: 0; margin-top: 0; margin-bottom: 2px; font-size: 18px;"/>
-                <ui:Button name="btn-build-road" text="" class="action-btn" style="flex-direction: row; align-self: auto; align-items: stretch; justify-content: flex-start;">
-                    <ui:Label name="build-road-count" text="0" style="font-size: 16px; margin-top: 0; margin-right: 6px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
-                    <ui:Label text="도로 건설" style="font-size: 16px; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
-                    <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse; align-self: center;">
-                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=1682770138&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_brick" tint-color="rgb(255, 102, 109)" class="image--size" style="height: 22px; width: 24px;"/>
-                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=1099497379&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_wood" tint-color="rgb(88, 217, 79)" class="image--size" style="height: 22px; width: 24px; margin-right: 0; align-self: flex-start; flex-direction: column; align-items: auto;"/>
+            <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse; height: auto; padding-right: 10px; padding-top: 10px; padding-bottom: 10px; padding-left: 10px; align-items: stretch; align-content: flex-start; justify-content: flex-start; align-self: auto; display: flex;">
+                <ui:VisualElement style="flex-grow: 1; flex-direction: column-reverse; align-self: auto; align-content: auto; justify-content: flex-start;">
+                    <ui:VisualElement name="action-panel" class="action-panel" style="height: auto; width: 270px; background-color: rgb(35, 31, 28); justify-content: flex-end; flex-grow: 0; flex-shrink: 0; flex-direction: column; padding-top: 8px; padding-right: 8px; padding-bottom: 8px; padding-left: 8px; margin-left: 0; margin-right: 0; margin-bottom: 0; margin-top: 16px; right: auto; position: relative; bottom: auto; border-left-width: 0; border-top-left-radius: 8px; border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-bottom-left-radius: 8px; top: auto; align-self: flex-end;">
+                        <ui:Instance template="dice-display" style="right: auto; left: auto; translate: 0% 0%; margin-left: 0; margin-top: 0; margin-bottom: 8px; margin-right: 0; flex-direction: column; position: relative; bottom: auto; flex-grow: 0; width: auto; align-self: flex-end;"/>
+                        <ui:Button name="btn-start-game" text="게임 시작" class="action-btn action-btn--primary"/>
+                        <ui:Label name="label-initial-placement" text="마을을 배치하세요" class="action-btn action-btn--alert"/>
+                        <ui:Button name="btn-roll-dice" text="주사위 굴리기" class="action-btn action-btn--primary"/>
+                        <ui:Label name="label-move-robber" text="도적 이동 — 타일을 클릭하세요" class="action-btn action-btn--alert"/>
+                        <ui:Button name="btn-end-turn" text="턴 종료" class="action-btn action-btn--warning"/>
                     </ui:VisualElement>
-                </ui:Button>
-                <ui:Button name="btn-build-settlement" text="" class="action-btn" style="flex-direction: row; align-self: auto; align-items: stretch; justify-content: flex-start;">
-                    <ui:Label name="build-settlement-count" text="0" style="font-size: 16px; margin-top: 0; margin-right: 6px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
-                    <ui:Label text="마을 건설" style="font-size: 16px; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
-                    <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse; align-self: center;">
-                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=1613024120&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_wheat" tint-color="rgb(255, 215, 59)" class="image--size" style="height: 22px; width: 22px;"/>
-                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-166389527&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_sheep" tint-color="rgb(246, 255, 208)" class="image--size" style="height: 22px; width: 23px; margin-right: 0;"/>
-                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=1682770138&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_brick" tint-color="rgb(255, 103, 110)" class="image--size" style="height: 22px; width: 24px; margin-right: 0;"/>
-                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=1099497379&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_wood" tint-color="rgb(88, 217, 79)" class="image--size" style="height: 22px; width: 24px; margin-right: 0;"/>
+                    <ui:VisualElement name="action-panel" class="action-panel" style="height: auto; width: 270px; background-color: rgb(35, 31, 28); justify-content: flex-end; flex-grow: 0; flex-shrink: 0; flex-direction: column; padding-top: 8px; padding-right: 8px; padding-bottom: 8px; padding-left: 8px; margin-left: 0; margin-right: 0; margin-bottom: 0; margin-top: 0; right: auto; position: relative; bottom: auto; border-left-width: 0; border-top-left-radius: 8px; border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-bottom-left-radius: 8px; top: auto; align-self: flex-end;">
+                        <ui:Button name="btn-build-road" text="" class="action-btn" style="flex-direction: row; align-self: auto; align-items: stretch; justify-content: flex-start;">
+                            <ui:Label name="build-road-count" text="0" style="font-size: 16px; margin-top: 0; margin-right: 6px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                            <ui:Label text="도로 건설" style="font-size: 16px; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                            <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse; align-self: center;">
+                                <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-1518203695&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_brick" tint-color="rgb(255, 102, 109)" class="image--size" style="height: 22px; width: 24px;"/>
+                                <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=438181759&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_wood" tint-color="rgb(101, 221, 47)" class="image--size" style="height: 22px; width: 24px; margin-right: 0; align-self: flex-start; flex-direction: column; align-items: auto;"/>
+                            </ui:VisualElement>
+                        </ui:Button>
+                        <ui:Button name="btn-build-settlement" text="" class="action-btn" style="flex-direction: row; align-self: auto; align-items: stretch; justify-content: flex-start;">
+                            <ui:Label name="build-settlement-count" text="0" style="font-size: 16px; margin-top: 0; margin-right: 6px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                            <ui:Label text="마을 건설" style="font-size: 16px; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                            <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse; align-self: center;">
+                                <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-458153896&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_wheat" tint-color="rgb(255, 215, 59)" class="image--size" style="height: 22px; width: 22px;"/>
+                                <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-2132395183&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_sheep" tint-color="rgb(246, 255, 208)" class="image--size" style="height: 22px; width: 23px; margin-right: 0;"/>
+                                <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-1518203695&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_brick" tint-color="rgb(255, 103, 110)" class="image--size" style="height: 22px; width: 24px; margin-right: 0;"/>
+                                <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=438181759&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_wood" tint-color="rgb(101, 222, 47)" class="image--size" style="height: 22px; width: 24px; margin-right: 0;"/>
+                            </ui:VisualElement>
+                        </ui:Button>
+                        <ui:Button name="btn-build-city" text="" class="action-btn" style="flex-direction: row; align-self: auto; align-items: stretch; justify-content: flex-start;">
+                            <ui:Label name="build-city-count" text="0" style="font-size: 16px; margin-top: 0; margin-right: 6px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                            <ui:Label text="도시 건설" style="font-size: 16px; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                            <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse; align-self: center;">
+                                <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-1815142647&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_ore" tint-color="rgb(149, 153, 183)" class="image--size" style="height: 22px; width: 24px;"/>
+                                <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-1815142647&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_ore" tint-color="rgb(167, 165, 207)" class="image--size" style="height: 22px; width: 24px; margin-right: 0;"/>
+                                <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-1815142647&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_ore" tint-color="rgb(167, 165, 207)" class="image--size" style="height: 22px; width: 24px; margin-right: 0;"/>
+                                <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-458153896&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_wheat" tint-color="rgb(255, 212, 42)" class="image--size" style="height: 22px; width: 22px;"/>
+                                <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-458153896&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_wheat" tint-color="rgb(255, 212, 42)" class="image--size" style="height: 22px; justify-content: flex-start; width: 22px;"/>
+                            </ui:VisualElement>
+                        </ui:Button>
+                        <ui:Button name="btn-buy-devcard" text="" class="action-btn" style="flex-direction: row; align-self: auto; align-items: stretch; justify-content: flex-start;">
+                            <ui:Label name="build-devcard-count" text="0" style="font-size: 16px; margin-top: 0; margin-right: 6px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                            <ui:Label text="발전카드 구매" style="font-size: 16px; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                            <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse; align-self: center;">
+                                <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-1815142647&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_ore" tint-color="rgb(167, 165, 207)" class="image--size" style="height: 22px; width: 24px;"/>
+                                <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-458153896&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_wheat" tint-color="rgb(255, 212, 42)" class="image--size" style="height: 22px; width: 22px;"/>
+                                <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-2132395183&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_sheep" tint-color="rgb(246, 255, 208)" class="image--size" style="height: 22px; width: 23px;"/>
+                            </ui:VisualElement>
+                        </ui:Button>
+                        <ui:Button name="btn-trade" text="거래" class="action-btn"/>
                     </ui:VisualElement>
-                </ui:Button>
-                <ui:Button name="btn-build-city" text="" class="action-btn" style="flex-direction: row; align-self: auto; align-items: stretch; justify-content: flex-start;">
-                    <ui:Label name="build-city-count" text="0" style="font-size: 16px; margin-top: 0; margin-right: 6px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
-                    <ui:Label text="도시 건설" style="font-size: 16px; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
-                    <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse; align-self: center;">
-                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-508890140&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_ore" tint-color="rgb(149, 153, 183)" class="image--size" style="height: 22px; width: 24px;"/>
-                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-508890140&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_ore" tint-color="rgb(167, 165, 207)" class="image--size" style="height: 22px; width: 24px; margin-right: 0;"/>
-                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-508890140&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_ore" tint-color="rgb(167, 165, 207)" class="image--size" style="height: 22px; width: 24px; margin-right: 0;"/>
-                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=1613024120&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_wheat" tint-color="rgb(255, 212, 42)" class="image--size" style="height: 22px; width: 22px;"/>
-                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=1613024120&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_wheat" tint-color="rgb(255, 212, 42)" class="image--size" style="height: 22px; justify-content: flex-start; width: 22px;"/>
+                    <ui:VisualElement name="bank-card" class="bank-card" style="margin-bottom: 16px; width: 270px; align-self: flex-end;">
+                        <ui:Label text="bank" class="bank-card__title"/>
+                        <ui:VisualElement class="bank-card__row">
+                            <ui:VisualElement class="bank-res">
+                                <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=438181759&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_wood" tint-color="rgb(101, 221, 47)" style="width: 32px; height: 32px;"/>
+                                <ui:Label name="bank-wood" text="19" class="bank-count"/>
+                            </ui:VisualElement>
+                            <ui:VisualElement class="bank-res">
+                                <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-1518203695&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_brick" tint-color="rgb(255, 103, 110)" style="width: 32px; height: 32px;"/>
+                                <ui:Label name="bank-brick" text="19" class="bank-count"/>
+                            </ui:VisualElement>
+                            <ui:VisualElement class="bank-res">
+                                <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-2132395183&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_sheep" tint-color="rgb(246, 255, 208)" style="width: 32px; height: 32px;"/>
+                                <ui:Label name="bank-wool" text="19" class="bank-count"/>
+                            </ui:VisualElement>
+                            <ui:VisualElement class="bank-res">
+                                <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-458153896&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_wheat" tint-color="rgb(255, 215, 59)" style="width: 32px; height: 32px;"/>
+                                <ui:Label name="bank-wheat" text="19" class="bank-count"/>
+                            </ui:VisualElement>
+                            <ui:VisualElement class="bank-res">
+                                <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-1815142647&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_ore" tint-color="rgb(149, 153, 183)" style="width: 32px; height: 32px;"/>
+                                <ui:Label name="bank-ore" text="19" class="bank-count"/>
+                            </ui:VisualElement>
+                            <ui:VisualElement class="bank-res">
+                                <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=937530822&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_dev" tint-color="rgb(64, 196, 202)" style="width: 32px; height: 32px;"/>
+                                <ui:Label name="bank-devcard" text="25" class="bank-count"/>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
                     </ui:VisualElement>
-                </ui:Button>
-                <ui:Button name="btn-buy-devcard" text="" class="action-btn" style="flex-direction: row; align-self: auto; align-items: stretch; justify-content: flex-start;">
-                    <ui:Label name="build-devcard-count" text="0" style="font-size: 16px; margin-top: 0; margin-right: 6px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
-                    <ui:Label text="발전카드 구매" style="font-size: 16px; margin-top: 0; margin-right: 4px; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
-                    <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse; align-self: center;">
-                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-508890140&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_ore" tint-color="rgb(167, 165, 207)" class="image--size" style="height: 22px; width: 24px;"/>
-                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=1613024120&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_wheat" tint-color="rgb(255, 212, 42)" class="image--size" style="height: 22px; width: 22px;"/>
-                        <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-166389527&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#imo_sheep" tint-color="rgb(246, 255, 208)" class="image--size" style="height: 22px; width: 23px;"/>
-                    </ui:VisualElement>
-                </ui:Button>
-                <ui:VisualElement class="action-separator"/>
-                <ui:Button name="btn-trade" text="거래" class="action-btn"/>
-                <ui:Button name="btn-start-game" text="게임 시작" class="action-btn action-btn--primary"/>
-                <ui:Label name="label-initial-placement" text="마을을 배치하세요" class="action-btn action-btn--alert"/>
-                <ui:Button name="btn-roll-dice" text="주사위 굴리기" class="action-btn action-btn--primary"/>
-                <ui:Label name="label-move-robber" text="도적 이동 — 타일을 클릭하세요" class="action-btn action-btn--alert"/>
-                <ui:Button name="btn-end-turn" text="턴 종료" class="action-btn action-btn--warning"/>
+                </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="resource-panel" class="resource-panel" style="height: 86px;">
-            <ui:VisualElement name="res-wood" class="resource-item02">
-                <ui:VisualElement class="resource-icon resource-icon--wood" style="align-items: center; -unity-text-align: middle-left; margin-right: 0;"/>
-                <ui:Label text="목재" class="resource-name" style="padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;"/>
-                <ui:Label name="res-wood-count" text="0" class="resource-count" style="padding-left: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0;"/>
+        <ui:VisualElement name="resource-panel" enabled="true" class="resource-panel" style="height: 86px; background-color: rgba(26, 22, 18, 0); border-top-width: 0; padding-bottom: 10px;">
+            <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse; display: none;">
+                <ui:VisualElement name="res-wood" class="resource-item02">
+                    <ui:VisualElement class="resource-icon resource-icon--wood" style="align-items: center; -unity-text-align: middle-left; margin-right: 0;"/>
+                    <ui:Label text="목재" class="resource-name" style="padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;"/>
+                    <ui:Label name="res-wood-count" text="0" class="resource-count" style="padding-left: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0;"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="res-brick" class="resource-item02">
+                    <ui:VisualElement class="resource-icon resource-icon--brick" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;"/>
+                    <ui:Label text="벽돌" class="resource-name" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                    <ui:Label name="res-brick-count" text="0" class="resource-count" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="res-wool" class="resource-item02">
+                    <ui:VisualElement class="resource-icon resource-icon--wool" style="margin-right: 0;"/>
+                    <ui:Label text="양모" class="resource-name" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                    <ui:Label name="res-wool-count" text="0" class="resource-count" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="res-wheat" class="resource-item02">
+                    <ui:VisualElement class="resource-icon resource-icon--wheat" style="margin-right: 0;"/>
+                    <ui:Label text="밀" class="resource-name" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                    <ui:Label name="res-wheat-count" text="0" class="resource-count" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="res-ore" class="resource-item02">
+                    <ui:VisualElement class="resource-icon resource-icon--ore" style="margin-right: 0;"/>
+                    <ui:Label text="광석" class="resource-name" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                    <ui:Label name="res-ore-count" text="0" class="resource-count" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
+                </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement name="res-brick" class="resource-item02">
-                <ui:VisualElement class="resource-icon resource-icon--brick" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;"/>
-                <ui:Label text="벽돌" class="resource-name" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
-                <ui:Label name="res-brick-count" text="0" class="resource-count" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
-            </ui:VisualElement>
-            <ui:VisualElement name="res-wool" class="resource-item02">
-                <ui:VisualElement class="resource-icon resource-icon--wool" style="margin-right: 0;"/>
-                <ui:Label text="양모" class="resource-name" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
-                <ui:Label name="res-wool-count" text="0" class="resource-count" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
-            </ui:VisualElement>
-            <ui:VisualElement name="res-wheat" class="resource-item02">
-                <ui:VisualElement class="resource-icon resource-icon--wheat" style="margin-right: 0;"/>
-                <ui:Label text="밀" class="resource-name" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
-                <ui:Label name="res-wheat-count" text="0" class="resource-count" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
-            </ui:VisualElement>
-            <ui:VisualElement name="res-ore" class="resource-item02">
-                <ui:VisualElement class="resource-icon resource-icon--ore" style="margin-right: 0;"/>
-                <ui:Label text="광석" class="resource-name" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
-                <ui:Label name="res-ore-count" text="0" class="resource-count" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;"/>
-            </ui:VisualElement>
-            <ui:VisualElement class="resource-divider"/>
-            <ui:VisualElement class="resource-item">
-                <ui:Label text="자원&#10;카드" class="resource-name"/>
-                <ui:Label name="stat-res-total" text="0" class="resource-count"/>
-            </ui:VisualElement>
-            <ui:VisualElement class="resource-item">
-                <ui:Label text="개발&#10;카드" class="resource-name"/>
-                <ui:Label name="stat-dev-total" text="0" class="resource-count"/>
-            </ui:VisualElement>
-            <ui:VisualElement class="resource-divider"/>
-            <ui:VisualElement class="resource-item">
-                <ui:Label name="stat-road-label" text="도로" class="resource-name"/>
-                <ui:Label name="stat-road" text="0" class="resource-count"/>
-            </ui:VisualElement>
-            <ui:VisualElement class="resource-item">
-                <ui:Label name="stat-knight-label" text="기사" class="resource-name"/>
-                <ui:Label name="stat-knight" text="0" class="resource-count"/>
-            </ui:VisualElement>
-            <ui:VisualElement class="resource-item resource-item--vp">
-                <ui:Label text="VP" class="resource-name resource-name--vp"/>
-                <ui:Label name="stat-vp" text="0" class="resource-count resource-count--vp"/>
+            <ui:VisualElement style="flex-grow: 1; flex-direction: row-reverse; align-items: center;">
+                <ui:VisualElement class="resource-item" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; color: rgb(27, 27, 27); background-color: rgba(53, 46, 40, 0);">
+                    <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-1734834314&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#icon_seal" tint-color="rgb(255, 198, 78)" class="resource-icon--size" style="width: 80px; height: 80px; align-items: center; left: auto; justify-content: center;">
+                        <ui:Label name="stat-vp" text="0" class="resource-count resource-count--vp" style="-unity-font-definition: resource(&quot;Fonts/WOODSTAMP&quot;); font-size: 42px; color: rgb(46, 38, 20); padding-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; margin-left: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; height: 30px;"/>
+                        <ui:Label text="Victory" class="resource-name" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; height: auto; -unity-text-align: upper-center; color: rgb(46, 38, 20);"/>
+                    </ui:Image>
+                </ui:VisualElement>
+                <ui:VisualElement class="resource-item" style="background-color: rgba(53, 46, 40, 0); margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;">
+                    <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=735387186&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#icon_road" tint-color="rgb(255, 198, 71)" class="resource-icon--size" style="width: 80px; height: 80px; align-items: center; justify-content: center; left: auto;">
+                        <ui:Label name="stat-road" text="0" class="resource-count" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; height: 30px;"/>
+                        <ui:Label text="Road" class="resource-name" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; height: auto; -unity-text-align: upper-center;"/>
+                    </ui:Image>
+                </ui:VisualElement>
+                <ui:VisualElement class="resource-item" style="background-color: rgba(53, 46, 40, 0); padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;">
+                    <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-80828236&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#icon_knight" tint-color="rgb(250, 117, 98)" class="resource-icon--size" style="width: 80px; height: 80px; justify-content: center; align-items: center; left: auto;">
+                        <ui:Label name="stat-knight" text="0" class="resource-count" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; height: 30px;"/>
+                        <ui:Label text="knight" class="resource-name" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; height: auto; -unity-text-align: upper-center;"/>
+                    </ui:Image>
+                </ui:VisualElement>
+                <ui:VisualElement class="resource-item" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; background-color: rgba(53, 46, 40, 0);">
+                    <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-653546525&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#icon_dev" tint-color="rgb(64, 196, 202)" class="resource-icon--size" style="width: 80px; height: 80px; justify-content: center; align-items: center; left: auto;">
+                        <ui:Label name="stat-dev-total" text="0" class="resource-count" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; height: 30px;"/>
+                        <ui:Label text="Development" class="resource-name" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; height: auto; -unity-text-align: upper-center;"/>
+                    </ui:Image>
+                </ui:VisualElement>
+                <ui:VisualElement class="resource-item" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; background-color: rgba(53, 46, 40, 0);">
+                    <ui:Image source="project://database/Assets/Art/Sprites/Art03.psd?fileID=-619676638&amp;guid=1fc897e77c849844bbead236967e7c90&amp;type=3#icon_res" tint-color="rgb(42, 197, 114)" class="resource-icon--size" style="width: 80px; height: 80px; align-items: center; justify-content: center; left: auto;">
+                        <ui:Label name="stat-res-total" text="0" class="resource-count" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; height: 30px;"/>
+                        <ui:Label text="Resources" class="resource-name" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; height: auto; -unity-text-align: upper-center;"/>
+                    </ui:Image>
+                </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="devcard-quickslot-bar" class="devcard-quickslot-bar"/>
         </ui:VisualElement>

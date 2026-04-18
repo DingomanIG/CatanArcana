@@ -556,7 +556,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: 80}
+  m_AnchoredPosition: {x: 0, y: 30}
   m_SizeDelta: {x: 0, y: 200}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &519167961
@@ -581,7 +581,11 @@ MonoBehaviour:
   prefabDevRoadBuilding: {fileID: 155265597243912675, guid: 6631172c6d46d6e4b80c071da83dfced, type: 3}
   prefabDevYearOfPlenty: {fileID: 1710745273368870169, guid: 8c2777a646268084285e76a62e464992, type: 3}
   prefabDevMonopoly: {fileID: 3653908410794158592, guid: 91ea52583b72ffb43912e0231aae2562, type: 3}
-  prefabDevVictoryPoint: {fileID: 4128993402108361283, guid: 38718f482f89a314ab1ffea431a762e1, type: 3}
+  prefabDevChapel: {fileID: 992351031135553875, guid: a7822390489abbd49985db3f128b5774, type: 3}
+  prefabDevLibrary: {fileID: 4128993402108361283, guid: 38718f482f89a314ab1ffea431a762e1, type: 3}
+  prefabDevMarket: {fileID: 6470536323365050283, guid: 8cde0822263ca284b80e9f2a85460cf9, type: 3}
+  prefabDevGreatHall: {fileID: 6956429684155036188, guid: b3139ebd53a401c4689e958e962e2044, type: 3}
+  prefabDevUniversity: {fileID: 2231203641936518662, guid: bf952d148f21b774198607bb60e45313, type: 3}
   prefabBonusLongestRoad: {fileID: 958015670188569010, guid: 0981ac3b5a37b164bb8b4a9a36b22b6a, type: 3}
   prefabBonusLargestArmy: {fileID: 3518116161847623747, guid: 2efe61341702dca4eb735a187651290b, type: 3}
   cardContainer: {fileID: 519167960}
@@ -889,6 +893,7 @@ RectTransform:
   - {fileID: 473589622541142184}
   - {fileID: 77189893705424766}
   - {fileID: 2203824930199972248}
+  - {fileID: 1098136314}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -945,6 +950,81 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1098136313
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1098136314}
+  - component: {fileID: 1098136316}
+  - component: {fileID: 1098136315}
+  m_Layer: 5
+  m_Name: Image
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1098136314
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1098136313}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 654641475}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1098136315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1098136313}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1098136316
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1098136313}
+  m_CullTransparentMesh: 1
 --- !u!1 &1234567890
 GameObject:
   m_ObjectHideFlags: 0

@@ -20,9 +20,19 @@ PrefabInstance:
       propertyPath: m_Color.r
       value: 0.48627454
       objectReference: {fileID: 0}
+    - target: {fileID: 143128104514801222, guid: 855c929444285214fa66df8c175172ab, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 2100000, guid: d230a46b0212b4245b675b5c1d50e674, type: 2}
     - target: {fileID: 1102159994557979912, guid: 855c929444285214fa66df8c175172ab, type: 3}
       propertyPath: m_Name
       value: DevCard_Longest Road Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 1187124595799828554, guid: 855c929444285214fa66df8c175172ab, type: 3}
+      propertyPath: m_text
+      value: '2
+
+'
       objectReference: {fileID: 0}
     - target: {fileID: 1309603061488482678, guid: 855c929444285214fa66df8c175172ab, type: 3}
       propertyPath: m_Pivot.x
@@ -108,6 +118,14 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 1460021258, guid: 1fc897e77c849844bbead236967e7c90, type: 3}
+    - target: {fileID: 3291728972036600373, guid: 855c929444285214fa66df8c175172ab, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 2100000, guid: d8c904411c36cd843b321342f0fea4aa, type: 2}
+    - target: {fileID: 4387533923813456030, guid: 855c929444285214fa66df8c175172ab, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6842350549569608769, guid: 855c929444285214fa66df8c175172ab, type: 3}
       propertyPath: m_text
       value: Longest Road
