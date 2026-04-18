@@ -14,11 +14,11 @@ public class SceneBuildSetup
         {
             new EditorBuildSettingsScene("Assets/Scenes/MainMenu.unity", true),
             new EditorBuildSettingsScene("Assets/Scenes/Lobby.unity", true),
-            new EditorBuildSettingsScene("Assets/Scenes/SampleScene.unity", true),
+            new EditorBuildSettingsScene("Assets/Scenes/ArcanaMerchant.unity", true),
         };
 
         EditorBuildSettings.scenes = scenes;
-        Debug.Log("[SceneBuildSetup] Build Settings 씬 등록 완료: MainMenu(0), Lobby(1), SampleScene(2)");
+        Debug.Log("[SceneBuildSetup] Build Settings 씬 등록 완료: MainMenu(0), Lobby(1), ArcanaMerchant(2)");
     }
 
     [InitializeOnLoadMethod]
@@ -26,7 +26,7 @@ public class SceneBuildSetup
     {
         // 씬이 등록 안 되어 있으면 자동 설정
         if (EditorBuildSettings.scenes.Length == 0 ||
-            (EditorBuildSettings.scenes.Length == 1 && EditorBuildSettings.scenes[0].path.Contains("SampleScene")))
+            (EditorBuildSettings.scenes.Length == 1 && EditorBuildSettings.scenes[0].path.Contains("ArcanaMerchant")))
         {
             SetupBuildScenes();
         }

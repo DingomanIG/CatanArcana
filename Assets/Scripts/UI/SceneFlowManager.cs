@@ -14,7 +14,7 @@ public class SceneFlowManager : MonoBehaviour
 
     public const string SCENE_MAIN_MENU = "MainMenu";
     public const string SCENE_LOBBY = "Lobby";
-    public const string SCENE_GAME = "SampleScene";
+    public const string SCENE_GAME = "ArcanaMerchant";
 
     // 씬 간 전달 데이터
     public string PlayerName { get; set; } = "Player";

@@ -28,7 +28,7 @@ Assets/
   Scenes/
     MainMenu.unity              # 메인 메뉴 씬
     Lobby.unity                 # 로비 대기실 씬
-    Game.unity                  # 인게임 씬 (기존 SampleScene)
+    ArcanaMerchant.unity        # 인게임 씬
   Scripts/
     IGameManager.cs             # 게임 매니저 인터페이스 + GamePhase
     LocalGameManager.cs         # 로컬 전용 게임 매니저

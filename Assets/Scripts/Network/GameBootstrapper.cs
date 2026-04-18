@@ -6,7 +6,7 @@ using Unity.Netcode;
 /// - 로컬 플레이: LocalGameManager 생성
 /// - 온라인 플레이: NetworkGameManager 프리팹 스폰 (호스트) / 자동 수신 (클라이언트)
 ///
-/// Game 씬(SampleScene)에 배치할 것.
+/// Game 씬(ArcanaMerchant)에 배치할 것.
 /// LocalGameManager가 씬에 이미 있다면 그것을 사용 (기존 호환).
 /// </summary>
 [DefaultExecutionOrder(-200)]
